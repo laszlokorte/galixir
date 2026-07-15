@@ -152,6 +152,12 @@ defmodule GalixirTest do
 
     assert PGA2.scale(0, a) ==
              {0, 0, 0, 0, 0, 0, 0, 0}
+
+    assert PGA2.scale(a, 3) ==
+             {3, -6, 9, -12, 15, -18, 21, -24}
+
+    assert PGA2.scale(a, 0) ==
+             {0, 0, 0, 0, 0, 0, 0, 0}
   end
 
   test "geometric product linearity" do

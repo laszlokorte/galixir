@@ -49,11 +49,19 @@ defmodule Galixir.Generator.LinearOps do
       end
 
     quote do
-      def scale(unquote(s), %__MODULE__{data: d}) do
+      def scale(unquote(s), %__MODULE__{data: d}) when is_number(unquote(s)) do
         %__MODULE__{data: scale(unquote(s), d)}
       end
 
-      def scale(unquote(s), unquote(tuple_ast(a))) do
+      def scale(unquote(s), unquote(tuple_ast(a))) when is_number(unquote(s)) do
+        unquote(tuple_ast(result))
+      end
+
+      def scale(%__MODULE__{data: d}, unquote(s)) when is_number(unquote(s)) do
+        %__MODULE__{data: scale(d, unquote(s))}
+      end
+
+      def scale(unquote(tuple_ast(a)), unquote(s)) when is_number(unquote(s)) do
         unquote(tuple_ast(result))
       end
     end
