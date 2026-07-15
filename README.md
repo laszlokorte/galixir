@@ -1,5 +1,7 @@
 # Galixir
 
+[![galixir](https://img.shields.io/hexpm/v/galixir)](https://hex.pm/packages/galixir)
+
 **!!!Still WIP/experimental!!!**
 
 Geometric Algebra implementation in Elixir.
