@@ -56,6 +56,7 @@ defmodule Galixir.GeometricAlgebra do
     inspect = Galixir.Generator.Inspect.inspect_impl(__CALLER__.module)
     basis_names = Galixir.Generator.basis_names(size)
     blade_indices = Galixir.Generator.blade_indices(dimension)
+    blade_aliases = Galixir.Generator.blade_aliases(dimension)
 
     quote do
       defstruct [:data]
@@ -64,6 +65,7 @@ defmodule Galixir.GeometricAlgebra do
       @table unquote(Macro.escape(table))
       @size unquote(size)
       @blade_indices unquote(Macro.escape(blade_indices))
+      @blade_aliases unquote(Macro.escape(blade_aliases))
 
       def new(basis \\ [])
 
@@ -86,8 +88,10 @@ defmodule Galixir.GeometricAlgebra do
       end
 
       def coefficient(%__MODULE__{data: data}, blade) do
-        index = Map.fetch!(@blade_indices, blade)
-        elem(data, index)
+        {canonical, sign} =
+          Map.get(@blade_aliases, blade, {blade, 1})
+
+        sign * elem(data, Map.fetch!(@blade_indices, canonical))
       end
 
       def size() do

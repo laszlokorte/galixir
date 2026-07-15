@@ -31,6 +31,58 @@ defmodule Galixir.Generator do
     end
   end
 
+  def blade_aliases(dimensions) do
+    blade_count = Bitwise.bsl(1, dimensions)
+
+    0..(blade_count - 1)
+    |> Enum.flat_map(fn mask ->
+      indices = bits_to_indices(mask)
+      canonical = blade_atom(mask, dimensions)
+
+      Enum.map(permutations(indices), fn perm ->
+        {
+          blade_atom_from_indices(perm),
+          {canonical, permutation_sign(perm)}
+        }
+      end)
+    end)
+    |> Map.new()
+  end
+
+  defp permutations([]), do: [[]]
+
+  defp permutations(list) do
+    for x <- list,
+        rest <- permutations(List.delete(list, x)) do
+      [x | rest]
+    end
+  end
+
+  defp blade_atom_from_indices([]), do: :scalar
+
+  defp blade_atom_from_indices(indices) do
+    :"e#{Enum.join(indices)}"
+  end
+
+  defp permutation_sign(list) do
+    inversions =
+      for {x, i} <- Enum.with_index(list),
+          y <- Enum.drop(list, i + 1),
+          x > y,
+          reduce: 0 do
+        acc -> acc + 1
+      end
+
+    if rem(inversions, 2) == 0, do: 1, else: -1
+  end
+
+  defp bits_to_indices(mask) do
+    for i <- 0..63,
+        Bitwise.band(mask, Bitwise.bsl(1, i)) != 0 do
+      i + 1
+    end
+  end
+
   defp blade_atom(0, _size), do: :scalar
 
   defp blade_atom(mask, size) do

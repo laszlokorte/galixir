@@ -950,6 +950,16 @@ defmodule GalixirTest do
     assert PGA3.distance(a, b) == 5.0
   end
 
+  test "coeffs" do
+    a = PGA3.new(e1: 1, e2: 2, e23: 4, e234: 5)
+
+    assert PGA3.coefficient(a, :e234) == 5
+    assert PGA3.coefficient(a, :e324) == -5
+    assert PGA3.coefficient(a, :e342) == 5
+    assert PGA3.coefficient(a, :e23) == 4
+    assert PGA3.coefficient(a, :e32) == -4
+  end
+
   defp tuple_add(a, b) do
     Tuple.to_list(a)
     |> Enum.zip(Tuple.to_list(b))
