@@ -1,6 +1,28 @@
 defmodule Galixir.Algebras.PGA3 do
   use Galixir.GeometricAlgebra, signature: {1, 1, 1, 0}, bases: {1, 2, 3, 0}
 
+  def origin do
+    point(0, 0, 0)
+  end
+
+  def ideal_point(x, y, z) do
+    new(
+      e032: x,
+      e013: y,
+      e021: z
+    )
+  end
+
+  def ideal_point?(p) do
+    homogeneous_grade(p) == 3 and
+      coefficient(p, :e123) == 0
+  end
+
+  def finite_point?(p) do
+    homogeneous_grade(p) == 3 and
+      coefficient(p, :e123) != 0
+  end
+
   def point(x, y, z) do
     new(
       e123: 1,
@@ -31,12 +53,49 @@ defmodule Galixir.Algebras.PGA3 do
     )
   end
 
-  def translation(v) do
+  def plane_from_normal_point(n, p) do
+    n = normalize(n)
+    {x, y, z} = point_coordinates(p)
+
+    a = coefficient(n, :e1)
+    b = coefficient(n, :e2)
+    c = coefficient(n, :e3)
+
+    plane(
+      a,
+      b,
+      c,
+      -(a * x + b * y + c * z)
+    )
+  end
+
+  def plane_normal(p) do
+    vector(
+      coefficient(p, :e1),
+      coefficient(p, :e2),
+      coefficient(p, :e3)
+    )
+  end
+
+  def unit_plane_normal(p) do
+    normalize(plane_normal(p))
+  end
+
+  def translator(v) do
     new(
       scalar: 1,
       e01: coefficient(v, :e1) / 2,
       e02: coefficient(v, :e2) / 2,
       e03: coefficient(v, :e3) / 2
+    )
+  end
+
+  def translator(x, y, z) do
+    new(
+      scalar: 1,
+      e01: x / 2,
+      e02: y / 2,
+      e03: z / 2
     )
   end
 
@@ -56,7 +115,31 @@ defmodule Galixir.Algebras.PGA3 do
         gp(b, a)
       )
 
-    scale(1 / :math.sqrt(s * 2), r)
+    normalize(r)
+  end
+
+  def rotor(line_axis, angle) do
+    line_axis = normalize_line(line_axis)
+
+    add(
+      new(scalar: :math.cos(angle / 2)),
+      scale(
+        -:math.sin(angle / 2),
+        line_axis
+      )
+    )
+    |> normalize()
+  end
+
+  def normalize_line(line) do
+    d = ideal_direction(line)
+
+    n =
+      gp(d, reverse(d))
+      |> scalar_part()
+      |> :math.sqrt()
+
+    scale(1 / n, line)
   end
 
   def direction_between_points(p, q) do
@@ -64,7 +147,7 @@ defmodule Galixir.Algebras.PGA3 do
 
     vector(
       coefficient(d, :e230),
-      -coefficient(d, :e130),
+      coefficient(d, :e013),
       coefficient(d, :e120)
     )
   end
@@ -100,11 +183,25 @@ defmodule Galixir.Algebras.PGA3 do
 
   def coincident?(a, b) do
     homogeneous_grade(a) == homogeneous_grade(b) and
-      normalize(a) == normalize(b)
+      zero?(sub(normalize(a), normalize(b)))
   end
 
-  def direction(line) do
+  def ideal_direction(line) do
     meet(line, new(e0: 1))
+  end
+
+  def direction_vector(line) do
+    d = ideal_direction(line)
+
+    vector(
+      coefficient(d, :e230),
+      coefficient(d, :e013),
+      coefficient(d, :e120)
+    )
+  end
+
+  def unit_direction_vector(line) do
+    normalize(direction_vector(line))
   end
 
   def transform(motor, object) do
@@ -116,7 +213,7 @@ defmodule Galixir.Algebras.PGA3 do
 
     {
       coefficient(p, :e230) / w,
-      -coefficient(p, :e130) / w,
+      coefficient(p, :e013) / w,
       coefficient(p, :e120) / w
     }
   end

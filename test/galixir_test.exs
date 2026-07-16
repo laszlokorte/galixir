@@ -919,7 +919,7 @@ defmodule GalixirTest do
     a = PGA3.point(0, 0, 0)
     b = PGA3.point(1, 0, 0)
 
-    dir = PGA3.direction(PGA3.line(a, b))
+    dir = PGA3.ideal_direction(PGA3.line(a, b))
 
     assert PGA3.ideal?(dir)
   end
@@ -938,8 +938,8 @@ defmodule GalixirTest do
       )
 
     assert PGA3.coincident?(
-             PGA3.direction(l1),
-             PGA3.direction(l2)
+             PGA3.ideal_direction(l1),
+             PGA3.ideal_direction(l2)
            )
   end
 
