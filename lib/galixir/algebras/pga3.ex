@@ -1,13 +1,12 @@
 defmodule Galixir.Algebras.PGA3 do
-  use Galixir.GeometricAlgebra,
-    signature: {1, 1, 1, 0}
+  use Galixir.GeometricAlgebra, signature: {1, 1, 1, 0}, bases: {1, 2, 3, 0}
 
   def point(x, y, z) do
     new(
       e123: 1,
-      e234: x,
-      e134: -y,
-      e124: z
+      e032: x,
+      e013: y,
+      e021: z
     )
   end
 
@@ -28,16 +27,16 @@ defmodule Galixir.Algebras.PGA3 do
       e1: a,
       e2: b,
       e3: c,
-      e4: -d
+      e0: d
     )
   end
 
   def translation(v) do
     new(
       scalar: 1,
-      e14: -coefficient(v, :e1) / 2,
-      e24: -coefficient(v, :e2) / 2,
-      e34: -coefficient(v, :e3) / 2
+      e01: coefficient(v, :e1) / 2,
+      e02: coefficient(v, :e2) / 2,
+      e03: coefficient(v, :e3) / 2
     )
   end
 
@@ -64,9 +63,9 @@ defmodule Galixir.Algebras.PGA3 do
     d = sub(q, p)
 
     vector(
-      coefficient(d, :e234),
-      -coefficient(d, :e134),
-      coefficient(d, :e124)
+      coefficient(d, :e230),
+      -coefficient(d, :e130),
+      coefficient(d, :e120)
     )
   end
 
@@ -96,7 +95,7 @@ defmodule Galixir.Algebras.PGA3 do
   end
 
   def ideal?(x) do
-    zero?(wedge(x, new(e4: 1)))
+    zero?(wedge(x, new(e0: 1)))
   end
 
   def coincident?(a, b) do
@@ -105,7 +104,7 @@ defmodule Galixir.Algebras.PGA3 do
   end
 
   def direction(line) do
-    meet(line, new(e4: 1))
+    meet(line, new(e0: 1))
   end
 
   def transform(motor, object) do
@@ -116,9 +115,9 @@ defmodule Galixir.Algebras.PGA3 do
     w = coefficient(p, :e123)
 
     {
-      coefficient(p, :e234) / w,
-      -coefficient(p, :e134) / w,
-      coefficient(p, :e124) / w
+      coefficient(p, :e230) / w,
+      -coefficient(p, :e130) / w,
+      coefficient(p, :e120) / w
     }
   end
 

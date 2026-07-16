@@ -188,7 +188,7 @@ defmodule GalixirTest do
     a = PGA2.new({0, 1, 0, 0, 1, 0, 0, 0})
     b = PGA2.new({0, 0, 1, 1, 0, 0, 0, 0})
 
-    assert PGA2.add(a, b) |> PGA2.gp(a) |> inspect == "1 - e2 - e12 + e23 + e123"
+    assert PGA2.add(a, b) |> PGA2.gp(a) |> inspect == "1 - e2 - e12 + e20 + e120"
   end
 
   test "scalars" do
@@ -200,13 +200,13 @@ defmodule GalixirTest do
   end
 
   test "named new" do
-    a = PGA2.new(e1: 1, e3: 1)
+    a = PGA2.new(e1: 1, e0: 1)
     b = PGA2.new(e2: 1, e12: 1)
 
-    assert PGA2.add(a, b) |> PGA2.gp(a) |> inspect == "1 - e2 - e12 + e23 + e123"
+    assert PGA2.add(a, b) |> PGA2.gp(a) |> inspect == "1 - e2 - e12 + e20 + e120"
 
     assert PGA2.new({1, 2, 3, 4, 5, 6, 7, 8}) ==
-             PGA2.new(scalar: 1, e1: 2, e2: 3, e12: 4, e3: 5, e13: 6, e23: 7, e123: 8)
+             PGA2.new(scalar: 1, e1: 2, e2: 3, e12: 4, e0: 5, e10: 6, e20: 7, e120: 8)
   end
 
   test "reverse" do
@@ -216,8 +216,8 @@ defmodule GalixirTest do
     e12 =
       PGA2.new(e12: 1)
 
-    e123 =
-      PGA2.new(e123: 1)
+    e120 =
+      PGA2.new(e120: 1)
 
     assert PGA2.reverse(e1) ==
              e1
@@ -225,8 +225,8 @@ defmodule GalixirTest do
     assert PGA2.reverse(e12) ==
              PGA2.new(e12: -1)
 
-    assert PGA2.reverse(e123) ==
-             PGA2.new(e123: -1)
+    assert PGA2.reverse(e120) ==
+             PGA2.new(e120: -1)
   end
 
   test "grade extraction" do
@@ -235,21 +235,21 @@ defmodule GalixirTest do
         scalar: 1,
         e1: 2,
         e12: 3,
-        e3: 4,
-        e123: 5
+        e0: 4,
+        e120: 5
       )
 
     assert PGA2.grade(a, 0) ==
              PGA2.new(scalar: 1)
 
     assert PGA2.grade(a, 1) ==
-             PGA2.new(e1: 2, e3: 4)
+             PGA2.new(e1: 2, e0: 4)
 
     assert PGA2.grade(a, 2) ==
              PGA2.new(e12: 3)
 
     assert PGA2.grade(a, 3) ==
-             PGA2.new(e123: 5)
+             PGA2.new(e120: 5)
   end
 
   test "grade of homogeneous blade" do
@@ -272,8 +272,8 @@ defmodule GalixirTest do
       PGA2.new(
         scalar: 1,
         e1: 2,
-        e23: 3,
-        e123: 4
+        e20: 3,
+        e120: 4
       )
 
     assert PGA2.grade(PGA2.grade(a, 1), 1) ==
@@ -306,10 +306,10 @@ defmodule GalixirTest do
 
   test "outer product of higher blades" do
     e12 = PGA2.new(e12: 1)
-    e3 = PGA2.new(e3: 1)
+    e0 = PGA2.new(e0: 1)
 
-    assert PGA2.wedge(e12, e3) ==
-             PGA2.new(e123: 1)
+    assert PGA2.wedge(e12, e0) ==
+             PGA2.new(e120: 1)
   end
 
   test "outer product is antisymmetric for vectors" do
@@ -322,7 +322,7 @@ defmodule GalixirTest do
   test "inner product of vectors" do
     e1 = PGA2.new(e1: 1)
     e2 = PGA2.new(e2: 1)
-    e3 = PGA2.new(e3: 1)
+    e0 = PGA2.new(e0: 1)
 
     assert PGA2.inner(e1, e1) ==
              PGA2.new(scalar: 1)
@@ -330,7 +330,7 @@ defmodule GalixirTest do
     assert PGA2.inner(e2, e2) ==
              PGA2.new(scalar: 1)
 
-    assert PGA2.inner(e3, e3) ==
+    assert PGA2.inner(e0, e0) ==
              PGA2.new()
 
     assert PGA2.inner(e1, e2) ==
@@ -347,20 +347,20 @@ defmodule GalixirTest do
 
   test "inner product grade" do
     a = PGA2.new(e12: 1)
-    b = PGA2.new(e123: 1)
+    b = PGA2.new(e120: 1)
 
     assert PGA2.inner(a, b) ==
-             PGA2.new(e3: -1)
+             PGA2.new(e0: -1)
   end
 
   test "scalar product" do
     e1 = PGA2.new(e1: 1)
     e2 = PGA2.new(e2: 1)
-    e3 = PGA2.new(e3: 1)
+    e0 = PGA2.new(e0: 1)
 
     assert PGA2.scalar_product(e1, e1) == 1
     assert PGA2.scalar_product(e2, e2) == 1
-    assert PGA2.scalar_product(e3, e3) == 0
+    assert PGA2.scalar_product(e0, e0) == 0
 
     assert PGA2.scalar_product(e1, e2) == 0
   end
@@ -397,13 +397,13 @@ defmodule GalixirTest do
   end
 
   test "pseudoscalar is not invertible" do
-    i = PGA2.new(e123: 1)
+    i = PGA2.new(e120: 1)
 
     assert PGA2.scalar_product(i, PGA2.reverse(i)) == 0
   end
 
   test "inverse rejects null vectors" do
-    e3 = PGA2.new(e3: 1)
+    e3 = PGA2.new(e0: 1)
 
     assert_raise ArgumentError, fn ->
       PGA2.inverse(e3)
@@ -411,7 +411,7 @@ defmodule GalixirTest do
   end
 
   test "inverse rejects null pseudoscalar" do
-    i = PGA2.new(e123: 1)
+    i = PGA2.new(e120: 1)
 
     assert_raise ArgumentError, fn ->
       PGA2.inverse(i)
@@ -453,7 +453,7 @@ defmodule GalixirTest do
           PGA2.new(e1: 1),
           PGA2.new(e2: 1),
           PGA2.new(e12: 1),
-          PGA2.new(e1: 2, e23: 3)
+          PGA2.new(e1: 2, e20: 3)
         ] do
       assert PGA2.gp(one, a) == a
       assert PGA2.gp(a, one) == a
@@ -463,7 +463,7 @@ defmodule GalixirTest do
   test "reverse is involution" do
     for a <- [
           PGA2.new(e1: 1, e12: 2),
-          PGA2.new(e123: 1),
+          PGA2.new(e120: 1),
           PGA2.new(scalar: 5)
         ] do
       assert PGA2.reverse(PGA2.reverse(a)) == a
@@ -472,7 +472,7 @@ defmodule GalixirTest do
 
   test "scalar product symmetry" do
     a = PGA2.new(e1: 2, e12: 3)
-    b = PGA2.new(e2: 4, e23: 5)
+    b = PGA2.new(e2: 4, e20: 5)
 
     assert PGA2.scalar_product(a, b) ==
              PGA2.scalar_product(b, a)
@@ -480,8 +480,8 @@ defmodule GalixirTest do
 
   test "multivector associativity" do
     a = PGA2.new(e1: 2, e12: -1)
-    b = PGA2.new(e2: 3, e23: 4)
-    c = PGA2.new(e3: 5, e123: 1)
+    b = PGA2.new(e2: 3, e20: 4)
+    c = PGA2.new(e0: 5, e120: 1)
 
     assert PGA2.gp(PGA2.gp(a, b), c) ==
              PGA2.gp(a, PGA2.gp(b, c))
@@ -489,7 +489,7 @@ defmodule GalixirTest do
 
   test "reverse reverses product order" do
     a = PGA2.new(e1: 1, e12: 2)
-    b = PGA2.new(e2: 3, e23: 4)
+    b = PGA2.new(e2: 3, e20: 4)
 
     assert PGA2.reverse(PGA2.gp(a, b)) ==
              PGA2.gp(PGA2.reverse(b), PGA2.reverse(a))
@@ -533,27 +533,27 @@ defmodule GalixirTest do
 
   test "dual of basis blades" do
     assert PGA2.dual(PGA2.new(scalar: 1)) ==
-             PGA2.new(e123: 1)
+             PGA2.new(e120: 1)
 
     assert PGA2.dual(PGA2.new(e1: 1)) ==
-             PGA2.new(e23: 1)
+             PGA2.new(e20: 1)
 
     assert PGA2.dual(PGA2.new(e2: 1)) ==
-             PGA2.new(e13: -1)
+             PGA2.new(e10: -1)
 
-    assert PGA2.dual(PGA2.new(e3: 1)) ==
+    assert PGA2.dual(PGA2.new(e0: 1)) ==
              PGA2.new(e12: 1)
 
     assert PGA2.dual(PGA2.new(e12: 1)) ==
-             PGA2.new(e3: 1)
+             PGA2.new(e0: 1)
 
-    assert PGA2.dual(PGA2.new(e13: 1)) ==
+    assert PGA2.dual(PGA2.new(e10: 1)) ==
              PGA2.new(e2: -1)
 
-    assert PGA2.dual(PGA2.new(e23: 1)) ==
+    assert PGA2.dual(PGA2.new(e20: 1)) ==
              PGA2.new(e1: 1)
 
-    assert PGA2.dual(PGA2.new(e123: 1)) ==
+    assert PGA2.dual(PGA2.new(e120: 1)) ==
              PGA2.new(scalar: 1)
   end
 
@@ -562,8 +562,8 @@ defmodule GalixirTest do
 
     assert PGA2.dual(a) ==
              PGA2.add(
-               PGA2.new(e23: 2),
-               PGA2.new(e3: 3)
+               PGA2.new(e20: 2),
+               PGA2.new(e0: 3)
              )
   end
 
@@ -577,11 +577,11 @@ defmodule GalixirTest do
       PGA2.new(scalar: 1),
       PGA2.new(e1: 1),
       PGA2.new(e2: 1),
-      PGA2.new(e3: 1),
+      PGA2.new(e0: 1),
       PGA2.new(e12: 1),
-      PGA2.new(e13: 1),
-      PGA2.new(e23: 1),
-      PGA2.new(e123: 1)
+      PGA2.new(e10: 1),
+      PGA2.new(e20: 1),
+      PGA2.new(e120: 1)
     ]
 
     for blade <- blades do
@@ -594,7 +594,7 @@ defmodule GalixirTest do
 
   test "dual distributes over addition" do
     a = PGA2.new(e1: 2, e12: 3)
-    b = PGA2.new(e2: -1, e23: 4)
+    b = PGA2.new(e2: -1, e20: 4)
 
     assert PGA2.dual(PGA2.add(a, b)) ==
              PGA2.add(PGA2.dual(a), PGA2.dual(b))
@@ -616,10 +616,10 @@ defmodule GalixirTest do
 
   test "wedge trivector" do
     e12 = PGA2.new(e12: 1)
-    e3 = PGA2.new(e3: 1)
+    e0 = PGA2.new(e0: 1)
 
-    assert PGA2.wedge(e12, e3) ==
-             PGA2.new(e123: 1)
+    assert PGA2.wedge(e12, e0) ==
+             PGA2.new(e120: 1)
   end
 
   test "join is anti-commutative up to scale" do
@@ -633,7 +633,7 @@ defmodule GalixirTest do
   test "wedge is associative" do
     a = PGA2.new(e1: 1)
     b = PGA2.new(e2: 1)
-    c = PGA2.new(e3: 1)
+    c = PGA2.new(e0: 1)
 
     assert PGA2.wedge(PGA2.wedge(a, b), c) ==
              PGA2.wedge(a, PGA2.wedge(b, c))
@@ -661,7 +661,7 @@ defmodule GalixirTest do
 
     assert PGA2.blade?(PGA2.new(e1: 1))
     assert PGA2.blade?(PGA2.new(e12: 1))
-    assert PGA2.blade?(PGA2.new(e123: 1))
+    assert PGA2.blade?(PGA2.new(e120: 1))
 
     refute PGA2.blade?(PGA2.new(e1: 1, e12: 1))
   end
@@ -681,7 +681,7 @@ defmodule GalixirTest do
 
   test "blade detection" do
     assert PGA2.blade?(PGA2.new(e1: 1, e2: 2))
-    assert PGA2.blade?(PGA2.new(e12: 1, e13: 2))
+    assert PGA2.blade?(PGA2.new(e12: 1, e10: 2))
 
     refute PGA2.blade?(PGA2.new(e1: 1, e12: 2))
   end
@@ -703,9 +703,9 @@ defmodule GalixirTest do
   end
 
   test "squared norm of null vector" do
-    e3 = PGA2.new(e3: 1)
+    e0 = PGA2.new(e0: 1)
 
-    assert PGA2.squared_norm(e3) == 0
+    assert PGA2.squared_norm(e0) == 0
   end
 
   test "squared norm uses reverse" do
@@ -720,7 +720,7 @@ defmodule GalixirTest do
   end
 
   test "norm of null vector" do
-    assert PGA2.norm(PGA2.new(e3: 1)) == 0
+    assert PGA2.norm(PGA2.new(e0: 1)) == 0
   end
 
   test "point constructor" do
@@ -731,9 +731,9 @@ defmodule GalixirTest do
     assert p ==
              PGA3.new(
                e123: 1,
-               e234: 2,
-               e134: -3,
-               e124: 4
+               e032: 2,
+               e013: 3,
+               e021: 4
              )
   end
 
@@ -951,11 +951,11 @@ defmodule GalixirTest do
   end
 
   test "coeffs" do
-    a = PGA3.new(e1: 1, e2: 2, e23: 4, e234: 5)
+    a = PGA3.new(e1: 1, e2: 2, e23: 4, e230: 5)
 
-    assert PGA3.coefficient(a, :e234) == 5
-    assert PGA3.coefficient(a, :e324) == -5
-    assert PGA3.coefficient(a, :e342) == 5
+    assert PGA3.coefficient(a, :e230) == 5
+    assert PGA3.coefficient(a, :e320) == -5
+    assert PGA3.coefficient(a, :e302) == 5
     assert PGA3.coefficient(a, :e23) == 4
     assert PGA3.coefficient(a, :e32) == -4
   end

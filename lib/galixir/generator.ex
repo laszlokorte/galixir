@@ -1,5 +1,8 @@
 defmodule Galixir.Generator do
-  def basis_names(size) do
+  def basis_names(bases) when is_list(bases) do
+    dimensions = Enum.count(bases)
+    size = Bitwise.bsl(1, dimensions)
+
     for mask <- 0..(size - 1) do
       name =
         if mask == 0 do
@@ -11,7 +14,7 @@ defmodule Galixir.Generator do
             |> Enum.reverse()
             |> Enum.with_index()
             |> Enum.filter(fn {bit, _} -> bit == 1 end)
-            |> Enum.map(fn {_, i} -> Integer.to_string(i + 1) end)
+            |> Enum.map(fn {_, i} -> Enum.at(bases, i) end)
             |> Enum.join()
 
           "e" <> blade
@@ -23,25 +26,27 @@ defmodule Galixir.Generator do
     end
   end
 
-  def blade_indices(dimensions) do
+  def blade_indices(bases) when is_list(bases) do
+    dimensions = Enum.count(bases)
     blade_count = Bitwise.bsl(1, dimensions)
 
     for mask <- 0..(blade_count - 1), into: %{} do
-      {blade_atom(mask, dimensions), mask}
+      {blade_atom(mask, bases), mask}
     end
   end
 
-  def blade_aliases(dimensions) do
+  def blade_aliases(bases) when is_list(bases) do
+    dimensions = Enum.count(bases)
     blade_count = Bitwise.bsl(1, dimensions)
 
     0..(blade_count - 1)
     |> Enum.flat_map(fn mask ->
       indices = bits_to_indices(mask)
-      canonical = blade_atom(mask, dimensions)
+      canonical = blade_atom(mask, bases)
 
       Enum.map(permutations(indices), fn perm ->
         {
-          blade_atom_from_indices(perm),
+          blade_atom_from_indices(for p <- perm, do: Enum.at(bases, p)),
           {canonical, permutation_sign(perm)}
         }
       end)
@@ -79,17 +84,17 @@ defmodule Galixir.Generator do
   defp bits_to_indices(mask) do
     for i <- 0..63,
         Bitwise.band(mask, Bitwise.bsl(1, i)) != 0 do
-      i + 1
+      i
     end
   end
 
-  defp blade_atom(0, _size), do: :scalar
+  defp blade_atom(0, _bases), do: :scalar
 
-  defp blade_atom(mask, size) do
+  defp blade_atom(mask, bases) do
     suffix =
-      for i <- 0..(size - 1),
+      for i <- 0..(Enum.count(bases) - 1),
           Bitwise.band(mask, Bitwise.bsl(1, i)) != 0 do
-        Integer.to_string(i + 1)
+        Enum.at(bases, i)
       end
       |> Enum.join()
 

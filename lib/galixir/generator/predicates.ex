@@ -69,4 +69,12 @@ defmodule Galixir.Generator.Predicates do
       end
     end
   end
+
+  def blade_check_impl do
+    quote do
+      def blade?(%__MODULE__{} = a) do
+        length(grades(a)) <= 1
+      end
+    end
+  end
 end

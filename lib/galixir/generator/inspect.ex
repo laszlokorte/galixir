@@ -1,7 +1,7 @@
 defmodule Galixir.Generator.Inspect do
-  def inspect_impl(module) do
+  def inspect_impl() do
     quote do
-      defimpl Inspect, for: unquote(module) do
+      defimpl Inspect, for: __MODULE__ do
         import Inspect.Algebra
 
         def inspect(value, _opts) do
