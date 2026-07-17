@@ -1,6 +1,14 @@
 defmodule Galixir.Algebras.PGA3 do
   use Galixir.GeometricAlgebra, signature: {1, 1, 1, 0}, bases: {1, 2, 3, 0}
 
+  def zero do
+    new()
+  end
+
+  def one() do
+    new(scalar: 1)
+  end
+
   def origin do
     point(0, 0, 0)
   end
@@ -242,7 +250,6 @@ defmodule Galixir.Algebras.PGA3 do
   end
 
   def dot(a, b) do
-    gp(a, b)
-    |> scalar_part()
+    gp(a, b) |> scalar_part()
   end
 end
