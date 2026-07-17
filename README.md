@@ -13,7 +13,7 @@ defmodule Example.PGA3 do
   # e1 squares to 1
   # e2 squares to 1
   # e3 squares to 1
-  # e4 squares to 0
+  # e0 squares to 0
   use Galixir.GeometricAlgebra,
     signature: {1, 1, 1, 0},
     bases: {1, 2, 3, 0}
@@ -32,13 +32,13 @@ defmodule Example do
 
   def align(ps, qs) do
     # https://observablehq.com/@enkimute/glu-lookat-in-3d-pga
-    initial_m = one = PGA3.new(scalar: 1)
-    initial_q = PGA3.dual(PGA3.new(scalar: 1))
+    initial_m = one = new(scalar: 1)
+    initial_q = dual(new(scalar: 1))
 
     Enum.zip_reduce(ps, qs, {initial_m, initial_q}, fn p, q, {m, prev_q} ->
-      p = prev_q |> PGA3.join(PGA3.transform(m, p)) |> normalize()
-      new_q = prev_q |> PGA3.join(q) |> normalize() |> PGA3.blade_inverse()
-      new_m = new_q |> PGA3.gp(p) |> add(one) |> PGA3.gp(m)
+      p = prev_q |> join(transform(m, p)) |> normalize()
+      new_q = prev_q |> join(q) |> normalize() |> blade_inverse()
+      new_m = new_q |> gp(p) |> add(one) |> gp(m)
 
       {new_m, new_q}
     end)
@@ -57,11 +57,17 @@ defmodule Example do
   end
 end
 
-eye = Galixir.Algebras.PGA3.point(x, y, z)
-target = Galixir.Algebras.PGA3.point(fx, fy, fz)
-pole = Galixir.Algebras.PGA3.ideal_point(0, roll, 1)
+eye = Galixir.Algebras.PGA3.point(3, 2, 1)
+target = Galixir.Algebras.PGA3.point(0, 1, 0)
+pole = Galixir.Algebras.PGA3.ideal_point(0, 0, 1)
 
 camera_transform = Example.look_at(eye, target, pole)
+
+point_in_world = Galixir.Algebras.PGA3.point(6, 5, 4)
+point_in_screen = {sx,sy,sz} = Galixir.Algebras.PGA3.transform(camera_transform, point_in_world)
+  |> Galixir.Algebras.PGA3.point_coordinates()
+fov = 2
+projected = {sx / sz * fov, sy / sz * fov}
 ```
 
 ## Installation
@@ -73,6 +79,8 @@ def deps do
   ]
 end
 ```
+
+This library is currently experimental, documentation is still missing. Contributions are welcome.
 
 ## Example
 
