@@ -34,7 +34,7 @@ defmodule Galixir.Blade do
 
   # Count swaps needed to move all basis vectors of a
   # before those of b into canonical order.
-  defp swap_sign(a, b) do
+  def swap_sign(a, b) do
     swaps =
       a
       |> bit_positions()
@@ -50,6 +50,27 @@ defmodule Galixir.Blade do
     else
       -1
     end
+  end
+
+  def dual_sign(mask, dimension) do
+    full = Bitwise.bsl(1, dimension) - 1
+    complement = Bitwise.bxor(mask, full)
+
+    swaps =
+      bit_positions(mask)
+      |> Enum.reduce(0, fn i, acc ->
+        # Number of basis vectors in the complement
+        # that must cross e_i.
+        acc +
+          popcount(
+            Bitwise.band(
+              complement,
+              Bitwise.bsl(1, i) - 1
+            )
+          )
+      end)
+
+    if rem(swaps, 2) == 0, do: 1, else: -1
   end
 
   defp popcount(n, acc \\ 0)

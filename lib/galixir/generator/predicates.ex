@@ -13,23 +13,18 @@ defmodule Galixir.Generator.Predicates do
         end
       end
 
-    checks =
-      for i <- 1..(blade_count - 1) do
-        quote do
-          unquote(Enum.at(a, i)) == 0
-        end
-      end
-
     quote do
       def scalar?(%__MODULE__{data: d}) do
         scalar?(d)
       end
 
-      def scalar?(unquote(tuple_ast(a))) do
+      def scalar?(unquote(tuple_ast(a)), eps \\ 1.0e-12) do
         unquote(
-          Enum.reduce(checks, quote(do: true), fn check, acc ->
+          Enum.reduce(1..(blade_count - 1), quote(do: true), fn i, acc ->
+            coeff = Enum.at(a, i)
+
             quote do
-              unquote(acc) and unquote(check)
+              unquote(acc) and abs(unquote(coeff)) < eps
             end
           end)
         )

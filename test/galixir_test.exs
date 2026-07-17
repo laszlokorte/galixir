@@ -539,7 +539,7 @@ defmodule GalixirTest do
              PGA2.new(e20: 1)
 
     assert PGA2.dual(PGA2.new(e2: 1)) ==
-             PGA2.new(e10: -1)
+             PGA2.new(e01: 1)
 
     assert PGA2.dual(PGA2.new(e0: 1)) ==
              PGA2.new(e12: 1)
@@ -640,13 +640,13 @@ defmodule GalixirTest do
   end
 
   test "normalize" do
-    assert PGA2.normalize(PGA2.new(e1: 5)) ==
+    assert PGA2.canonicalize(PGA2.new(e1: 5)) ==
              PGA2.new(e1: 1)
 
-    assert PGA2.normalize(PGA2.new(e12: -3)) ==
+    assert PGA2.canonicalize(PGA2.new(e12: -3)) ==
              PGA2.new(e12: 1)
 
-    assert PGA2.normalize(PGA2.new(scalar: 7)) ==
+    assert PGA2.canonicalize(PGA2.new(scalar: 7)) ==
              PGA2.new(scalar: 1)
   end
 
@@ -667,15 +667,15 @@ defmodule GalixirTest do
   end
 
   test "canonical normalize" do
-    assert PGA2.normalize(PGA2.new(e1: -5)) ==
+    assert PGA2.canonicalize(PGA2.new(e1: -5)) ==
              PGA2.new(e1: 1)
 
-    assert PGA2.normalize(PGA2.new(e12: -5)) ==
+    assert PGA2.canonicalize(PGA2.new(e12: -5)) ==
              PGA2.new(e12: 1)
   end
 
-  test "canonical normalize vector" do
-    assert PGA2.normalize(PGA2.new(e1: -5, e2: 10)) ==
+  test "canonicalize vector" do
+    assert PGA2.canonicalize(PGA2.new(e1: -5, e2: 10)) ==
              PGA2.new(e1: 0.5, e2: -1)
   end
 
@@ -821,8 +821,8 @@ defmodule GalixirTest do
 
     line = PGA3.line(a, b)
 
-    assert PGA3.normalize(line) ==
-             PGA3.normalize(PGA3.scale(-3, line))
+    assert PGA3.canonicalize(line) ==
+             PGA3.canonicalize(PGA3.scale(-3, line))
   end
 
   test "join of points creates a line" do
@@ -865,6 +865,13 @@ defmodule GalixirTest do
     line = PGA3.line(a, b)
 
     assert PGA3.contains?(line, p)
+  end
+
+  test "debug join via undual" do
+    ps = PGA3.dual(PGA3.new(scalar: 1))
+
+    assert PGA3.join(ps, PGA3.point(1, 2, 3)) == PGA3.point(1, 2, 3)
+    assert PGA3.join(PGA3.point(1, 2, 3), ps) == PGA3.point(1, 2, 3)
   end
 
   test "line does not contain point" do
@@ -958,6 +965,37 @@ defmodule GalixirTest do
     assert PGA3.coefficient(a, :e302) == 5
     assert PGA3.coefficient(a, :e23) == 4
     assert PGA3.coefficient(a, :e32) == -4
+  end
+
+  test "duals squared" do
+    assert PGA3.dual(PGA3.dual(PGA3.new(e0: 1))) == PGA3.new(e0: -1)
+    assert PGA3.dual(PGA3.dual(PGA3.new(e1: 1))) == PGA3.new(e1: -1)
+    assert PGA3.dual(PGA3.dual(PGA3.new(e2: 1))) == PGA3.new(e2: -1)
+    assert PGA3.dual(PGA3.dual(PGA3.new(e3: 1))) == PGA3.new(e3: -1)
+
+    assert PGA3.dual(PGA3.dual(PGA3.new(e01: 1))) == PGA3.new(e01: 1)
+    assert PGA3.dual(PGA3.dual(PGA3.new(e12: 1))) == PGA3.new(e12: 1)
+    assert PGA3.dual(PGA3.dual(PGA3.new(e23: 1))) == PGA3.new(e23: 1)
+    assert PGA3.dual(PGA3.dual(PGA3.new(e13: 1))) == PGA3.new(e13: 1)
+
+    assert PGA3.dual(PGA3.new(e12: 1)) == PGA3.new(e30: 1)
+    assert PGA3.dual(PGA3.new(e23: 1)) == PGA3.new(e10: 1)
+    assert PGA3.dual(PGA3.new(e13: 1)) == PGA3.new(e20: -1)
+  end
+
+  test "scalar? tolerates floating point noise" do
+    mv =
+      PGA3.new(
+        scalar: 1.0,
+        e20: 1.0e-15
+      )
+
+    assert PGA3.scalar?(mv)
+  end
+
+  test "scalar? threshold" do
+    assert PGA3.scalar?(PGA3.new(scalar: 1.0, e20: 1.0e-13))
+    refute PGA3.scalar?(PGA3.new(scalar: 1.0, e20: 1.0e-9))
   end
 
   defp tuple_add(a, b) do

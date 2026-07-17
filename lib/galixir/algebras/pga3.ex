@@ -5,14 +5,6 @@ defmodule Galixir.Algebras.PGA3 do
     point(0, 0, 0)
   end
 
-  def ideal_point(x, y, z) do
-    new(
-      e032: x,
-      e013: y,
-      e021: z
-    )
-  end
-
   def ideal_point?(p) do
     homogeneous_grade(p) == 3 and
       coefficient(p, :e123) == 0
@@ -153,7 +145,7 @@ defmodule Galixir.Algebras.PGA3 do
   end
 
   def join(a, b) do
-    dual(wedge(dual(a), dual(b)))
+    undual(wedge(dual(a), dual(b)))
   end
 
   def meet(a, b) do
@@ -183,7 +175,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   def coincident?(a, b) do
     homogeneous_grade(a) == homogeneous_grade(b) and
-      zero?(sub(normalize(a), normalize(b)))
+      zero?(sub(canonicalize(a), canonicalize(b)))
   end
 
   def ideal_direction(line) do
@@ -205,16 +197,24 @@ defmodule Galixir.Algebras.PGA3 do
   end
 
   def transform(motor, object) do
-    gp(gp(motor, object), reverse(motor))
+    gp(gp(motor, object), inverse(motor))
+  end
+
+  def ideal_point(x, y, z) do
+    new(
+      e032: x,
+      e013: y,
+      e021: z
+    )
   end
 
   def point_coordinates(p) do
     w = coefficient(p, :e123)
 
     {
-      coefficient(p, :e230) / w,
+      coefficient(p, :e032) / w,
       coefficient(p, :e013) / w,
-      coefficient(p, :e120) / w
+      coefficient(p, :e021) / w
     }
   end
 

@@ -4,8 +4,8 @@ defmodule Galixir.MixProject do
   def project do
     [
       app: :galixir,
-      version: "0.4.0",
-      elixir: "~> 1.20",
+      version: "0.11.0",
+      elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
       source_url: "https://github.com/laszlokorte/galixir",
       deps: deps(),

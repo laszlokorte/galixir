@@ -57,6 +57,10 @@ defmodule Galixir.GeometricAlgebra do
         @signature
       end
 
+      def blade_indices do
+        @blade_indices
+      end
+
       unquote(new_impl)
 
       unquote(Galixir.Generator.Cofficients.coefficient_impl())
@@ -66,7 +70,7 @@ defmodule Galixir.GeometricAlgebra do
 
       unquote_splicing(Galixir.Generator.LinearOps.linear_ops_impl(size))
       unquote(Galixir.Generator.Reverse.reverse_impl(size))
-      unquote(Galixir.Generator.Dual.dual_impl(dimension, signature))
+      unquote(Galixir.Generator.Dual.dual_impl(dimension))
       unquote(Galixir.Generator.Grade.grade_impl(dimension))
       unquote(Galixir.Generator.Canonical.max_abs_component_impl(dimension))
       unquote(Galixir.Generator.Predicates.zero_check_impl(dimension))
