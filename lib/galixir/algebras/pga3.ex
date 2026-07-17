@@ -106,7 +106,7 @@ defmodule Galixir.Algebras.PGA3 do
     s = 1 + scalar_part(gp(a, b))
 
     if s < 1.0e-8 do
-      raise "opposite vectors need special handling"
+      raise "opposite vectors need special handling, given (#{inspect(a)}) and (#{inspect(b)})"
     end
 
     r =

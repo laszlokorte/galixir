@@ -13,7 +13,7 @@ defmodule Galixir.Generator.Norm do
         n2 = squared_norm(a)
 
         if abs(n2) < 1.0e-12 do
-          raise ArgumentError, "cannot normalize null multivector"
+          raise ArgumentError, "cannot normalize given null multivector (#{inspect(a)})"
         end
 
         scale(1 / :math.sqrt(abs(n2)), a)
@@ -21,13 +21,13 @@ defmodule Galixir.Generator.Norm do
 
       def canonicalize(%__MODULE__{} = a) do
         unless blade?(a) do
-          raise ArgumentError, "can only canonicalize blades"
+          raise ArgumentError, "can only canonicalize blades, given: (#{inspect(a)})"
         end
 
         max = max_abs_component(a)
 
         if max == 0 do
-          raise ArgumentError, "cannot canonicalize zero multivector"
+          raise ArgumentError, "cannot canonicalize zero multivector, given: (#{inspect(a)})"
         end
 
         scale(canonical_sign(a) / max, a)

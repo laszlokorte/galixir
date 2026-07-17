@@ -22,7 +22,7 @@ defmodule Galixir.GeometricAlgebra do
       end
 
     if Enum.count(bases) != Enum.count(signature) do
-      raise "number of bases must be the same as the size of the signature"
+      raise "number of bases (given #{inspect(bases)}) must be the same as the size of the signature (given #{signature})"
     end
 
     table = Table.build(signature)

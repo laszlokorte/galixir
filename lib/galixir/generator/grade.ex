@@ -41,7 +41,7 @@ defmodule Galixir.Generator.Grade do
       unquote_splicing(clauses)
 
       def grade(t, r) when is_tuple(t) do
-        raise ArgumentError, "invalid grade #{r}"
+        raise ArgumentError, "invalid grade #{r} for given multivector (#{inspect(t)})"
       end
     end
   end

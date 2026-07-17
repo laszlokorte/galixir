@@ -8,7 +8,7 @@ defmodule Galixir.Generator.Inverse do
 
         unless scalar?(product) do
           raise ArgumentError,
-                "multivector is not invertible by reverse formula"
+                "given multivector (#{inspect(a)}) is not invertible by reverse formula"
         end
 
         denominator =
@@ -17,7 +17,7 @@ defmodule Galixir.Generator.Inverse do
 
         if denominator == 0 do
           raise ArgumentError,
-                "multivector is not invertible"
+                "multivector (#{inspect(a)}) is not invertible"
         end
 
         scale(1 / denominator, rev)
@@ -30,7 +30,7 @@ defmodule Galixir.Generator.Inverse do
           scalar_part(gp(b, rev))
 
         if abs(n) < 1.0e-12 do
-          raise "cannot invert null blade"
+          raise "cannot invert null blade (#{inspect(b)})"
         end
 
         scale(1 / n, rev)
