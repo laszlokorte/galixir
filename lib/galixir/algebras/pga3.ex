@@ -252,4 +252,53 @@ defmodule Galixir.Algebras.PGA3 do
   def dot(a, b) do
     gp(a, b) |> scalar_part()
   end
+
+  def align(ps, qs) do
+    # https://observablehq.com/@enkimute/glu-lookat-in-3d-pga
+    initial_m = one = new(scalar: 1)
+    initial_q = dual(new(scalar: 1))
+
+    Enum.zip_reduce(ps, qs, {initial_m, initial_q}, fn p, q, {m, prev_q} ->
+      p = prev_q |> join(transform(m, p)) |> normalize()
+      new_q = prev_q |> join(q) |> normalize() |> blade_inverse()
+      new_m = new_q |> gp(p) |> add(one) |> gp(m)
+
+      {new_m, new_q}
+    end)
+    |> elem(0)
+  end
+
+  def motor_log(mot) do
+    scale(
+      grade(mot, 2),
+      1 / coefficient(mot, :scalar)
+    )
+  end
+
+  def motor_exp(bv) do
+    bv2 = gp(bv, bv)
+    bv4 = grade(bv2, 4)
+
+    numerator =
+      add(
+        add(
+          new(scalar: 1),
+          bv
+        ),
+        scale(bv4, 0.5)
+      )
+
+    denominator =
+      1 - coefficient(bv2, :scalar)
+
+    scale(numerator, 1 / denominator)
+    |> normalize()
+  end
+
+  def motor_pow(motor, t) do
+    motor
+    |> motor_log()
+    |> scale(t)
+    |> motor_exp()
+  end
 end
