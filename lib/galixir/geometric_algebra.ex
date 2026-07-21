@@ -225,12 +225,15 @@ defmodule Galixir.GeometricAlgebra do
 
         unquote(Galixir.Generator.Cofficients.coefficient_impl(module, bases))
 
-        unquote_splicing(Galixir.Generator.GeometricProduct.geometric_product_impl(table, size))
+        unquote_splicing(
+          Galixir.Generator.GeometricProduct.geometric_product_impl(table, size, bases, signature)
+        )
+
         unquote(Galixir.Generator.WedgeProduct.wedge_product_impl(dimension, signature))
 
         unquote_splicing(Galixir.Generator.LinearOps.linear_ops_impl(size))
         unquote(Galixir.Generator.Reverse.reverse_impl(size))
-        unquote(Galixir.Generator.Dual.dual_impl(dimension))
+        unquote(Galixir.Generator.Dual.dual_impl(dimension, bases))
         unquote(Galixir.Generator.Grade.grade_impl(dimension))
         unquote(Galixir.Generator.Canonical.max_abs_component_impl(dimension, module, bases))
         unquote(Galixir.Generator.Canonical.canonical_sign_impl(dimension, module, bases))

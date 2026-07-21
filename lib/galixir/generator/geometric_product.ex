@@ -1,7 +1,7 @@
 defmodule Galixir.Generator.GeometricProduct do
   import Galixir.Generator.Utils, only: [sum: 1]
 
-  def geometric_product_impl(table, size) do
+  def geometric_product_impl(table, size, bases, signature) do
     lhs = Macro.var(:lhs, nil)
 
     rhs = Macro.var(:rhs, nil)
@@ -46,8 +46,29 @@ defmodule Galixir.Generator.GeometricProduct do
     result_tuple =
       {:{}, [], result}
 
+    first_blade = "e#{elem(bases, 0)}"
+    first_matric = elem(signature, 0)
+
     [
       quote do
+        @doc """
+        Computes the geometric product of two multivectors.
+
+        The geometric product is the fundamental multiplication operation of
+        geometric algebra. It combines the outer product and metric-dependent
+        inner product into a single associative operation.
+
+        The result depends on the algebra's metric signature.
+
+        ## Examples
+
+            iex> #{inspect(__MODULE__)}.gp(
+            ...>   #{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 1),
+            ...>   #{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 1)
+            ...> )
+            #{inspect(__MODULE__)}.new(scalar: #{unquote(first_matric)})
+
+        """
         def gp(%__MODULE__{data: lhs}, %__MODULE{data: rhs}) do
           %__MODULE__{data: gp(lhs, rhs)}
         end

@@ -1,7 +1,7 @@
 defmodule Galixir.Generator.Dual do
   import Galixir.Generator.Utils, only: [vars: 2, tuple_ast: 1, sum: 1]
 
-  def dual_impl(dimension) do
+  def dual_impl(dimension, bases) do
     blade_count = Bitwise.bsl(1, dimension)
     full_mask = blade_count - 1
 
@@ -45,7 +45,36 @@ defmodule Galixir.Generator.Dual do
         List.replace_at(acc, mask, value)
       end)
 
+    first_blade_mask = 1
+    dual_mask = Bitwise.bxor(first_blade_mask, full_mask)
+    dual_sign = Galixir.Blade.dual_sign(first_blade_mask, dimension)
+
+    first_blade = Galixir.Generator.blade_atom(first_blade_mask, bases)
+    dual_blade = Galixir.Generator.blade_atom(dual_mask, bases)
+
+    dual_value =
+      if dual_sign == 1 do
+        1
+      else
+        -1
+      end
+
     quote do
+      @doc """
+      Computes the dual of a multivector.
+
+      The dual maps each basis blade to its complementary blade with the
+      appropriate orientation sign. The complement is determined by the full
+      pseudoscalar of the algebra.
+
+      The operation is linear and applies independently to every coefficient.
+
+      ## Examples
+
+        iex> #{inspect(__MODULE__)}.dual(#{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 1))
+        #{inspect(__MODULE__)}.new(#{unquote(dual_blade)}: #{unquote(dual_value)})
+
+      """
       def dual(%__MODULE__{data: d}) do
         %__MODULE__{data: dual(d)}
       end
@@ -54,6 +83,21 @@ defmodule Galixir.Generator.Dual do
         unquote(tuple_ast(result))
       end
 
+      @doc """
+      Computes the inverse dual operation.
+
+      `undual/1` reverses the blade complement operation performed by `dual/1`.
+
+      For non-degenerate Euclidean algebras this corresponds to applying the
+      dual operation twice with the appropriate pseudoscalar factor. In
+      degenerate algebras the result depends on the implemented dual convention.
+
+      ## Examples
+
+          iex> #{inspect(__MODULE__)}.undual(#{inspect(__MODULE__)}.dual(#{inspect(__MODULE__)}.new(e1: 2)))
+          #{inspect(__MODULE__)}.new(e1: 2)
+
+      """
       def undual(%__MODULE__{data: d}) do
         %__MODULE__{data: undual(d)}
       end

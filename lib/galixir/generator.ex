@@ -177,9 +177,27 @@ defmodule Galixir.Generator do
     end
   end
 
-  defp blade_atom(0, _bases), do: :scalar
+  @doc """
+  Returns the canonical atom name for a blade mask.
 
-  defp blade_atom(mask, bases) do
+  The mask uses the internal bit representation where each bit corresponds
+  to a basis vector. The returned atom follows the algebra naming convention:
+
+      0     -> :scalar
+      1     -> :e1
+      3     -> :e12
+
+  ## Examples
+
+      iex> Galixir.Generator.blade_atom(0, {1, 2, 3})
+      :scalar
+
+      iex> Galixir.Generator.blade_atom(3, {1, 2, 3})
+      :e12
+  """
+  def blade_atom(0, _bases), do: :scalar
+
+  def blade_atom(mask, bases) do
     suffix =
       for i <- 0..(tuple_size(bases) - 1),
           Bitwise.band(mask, Bitwise.bsl(1, i)) != 0 do
