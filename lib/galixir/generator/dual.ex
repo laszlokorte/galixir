@@ -54,9 +54,9 @@ defmodule Galixir.Generator.Dual do
 
     dual_value =
       if dual_sign == 1 do
-        1
+        1.0
       else
-        -1
+        -1.0
       end
 
     quote do
@@ -71,8 +71,8 @@ defmodule Galixir.Generator.Dual do
 
       ## Examples
 
-        iex> #{inspect(__MODULE__)}.dual(#{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 1))
-        #{inspect(__MODULE__)}.new(#{unquote(dual_blade)}: #{unquote(dual_value)})
+        iex> #{inspect(__MODULE__)}.dual(#{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 1)) |> inspect
+        #{inspect(__MODULE__)}.new(#{unquote(dual_blade)}: #{unquote(dual_value)}) |> inspect
 
       """
       def dual(%__MODULE__{data: d}) do
@@ -94,8 +94,8 @@ defmodule Galixir.Generator.Dual do
 
       ## Examples
 
-          iex> #{inspect(__MODULE__)}.undual(#{inspect(__MODULE__)}.dual(#{inspect(__MODULE__)}.new(e1: 2)))
-          #{inspect(__MODULE__)}.new(e1: 2)
+          iex> #{inspect(__MODULE__)}.undual(#{inspect(__MODULE__)}.dual(#{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 2)))
+          #{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 2)
 
       """
       def undual(%__MODULE__{data: d}) do

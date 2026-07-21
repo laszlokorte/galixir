@@ -1,7 +1,7 @@
 defmodule Galixir.Generator.Grade do
   import Galixir.Generator.Utils, only: [blade_grade: 1, tuple_ast: 1]
 
-  def grade_impl(dimension) do
+  def grade_impl(dimension, bases) do
     blade_count = Bitwise.bsl(1, dimension)
 
     clauses =
@@ -21,7 +21,7 @@ defmodule Galixir.Generator.Grade do
               Enum.at(vars, mask)
             else
               quote do
-                0
+                0.0
               end
             end
           end
@@ -33,7 +33,31 @@ defmodule Galixir.Generator.Grade do
         end
       end
 
+    first_blade = "e#{elem(bases, 0)}"
+
     quote do
+      @doc """
+      Extracts the grade-`g` component of a multivector.
+
+      All coefficients whose basis blades are not of grade `g` are set to zero.
+
+      Raises `ArgumentError` if `g` is outside the range `0..dimension()`.
+
+      ## Examples
+
+          iex> #{inspect(__MODULE__)}.grade(
+          ...>   #{inspect(__MODULE__)}.new(scalar: 1, #{unquote(first_blade)}: 2),
+          ...>   1
+          ...> )
+          #{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 2)
+
+          iex> #{inspect(__MODULE__)}.grade(
+          ...>   #{inspect(__MODULE__)}.new(scalar: 1, #{unquote(first_blade)}: 2),
+          ...>   0
+          ...> )
+          #{inspect(__MODULE__)}.new(scalar: 1)
+
+      """
       def grade(%__MODULE__{data: d}, g) do
         %__MODULE__{data: grade(d, g)}
       end
@@ -46,7 +70,7 @@ defmodule Galixir.Generator.Grade do
     end
   end
 
-  def grades_impl(dimension) do
+  def grades_impl(dimension, bases) do
     blade_count = Bitwise.bsl(1, dimension)
 
     a =
@@ -84,7 +108,38 @@ defmodule Galixir.Generator.Grade do
         end
       end
 
+    first_blade = "e#{elem(bases, 0)}"
+
     quote do
+      @doc """
+      Returns the grades present in a multivector.
+
+      The returned list contains every grade with at least one non-zero
+      coefficient, ordered from lowest to highest.
+
+      ## Examples
+
+          iex> #{inspect(__MODULE__)}.grades(
+          ...>   #{inspect(__MODULE__)}.new(scalar: 1)
+          ...> )
+          [0]
+
+          iex> #{inspect(__MODULE__)}.grades(
+          ...>   #{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 2)
+          ...> )
+          [1]
+
+          iex> #{inspect(__MODULE__)}.grades(
+          ...>   #{inspect(__MODULE__)}.new(scalar: 1, #{unquote(first_blade)}: 2)
+          ...> )
+          [0, 1]
+
+          iex> #{inspect(__MODULE__)}.grades(
+          ...>   #{inspect(__MODULE__)}.new()
+          ...> )
+          []
+
+      """
       def grades(%__MODULE__{data: d}) do
         grades(d)
       end

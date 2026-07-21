@@ -1,6 +1,32 @@
 defmodule Galixir.Generator.Inspect do
-  def inspect_impl() do
+  def inspect_impl(bases) do
+    first_blade = "e#{elem(bases, 0)}"
+
     quote do
+      @doc """
+      Formats a multivector using standard geometric algebra notation.
+
+      Zero coefficients are omitted. Coefficients of `1` and `-1` are elided for
+      non-scalar basis blades.
+
+      ## Examples
+
+          iex> inspect(#{inspect(__MODULE__)}.new())
+          "0"
+
+          iex> inspect(#{inspect(__MODULE__)}.new(scalar: 2))
+          "2.0"
+
+          iex> inspect(#{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 1))
+          "#{unquote(first_blade)}"
+
+          iex> inspect(#{inspect(__MODULE__)}.new(scalar: 1, #{unquote(first_blade)}: 2))
+          "1.0 + 2.0#{unquote(first_blade)}"
+      """
+      def to_string(v) do
+        inspect(v)
+      end
+
       defimpl Inspect, for: __MODULE__ do
         import Inspect.Algebra
 

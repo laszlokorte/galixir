@@ -1,7 +1,7 @@
 defmodule Galixir.Generator.ScalarProduct do
   import Galixir.Generator.Utils, only: [tuple_ast: 1, sum: 1]
 
-  def scalar_product_impl(dimension, signature) do
+  def scalar_product_impl(dimension, signature, bases) do
     blade_count = Bitwise.bsl(1, dimension)
 
     raw_terms =
@@ -68,7 +68,30 @@ defmodule Galixir.Generator.ScalarProduct do
         end
       end
 
+    first_sig = elem(signature, 0)
+
+    first_basis = "e#{elem(bases, 0)}"
+
     quote do
+      @doc """
+      Computes the scalar product of two multivectors.
+
+      The scalar product is the grade-0 component of the geometric product:
+
+          <a b>₀
+
+      The result depends on the metric signature of the algebra. In particular,
+      basis vectors with negative or null squares affect the result.
+
+      ## Examples
+
+          iex> #{inspect(__MODULE__)}.scalar_product(
+          ...>   #{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 2),
+          ...>   #{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 3)
+          ...> )
+          #{unquote(6.0 * first_sig)}
+
+      """
       def scalar_product(%__MODULE__{data: a}, %__MODULE__{data: b}) do
         scalar_product(a, b)
       end

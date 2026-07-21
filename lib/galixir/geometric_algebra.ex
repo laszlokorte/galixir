@@ -229,28 +229,28 @@ defmodule Galixir.GeometricAlgebra do
           Galixir.Generator.GeometricProduct.geometric_product_impl(table, size, bases, signature)
         )
 
-        unquote(Galixir.Generator.WedgeProduct.wedge_product_impl(dimension, signature))
+        unquote(Galixir.Generator.WedgeProduct.wedge_product_impl(dimension, signature, bases))
 
         unquote_splicing(Galixir.Generator.LinearOps.linear_ops_impl(size))
-        unquote(Galixir.Generator.Reverse.reverse_impl(size))
+        unquote(Galixir.Generator.Reverse.reverse_impl(size, bases))
         unquote(Galixir.Generator.Dual.dual_impl(dimension, bases))
-        unquote(Galixir.Generator.Grade.grade_impl(dimension))
+        unquote(Galixir.Generator.Grade.grade_impl(dimension, bases))
+        unquote(Galixir.Generator.Grade.grades_impl(dimension, bases))
         unquote(Galixir.Generator.Canonical.max_abs_component_impl(dimension, module, bases))
         unquote(Galixir.Generator.Canonical.canonical_sign_impl(dimension, module, bases))
-        unquote(Galixir.Generator.Predicates.zero_check_impl(dimension))
-        unquote(Galixir.Generator.Grade.grades_impl(dimension))
-        unquote(Galixir.Generator.InnerProduct.inner_product_impl(signature))
-        unquote(Galixir.Generator.ScalarProduct.scalar_product_impl(dimension, signature))
+        unquote(Galixir.Generator.Predicates.zero_check_impl(dimension, bases))
+        unquote(Galixir.Generator.InnerProduct.inner_product_impl(signature, bases))
+        unquote(Galixir.Generator.ScalarProduct.scalar_product_impl(dimension, signature, bases))
 
-        unquote(Galixir.Generator.Inspect.inspect_impl())
+        unquote(Galixir.Generator.Inspect.inspect_impl(bases))
 
-        unquote(Galixir.Generator.Predicates.scalar_check_impl(dimension))
+        unquote(Galixir.Generator.Predicates.scalar_check_impl(dimension, bases))
 
         unquote_splicing(basis_names)
 
-        unquote(Inverse.inverse_impl())
+        unquote(Inverse.inverse_impl(signature, bases))
 
-        unquote(Predicates.blade_check_impl())
+        unquote(Predicates.blade_check_impl(bases))
 
         unquote(Galixir.Generator.Norm.norm_impl())
 

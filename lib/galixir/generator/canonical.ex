@@ -28,11 +28,11 @@ defmodule Galixir.Generator.Canonical do
 
   For a multivector:
 
-      3 + 2e1 - 5e12
+      3.0 + 2.0e1 - 5.0e12
 
   the maximum absolute component is:
 
-      5
+      5.0
 
   """
   def max_abs_component_impl(dimension, module, bases) do
@@ -60,10 +60,10 @@ defmodule Galixir.Generator.Canonical do
       ## Example
 
           iex> #{unquote(module)}.max_abs_component(#{unquote(module)}.new(#{unquote(blade)}: 2, scalar: 5))
-          5
+          5.0
 
           iex> #{unquote(module)}.max_abs_component(#{unquote(module)}.new(#{unquote(blade)}: 5, scalar: 2))
-          5
+          5.0
       """
       def max_abs_component(%__MODULE__{data: d}) do
         max_abs_component(d)

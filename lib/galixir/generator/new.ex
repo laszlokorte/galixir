@@ -8,7 +8,7 @@ defmodule Galixir.Generator.New do
       end
 
       def new(fields) when is_list(fields) do
-        coeffs = :erlang.make_tuple(@size, 0)
+        coeffs = :erlang.make_tuple(@size, 0.0)
 
         coeffs =
           Enum.reduce(fields, coeffs, fn {blade, coef}, acc ->

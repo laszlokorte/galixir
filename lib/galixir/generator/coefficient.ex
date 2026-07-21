@@ -25,7 +25,7 @@ defmodule Galixir.Generator.Cofficients do
         ...>   #{unquote(module)}.new(#{unquote(blade)}: 3),
         ...>   :#{unquote(blade)}
         ...> )
-        3
+        3.0
 
       """
       def coefficient(%__MODULE__{data: data}, blade) do
@@ -42,8 +42,8 @@ defmodule Galixir.Generator.Cofficients do
 
       ## Examples
 
-          iex> #{unquote(module)}.scalar_part(#{unquote(module)}.new(scalar: 5, #{unquote(blade)}: 2))
-          5
+          iex> #{unquote(module)}.scalar_part(#{unquote(module)}.new(scalar: 5.0, #{unquote(blade)}: 2.0))
+          5.0
 
       """
       def scalar_part(%__MODULE__{data: data}) do

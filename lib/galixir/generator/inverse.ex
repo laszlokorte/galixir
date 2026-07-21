@@ -1,6 +1,56 @@
 defmodule Galixir.Generator.Inverse do
-  def inverse_impl do
+  def inverse_impl(signature, bases) do
+    first_blade = "e#{elem(bases, 0)}"
+    metric = elem(signature, 0)
+
+    doc =
+      if metric != 0 do
+        quote do
+          @doc """
+            Computes the inverse of a multivector.
+
+            The inverse is computed using the reverse:
+
+            inverse(a) = reverse(a) / scalar_part(a * reverse(a))
+
+            This formula is valid when `a * reverse(a)` is a non-zero scalar.
+
+            Raises `ArgumentError` if the multivector is not invertible by this formula.
+
+
+              ## Examples
+
+                  iex> #{inspect(__MODULE__)}.inverse(
+                  ...>   #{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 2)
+                  ...> )|> inspect
+                  #{inspect(__MODULE__)}.new(#{unquote(first_blade)}: #{unquote(2 / metric / 4)}) |> inspect
+          """
+        end
+      else
+        quote do
+          @doc """
+            Computes the inverse of a multivector.
+
+            The inverse is computed using the reverse:
+
+            inverse(a) = reverse(a) / scalar_part(a * reverse(a))
+
+            This formula is valid when `a * reverse(a)` is a non-zero scalar.
+
+            Raises `ArgumentError` if the multivector is not invertible by this formula.
+
+              ## Examples
+
+                  iex> assert_raise ArgumentError, fn ->
+                  ...>   #{inspect(__MODULE__)}.inverse(#{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 1))
+                  ...> end
+          """
+        end
+      end
+
     quote do
+      unquote(doc)
+
       def inverse(%__MODULE__{} = a) do
         rev = reverse(a)
 

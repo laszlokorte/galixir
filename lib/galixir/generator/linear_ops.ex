@@ -20,7 +20,24 @@ defmodule Galixir.Generator.LinearOps do
         end
       end
 
-    function(:add, a, b, result)
+    function(
+      :add,
+      a,
+      b,
+      result,
+      quote do
+        """
+        Adds two multivectors component-wise.
+
+        ## Examples
+
+            iex> a = #{inspect(__MODULE__)}.new(scalar: 2)
+            iex> b = #{inspect(__MODULE__)}.new(scalar: 3)
+            iex> #{inspect(__MODULE__)}.add(a, b)
+            #{inspect(__MODULE__)}.new(scalar: 5)
+        """
+      end
+    )
   end
 
   defp sub(size) do
@@ -34,7 +51,24 @@ defmodule Galixir.Generator.LinearOps do
         end
       end
 
-    function(:sub, a, b, result)
+    function(
+      :sub,
+      a,
+      b,
+      result,
+      quote do
+        """
+        Subtracts two multivectors component-wise.
+
+        ## Examples
+
+            iex> a = #{inspect(__MODULE__)}.new(scalar: 5)
+            iex> b = #{inspect(__MODULE__)}.new(scalar: 2)
+            iex> #{inspect(__MODULE__)}.sub(a, b)
+            #{inspect(__MODULE__)}.new(scalar: 3)
+        """
+      end
+    )
   end
 
   defp scale(size) do
@@ -67,9 +101,10 @@ defmodule Galixir.Generator.LinearOps do
     end
   end
 
-  defp function(name, a, b, result) do
+  defp function(name, a, b, result, doc) do
     [
       quote do
+        @doc unquote(doc)
         def unquote(name)(
               %__MODULE__{data: a},
               %__MODULE__{data: b}

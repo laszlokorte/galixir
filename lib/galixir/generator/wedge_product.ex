@@ -1,7 +1,7 @@
 defmodule Galixir.Generator.WedgeProduct do
   import Galixir.Generator.Utils, only: [vars: 2, sum: 1, tuple_ast: 1]
 
-  def wedge_product_impl(dimension, signature) do
+  def wedge_product_impl(dimension, signature, bases) do
     blade_count = Bitwise.bsl(1, dimension)
 
     lhs = vars(:lhs, blade_count)
@@ -45,7 +45,74 @@ defmodule Galixir.Generator.WedgeProduct do
         |> sum()
       end
 
+    doc =
+      if tuple_size(signature) > 1 do
+        first_basis = "e#{elem(bases, 0)}"
+        second_basis = "e#{elem(bases, 1)}"
+        bibasis = "e#{elem(bases, 0)}#{elem(bases, 1)}"
+
+        quote do
+          @doc """
+          Computes the outer product (wedge product) of two multivectors.
+
+          The wedge product combines blades by joining their basis vectors. It is
+          antisymmetric:
+
+              a ∧ b = -(b ∧ a)
+
+          and vanishes when the operands share a basis vector.
+
+          ## Examples
+
+              iex> #{inspect(__MODULE__)}.wedge(
+              ...>   #{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 1),
+              ...>   #{inspect(__MODULE__)}.new(#{unquote(second_basis)}: 1)
+              ...> )
+              #{inspect(__MODULE__)}.new(#{unquote(bibasis)}: 1)
+
+              iex> #{inspect(__MODULE__)}.wedge(
+              ...>   #{inspect(__MODULE__)}.new(#{unquote(second_basis)}: 1),
+              ...>   #{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 1)
+              ...> )
+              #{inspect(__MODULE__)}.new(#{unquote(bibasis)}: -1)
+
+              iex> #{inspect(__MODULE__)}.wedge(
+              ...>   #{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 1),
+              ...>   #{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 1)
+              ...> )
+              #{inspect(__MODULE__)}.new()
+
+          """
+        end
+      else
+        first_basis = "e#{elem(bases, 0)}"
+
+        quote do
+          @doc """
+          Computes the outer product (wedge product) of two multivectors.
+
+          The wedge product combines blades by joining their basis vectors. It is
+          antisymmetric:
+
+              a ∧ b = -(b ∧ a)
+
+          and vanishes when the operands share a basis vector.
+
+          ## Examples
+
+              iex> #{inspect(__MODULE__)}.wedge(
+              ...>   #{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 1),
+              ...>   #{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 1)
+              ...> )
+              #{inspect(__MODULE__)}.new()
+
+          """
+        end
+      end
+
     quote do
+      unquote(doc)
+
       def wedge(%__MODULE__{data: a}, %__MODULE__{data: b}) do
         %__MODULE__{data: wedge(a, b)}
       end

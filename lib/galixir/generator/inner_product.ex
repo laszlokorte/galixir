@@ -1,7 +1,7 @@
 defmodule Galixir.Generator.InnerProduct do
   import Galixir.Generator.Utils, only: [vars: 2, sum: 1, blade_grade: 1, tuple_ast: 1]
 
-  def inner_product_impl(signature) do
+  def inner_product_impl(signature, bases) do
     dimension = tuple_size(signature)
     blade_count = Bitwise.bsl(1, dimension)
 
@@ -52,7 +52,30 @@ defmodule Galixir.Generator.InnerProduct do
         |> sum()
       end
 
+    first_blade = "e#{elem(bases, 0)}"
+
     quote do
+      @doc """
+      Computes the inner product of two multivectors.
+
+      The inner product retains only those terms of the geometric product whose
+      grade is the absolute difference of the operand grades.
+
+      For homogeneous blades `A` and `B`:
+
+          grade(inner(A, B)) = |grade(A) - grade(B)|
+
+      The exact result depends on the metric signature of the algebra.
+
+      ## Examples
+
+          iex> #{inspect(__MODULE__)}.inner(
+          ...>   #{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 2),
+          ...>   #{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 3)
+          ...> )
+          #{inspect(__MODULE__)}.new(scalar: #{unquote(elem(signature, 0) * 6)})
+
+      """
       def inner(%__MODULE__{data: a}, %__MODULE__{data: b}) do
         %__MODULE__{data: inner(a, b)}
       end
