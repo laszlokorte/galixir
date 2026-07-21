@@ -1,4 +1,5 @@
 defmodule Galixir.Generator.Predicates do
+  alias Galixir.Chain
   import Galixir.Generator.Utils, only: [tuple_ast: 1]
 
   def scalar_check_impl(dimension) do
@@ -20,13 +21,9 @@ defmodule Galixir.Generator.Predicates do
 
       def scalar?(unquote(tuple_ast(a)), eps \\ 1.0e-12) do
         unquote(
-          Enum.reduce(1..(blade_count - 1), quote(do: true), fn i, acc ->
-            coeff = Enum.at(a, i)
-
-            quote do
-              unquote(acc) and abs(unquote(coeff)) < eps
-            end
-          end)
+          Enum.map(1..(blade_count - 1), &Enum.at(a, &1))
+          |> Enum.map(&quote(do: abs(unquote(&1)) < eps))
+          |> Chain.and_chain()
         )
       end
     end
@@ -47,12 +44,7 @@ defmodule Galixir.Generator.Predicates do
         end
       end
 
-    condition =
-      Enum.reduce(checks, quote(do: true), fn check, acc ->
-        quote do
-          unquote(acc) and unquote(check)
-        end
-      end)
+    condition = checks |> Chain.and_chain()
 
     quote do
       def zero?(%__MODULE__{data: d}) do

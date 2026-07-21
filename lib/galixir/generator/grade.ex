@@ -68,11 +68,7 @@ defmodule Galixir.Generator.Grade do
               unquote(Enum.at(a, mask)) != 0
             end
           end
-          |> Enum.reduce(quote(do: false), fn check, acc ->
-            quote do
-              unquote(acc) or unquote(check)
-            end
-          end)
+          |> Galixir.Chain.or_chain()
 
         {g, condition}
       end

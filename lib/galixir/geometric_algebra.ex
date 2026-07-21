@@ -147,111 +147,118 @@ defmodule Galixir.GeometricAlgebra do
     blade_aliases = Galixir.Generator.blade_aliases(bases)
     new_impl = Galixir.Generator.New.new_impl(size)
 
-    quote do
-      defstruct [:data]
+    q =
+      quote do
+        defstruct [:data]
 
-      @signature unquote(Macro.escape(signature))
-      @table unquote(Macro.escape(table))
-      @size unquote(size)
-      @blade_indices unquote(Macro.escape(blade_indices))
-      @blade_aliases unquote(Macro.escape(blade_aliases))
+        @signature unquote(Macro.escape(signature))
+        @table unquote(Macro.escape(table))
+        @size unquote(size)
+        @blade_indices unquote(Macro.escape(blade_indices))
+        @blade_aliases unquote(Macro.escape(blade_aliases))
 
-      @doc """
-      Returns the number of coefficients stored by the algebra.
+        @doc """
+        Returns the number of coefficients stored by the algebra.
 
-      A dimension `n` algebra contains `2^n` basis blades.
-      """
-      def size() do
-        @size
-      end
+        A dimension `n` algebra contains `2^n` basis blades.
+        """
+        def size() do
+          @size
+        end
 
-      @doc """
-      Returns the dimension of the algebra.
+        @doc """
+        Returns the dimension of the algebra.
 
-      This is the number of basis vectors defined by the signature.
-      """
-      def dimension do
-        tuple_size(@signature)
-      end
+        This is the number of basis vectors defined by the signature.
+        """
+        def dimension do
+          tuple_size(@signature)
+        end
 
-      @doc """
-      Returns the metric signature of the algebra.
+        @doc """
+        Returns the metric signature of the algebra.
 
-      Example:
+        Example:
 
-          {1, 1, 1, 0}
+            {1, 1, 1, 0}
 
-      represents a projective geometric algebra with three Euclidean basis
-      vectors and one null basis vector.
-      """
-      def signature do
-        @signature
-      end
+        represents a projective geometric algebra with three Euclidean basis
+        vectors and one null basis vector.
+        """
+        def signature do
+          @signature
+        end
 
-      def blade_indices do
-        @blade_indices
-      end
+        def table do
+          @table
+        end
 
-      unquote(new_impl)
+        def blade_indices do
+          @blade_indices
+        end
 
-      unquote(Galixir.Generator.Cofficients.coefficient_impl(module, bases))
+        unquote(new_impl)
 
-      unquote_splicing(Galixir.Generator.GeometricProduct.geometric_product_impl(table, size))
-      unquote(Galixir.Generator.WedgeProduct.wedge_product_impl(dimension, signature))
+        unquote(Galixir.Generator.Cofficients.coefficient_impl(module, bases))
 
-      unquote_splicing(Galixir.Generator.LinearOps.linear_ops_impl(size))
-      unquote(Galixir.Generator.Reverse.reverse_impl(size))
-      unquote(Galixir.Generator.Dual.dual_impl(dimension))
-      unquote(Galixir.Generator.Grade.grade_impl(dimension))
-      unquote(Galixir.Generator.Canonical.max_abs_component_impl(dimension, module, bases))
-      unquote(Galixir.Generator.Canonical.canonical_sign_impl(dimension, module, bases))
-      unquote(Galixir.Generator.Predicates.zero_check_impl(dimension))
-      unquote(Galixir.Generator.Grade.grades_impl(dimension))
-      unquote(Galixir.Generator.InnerProduct.inner_product_impl(signature))
-      unquote(Galixir.Generator.ScalarProduct.scalar_product_impl(dimension, signature))
+        unquote_splicing(Galixir.Generator.GeometricProduct.geometric_product_impl(table, size))
+        unquote(Galixir.Generator.WedgeProduct.wedge_product_impl(dimension, signature))
 
-      unquote(Galixir.Generator.Inspect.inspect_impl())
+        unquote_splicing(Galixir.Generator.LinearOps.linear_ops_impl(size))
+        unquote(Galixir.Generator.Reverse.reverse_impl(size))
+        unquote(Galixir.Generator.Dual.dual_impl(dimension))
+        unquote(Galixir.Generator.Grade.grade_impl(dimension))
+        unquote(Galixir.Generator.Canonical.max_abs_component_impl(dimension, module, bases))
+        unquote(Galixir.Generator.Canonical.canonical_sign_impl(dimension, module, bases))
+        unquote(Galixir.Generator.Predicates.zero_check_impl(dimension))
+        unquote(Galixir.Generator.Grade.grades_impl(dimension))
+        unquote(Galixir.Generator.InnerProduct.inner_product_impl(signature))
+        unquote(Galixir.Generator.ScalarProduct.scalar_product_impl(dimension, signature))
 
-      unquote(Galixir.Generator.Predicates.scalar_check_impl(dimension))
+        unquote(Galixir.Generator.Inspect.inspect_impl())
 
-      unquote_splicing(basis_names)
+        unquote(Galixir.Generator.Predicates.scalar_check_impl(dimension))
 
-      unquote(Inverse.inverse_impl())
+        unquote_splicing(basis_names)
 
-      unquote(Predicates.blade_check_impl())
+        unquote(Inverse.inverse_impl())
 
-      unquote(Galixir.Generator.Norm.norm_impl())
+        unquote(Predicates.blade_check_impl())
 
-      def commutator(a, b) do
-        scale(
-          0.5,
-          sub(gp(a, b), gp(b, a))
-        )
-      end
+        unquote(Galixir.Generator.Norm.norm_impl())
 
-      def wedge_all(vectors) do
-        Enum.reduce(vectors, fn v, acc ->
-          wedge(acc, v)
-        end)
-      end
-
-      def rotor_between_frames(source, target) do
-        source_blade = wedge_all(source)
-        target_blade = wedge_all(target)
-
-        x =
-          gp(
-            target_blade,
-            blade_inverse(source_blade)
+        def commutator(a, b) do
+          scale(
+            0.5,
+            sub(gp(a, b), gp(b, a))
           )
+        end
 
-        normalize(
-          add(
-            new(scalar: 1),
-            x
+        def wedge_all(vectors) do
+          Enum.reduce(vectors, fn v, acc ->
+            wedge(acc, v)
+          end)
+        end
+
+        def rotor_between_frames(source, target) do
+          source_blade = wedge_all(source)
+          target_blade = wedge_all(target)
+
+          x =
+            gp(
+              target_blade,
+              blade_inverse(source_blade)
+            )
+
+          normalize(
+            add(
+              new(scalar: 1),
+              x
+            )
           )
-        )
+        end
       end
-    end
+
+    q
   end
 end
