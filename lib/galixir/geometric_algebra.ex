@@ -200,7 +200,7 @@ defmodule Galixir.GeometricAlgebra do
         ## Example
 
             iex> #{inspect(__MODULE__)}.table() |> Map.has_key?({#{unquote(elem(bases, 0))}, #{unquote(elem(bases, 0))}})
-            true
+            #{unquote(elem(signature, 0) != 0)}
         """
         def table do
           @table
