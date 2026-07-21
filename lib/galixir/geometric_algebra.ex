@@ -189,10 +189,34 @@ defmodule Galixir.GeometricAlgebra do
           @signature
         end
 
+        @doc """
+        Returns the multiplication table for the algebra.
+
+        The table contains precomputed geometric products between basis blades.
+        Each entry maps `{left_blade, right_blade}` to `{coefficient, result_blade}`.
+
+        The blades are represented internally as bitmasks.
+
+        ## Example
+
+            iex> #{inspect(__MODULE__)}.table() |> Map.has_key?({#{unquote(elem(bases, 0))}, #{unquote(elem(bases, 0))}})
+            true
+        """
         def table do
           @table
         end
 
+        @doc """
+        Returns the mapping between blade names and storage indices.
+
+        Blade coefficients are stored in a fixed-size tuple. This map translates
+        canonical blade names into their corresponding tuple index.
+
+        ## Example
+
+            iex> #{inspect(__MODULE__)}.blade_indices()[:e#{unquote(elem(bases, 0))}]
+            1
+        """
         def blade_indices do
           @blade_indices
         end
