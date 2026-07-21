@@ -1,6 +1,10 @@
 defmodule GalixirTest do
   use ExUnit.Case
   doctest Galixir
+  doctest Galixir.Blade
+  doctest Galixir.Generator
+  doctest Galixir.Table
+  doctest Galixir.GeometricAlgebra
 
   alias Galixir.Algebras.PGA2
   alias Galixir.Algebras.PGA3
@@ -12,23 +16,23 @@ defmodule GalixirTest do
   end
 
   test "multiply" do
-    assert Galixir.Blade.multiply(1, 1, [1, 1, 0]) == {1, 0}
+    assert Galixir.Blade.multiply(1, 1, {1, 1, 0}) == {1, 0}
   end
 
   test "blades" do
     # e1 * e2 = e12
-    assert Galixir.Blade.multiply(1, 2, [1, 1, 0]) == {1, 3}
+    assert Galixir.Blade.multiply(1, 2, {1, 1, 0}) == {1, 3}
 
     # e2 * e1 = -e12
-    assert Galixir.Blade.multiply(2, 1, [1, 1, 0]) == {-1, 3}
+    assert Galixir.Blade.multiply(2, 1, {1, 1, 0}) == {-1, 3}
 
     # e3 * e3 = 0
-    assert Galixir.Blade.multiply(4, 4, [1, 1, 0]) == {0, 0}
+    assert Galixir.Blade.multiply(4, 4, {1, 1, 0}) == {0, 0}
   end
 
   test "table" do
-    table = Table.build([1, 1, 0])
-    table2 = Table.build([1, 1, 1])
+    table = Table.build({1, 1, 0})
+    table2 = Table.build({1, 1, 1})
 
     assert table[{1, 1}] == {1, 0}
     assert table[{1, 2}] == {1, 3}

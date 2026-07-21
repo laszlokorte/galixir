@@ -2,7 +2,7 @@ defmodule Galixir.Generator.InnerProduct do
   import Galixir.Generator.Utils, only: [vars: 2, sum: 1, blade_grade: 1, tuple_ast: 1]
 
   def inner_product_impl(signature) do
-    dimension = length(signature)
+    dimension = tuple_size(signature)
     blade_count = Bitwise.bsl(1, dimension)
 
     lhs = vars(:lhs, blade_count)
