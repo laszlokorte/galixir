@@ -239,7 +239,9 @@ defmodule Galixir.GeometricAlgebra do
         unquote(Galixir.Generator.Canonical.max_abs_component_impl(dimension, module, bases))
         unquote(Galixir.Generator.Canonical.canonical_sign_impl(dimension, module, bases))
         unquote(Galixir.Generator.Predicates.zero_check_impl(dimension, bases))
-        unquote(Galixir.Generator.InnerProduct.inner_product_impl(signature, bases))
+        unquote(Galixir.Generator.InnerProduct.inner_product_impl(signature, bases, :inner))
+        unquote(Galixir.Generator.InnerProduct.inner_product_impl(signature, bases, :left))
+        unquote(Galixir.Generator.InnerProduct.inner_product_impl(signature, bases, :right))
         unquote(Galixir.Generator.ScalarProduct.scalar_product_impl(dimension, signature, bases))
 
         unquote(Galixir.Generator.Inspect.inspect_impl(bases))

@@ -15,8 +15,8 @@ defmodule Galixir.Algebras.CGA2 do
 
   The conformal basis is defined as:
 
-      e_inf = em - ep
-      e_o   = (em + ep) / 2
+      e_inf = em + ep
+      e_o   = (ep - em) / 2
 
   Points are embedded using the standard conformal embedding:
 
@@ -58,10 +58,10 @@ defmodule Galixir.Algebras.CGA2 do
 
   The infinity vector represents the point at infinity in conformal space:
 
-      e_inf = e_m - e_p
+      e_inf = e_m + e_p
   """
   def e_inf do
-    new(em: 1, ep: -1)
+    new(em: 1, ep: 1)
   end
 
   @doc """
@@ -69,14 +69,14 @@ defmodule Galixir.Algebras.CGA2 do
 
   The origin is defined as:
 
-      e_o = (e_m + e_p) / 2
+      e_o = (e_m - e_p) / 2
   """
   def e_o do
     scale(
       0.5,
       add(
         new(em: 1),
-        new(ep: 1)
+        new(ep: -1)
       )
     )
   end
@@ -140,14 +140,14 @@ defmodule Galixir.Algebras.CGA2 do
 
   The returned multivector represents the conformal circle object.
   """
-  def circle(center, radius) do
-    {x, y} = point_coordinates(center)
-
-    sub(
-      point(x, y),
-      scale(
-        0.5 * radius * radius,
-        e_inf()
+  def circle(p, r) do
+    dual(
+      sub(
+        p,
+        scale(
+          0.5 * r * r,
+          e_inf()
+        )
       )
     )
   end
@@ -208,7 +208,12 @@ defmodule Galixir.Algebras.CGA2 do
   Currently implemented as the outer product.
   """
   def meet(a, b) do
-    wedge(a, b)
+    dual(
+      wedge(
+        dual(a),
+        dual(b)
+      )
+    )
   end
 
   @doc """
@@ -268,16 +273,6 @@ defmodule Galixir.Algebras.CGA2 do
   """
   def dot(a, b) do
     scalar_part(gp(a, b))
-  end
-
-  @doc """
-  Computes the CGA dual of a multivector.
-
-  The dual is computed using the inverse pseudoscalar.
-  """
-  def dual(x) do
-    blade_inverse(pseudoscalar())
-    |> gp(x)
   end
 
   @doc """

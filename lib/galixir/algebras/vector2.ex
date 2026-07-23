@@ -124,26 +124,6 @@ defmodule Galixir.Algebras.Vector2 do
     )
   end
 
-  # ----------------
-  # Geometric products
-  # ----------------
-
-  @doc """
-  Computes the outer product of two vectors.
-
-  Returns the grade-2 part:
-
-      a ∧ b
-
-  which is a scalar multiple of the pseudoscalar.
-  """
-  def wedge(a, b) do
-    grade(
-      gp(a, b),
-      2
-    )
-  end
-
   @doc """
   Computes the signed 2D cross product.
 

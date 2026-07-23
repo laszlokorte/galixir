@@ -127,23 +127,6 @@ defmodule Galixir.Algebras.Vector3 do
   end
 
   # ----------------
-  # Exterior product
-  # ----------------
-
-  @doc """
-  Computes the outer product of two vectors.
-
-  The result is a bivector representing the oriented plane spanned
-  by the two vectors.
-  """
-  def wedge(a, b) do
-    grade(
-      gp(a, b),
-      2
-    )
-  end
-
-  # ----------------
   # Cross product
   # ----------------
 

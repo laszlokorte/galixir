@@ -1002,6 +1002,78 @@ defmodule GalixirTest do
     refute PGA3.scalar?(PGA3.new(scalar: 1.0, e20: 1.0e-9))
   end
 
+  test "left contraction of vector with vector gives scalar" do
+    e1 = PGA3.new(e1: 1)
+    e2 = PGA3.new(e2: 1)
+
+    assert PGA3.left_contraction(e1, e1) ==
+             PGA3.new(scalar: 1)
+
+    assert PGA3.left_contraction(e1, e2) ==
+             PGA3.new()
+  end
+
+  test "right contraction of vector with vector gives scalar" do
+    e1 = PGA3.new(e1: 1)
+    e2 = PGA3.new(e2: 1)
+
+    assert PGA3.right_contraction(e1, e1) ==
+             PGA3.new(scalar: 1)
+
+    assert PGA3.right_contraction(e1, e2) ==
+             PGA3.new()
+  end
+
+  test "inner vector product" do
+    e1 = PGA3.new(e1: 1)
+
+    assert PGA3.inner(e1, e1) ==
+             PGA3.new(scalar: 1)
+  end
+
+  test "left contraction vector into bivector" do
+    e1 = PGA3.new(e1: 1)
+    e12 = PGA3.new(e12: 1)
+
+    assert PGA3.left_contraction(e1, e12) ==
+             PGA3.new(e2: 1)
+
+    assert PGA3.left_contraction(
+             PGA3.new(e2: 1),
+             e12
+           ) ==
+             PGA3.new(e1: -1)
+  end
+
+  test "right contraction bivector with vector" do
+    e12 = PGA3.new(e12: 1)
+
+    assert PGA3.right_contraction(
+             e12,
+             PGA3.new(e1: 1)
+           ) ==
+             PGA3.new(e2: -1)
+
+    assert PGA3.right_contraction(
+             e12,
+             PGA3.new(e2: 1)
+           ) ==
+             PGA3.new(e1: 1)
+  end
+
+  test "ideal basis contraction is null" do
+    e0 = PGA3.new(e0: 1)
+
+    assert PGA3.inner(e0, e0) ==
+             PGA3.new()
+
+    assert PGA3.left_contraction(e0, e0) ==
+             PGA3.new()
+
+    assert PGA3.right_contraction(e0, e0) ==
+             PGA3.new()
+  end
+
   defp tuple_add(a, b) do
     Tuple.to_list(a)
     |> Enum.zip(Tuple.to_list(b))
