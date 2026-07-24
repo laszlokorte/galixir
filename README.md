@@ -86,4 +86,10 @@ This library is currently experimental, documentation is still missing. Contribu
 
 [This Livebook](./guides/example.livemd) shows an example of how to used 3D Projective Geometric Algebra (PGA3) to render a 3D scene as SVG.
 
-![Preview Screenshot](./guides/preview.png)
+## 3d Projective Geometric Algebra
+
+![Preview Screenshot for projective geometric algebra in 3d](./guides/pga3.png)
+
+# 2d Conformal Geometric Algebra
+
+![Preview Screenshot for conformal geometric algebra in 2d](./guides/cga2.png)
