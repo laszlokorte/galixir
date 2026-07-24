@@ -15,8 +15,8 @@ defmodule Galixir.Algebras.CGA2 do
 
   The conformal basis is defined as:
 
-      e_inf = em + ep
-      e_o   = (ep - em) / 2
+      e_inf = e_m + e_p
+       e_o = (e_m - e_p) / 2
 
   Points are embedded using the standard conformal embedding:
 
@@ -141,15 +141,14 @@ defmodule Galixir.Algebras.CGA2 do
   The returned multivector represents the conformal circle object.
   """
   def circle(p, r) do
-    dual(
-      sub(
-        p,
-        scale(
-          0.5 * r * r,
-          e_inf()
-        )
+    sub(
+      p,
+      scale(
+        0.5 * r * r,
+        e_inf()
       )
     )
+    |> gp(inverse(pseudoscalar()))
   end
 
   @doc """
@@ -208,12 +207,11 @@ defmodule Galixir.Algebras.CGA2 do
   Currently implemented as the outer product.
   """
   def meet(a, b) do
-    dual(
-      wedge(
-        dual(a),
-        dual(b)
-      )
+    wedge(
+      gp(a, pseudoscalar()),
+      gp(b, pseudoscalar())
     )
+    |> gp(pseudoscalar())
   end
 
   @doc """
@@ -282,5 +280,164 @@ defmodule Galixir.Algebras.CGA2 do
   """
   def pseudoscalar do
     new(e12pm: 1)
+  end
+
+  def normalize_point(p) do
+    w = dot(p, e_o())
+
+    if abs(w) < 1.0e-5 do
+      dbg(p)
+      raise ArgumentError, "cannot normalize point with zero weight"
+    end
+
+    scale(p, 1.0 / w)
+  end
+
+  def point?(p) do
+    grades(p) == [1] and
+      null?(p) and
+      abs(dot(p, e_inf())) > 1.0e-10
+  end
+
+  defp null?(p) do
+    n2 = abs(dot(p, p))
+
+    scale =
+      p.data
+      |> Tuple.to_list()
+      |> Enum.map(&abs/1)
+      |> Enum.sum()
+
+    n2 < 1.0e-12 * max(scale * scale, 1.0)
+  end
+
+  def circle?(c) do
+    grades(c) == [3]
+  end
+
+  def line?(l) do
+    grades(l) == [3] and
+      coefficient(l, :e12pm) == 0
+  end
+
+  def point_pair?(x) do
+    grades(x) == [2]
+  end
+
+  def circle_parameters(c) do
+    v = gp(c, inverse(pseudoscalar()))
+
+    e1 = coefficient(v, :e1)
+    e2 = coefficient(v, :e2)
+
+    ep = coefficient(v, :ep)
+    em = coefficient(v, :em)
+
+    w = em - ep
+
+    if abs(w) < 1.0e-10 do
+      {:line,
+       {
+         e1,
+         e2,
+         (em + ep) / 2
+       }}
+    else
+      x = e1 / w
+      y = e2 / w
+
+      k = (em + ep) / (2 * w)
+
+      r =
+        :math.sqrt(
+          x * x +
+            y * y -
+            2 * k
+        )
+
+      {:circle, {{x, y}, r}}
+    end
+  end
+
+  def split(o) do
+    ei = e_inf()
+    eo = e_o()
+
+    nix = wedge(o, ei)
+
+    nix2 = scalar_part(inner(nix, nix))
+
+    if abs(nix2) < 1.0e-12 do
+      :invalid
+      # raise ArgumentError, "invalid point pair"
+    else
+      r2 =
+        scalar_part(inner(o, o)) / nix2
+
+      r = :math.sqrt(abs(r2))
+
+      pos =
+        o
+        |> gp(inverse(nix))
+
+      attitude =
+        wedge(ei, eo)
+        |> inner(nix)
+        |> normalize()
+        |> scale(r)
+
+      kind =
+        cond do
+          r2 >= 0 ->
+            :real
+
+          true ->
+            :imag
+        end
+
+      {
+        kind,
+        normalize_point(add(pos, attitude)),
+        normalize_point(sub(pos, attitude))
+      }
+    end
+  end
+
+  def classify(x) do
+    cond do
+      point?(x) ->
+        {:point, point_coordinates(x)}
+
+      circle?(x) ->
+        {:circle, circle_parameters(x)}
+
+      line?(x) ->
+        {:line, line_parameters(x)}
+
+      point_pair?(x) ->
+        split(x)
+        |> case do
+          {kind, p1, p2} ->
+            {
+              :point_pair,
+              kind,
+              {point_coordinates(p1), point_coordinates(p2)}
+            }
+
+          :invalid ->
+            {:unknown, x}
+        end
+
+      true ->
+        {:unknown, x}
+    end
+  end
+
+  def line_parameters(l) do
+    {
+      coefficient(l, :e12p),
+      coefficient(l, :e12m),
+      coefficient(l, :e1pm)
+    }
   end
 end
