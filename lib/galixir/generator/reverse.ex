@@ -1,5 +1,13 @@
 defmodule Galixir.Generator.Reverse do
   import Galixir.Generator.Utils, only: [vars: 2, tuple_ast: 1, blade_grade: 1, reverse_sign: 1]
+  alias Galixir.GeneratorBehaviour
+  @behaviour GeneratorBehaviour
+  @impl GeneratorBehaviour
+  def generate_implementation(%Galixir.Meta{size: size, bases: bases}) do
+    [
+      reverse_impl(size, bases)
+    ]
+  end
 
   def reverse_impl(size, bases) do
     a = vars(:a, size)
@@ -89,10 +97,10 @@ defmodule Galixir.Generator.Reverse do
       unquote(doc)
 
       def reverse(%__MODULE__{data: d}) do
-        %__MODULE__{data: reverse(d)}
+        %__MODULE__{data: reverse_tuple(d)}
       end
 
-      def reverse(unquote(tuple_ast(a))) do
+      def reverse_tuple(unquote(tuple_ast(a))) do
         unquote(tuple_ast(result))
       end
     end

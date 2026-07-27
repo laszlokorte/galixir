@@ -1,7 +1,9 @@
 defmodule Galixir.Generator.LinearOps do
   import Galixir.Generator.Utils, only: [vars: 2, tuple_ast: 1]
-
-  def linear_ops_impl(size) do
+  alias Galixir.GeneratorBehaviour
+  @behaviour GeneratorBehaviour
+  @impl GeneratorBehaviour
+  def generate_implementation(%Galixir.Meta{size: size}) do
     [
       add(size),
       sub(size),

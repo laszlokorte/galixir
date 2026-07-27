@@ -6,6 +6,15 @@ defmodule Galixir.Generator.Cofficients do
   blade bitmask. These helpers provide access to individual blade coefficients
   while handling blade aliases and canonical ordering.
   """
+
+  @behaviour Galixir.GeneratorBehaviour
+  @impl Galixir.GeneratorBehaviour
+  def generate_implementation(%Galixir.Meta{module: m, bases: b}) do
+    [
+      coefficient_impl(m, b)
+    ]
+  end
+
   def coefficient_impl(module, bases) do
     first_blade = elem(bases, 0)
 

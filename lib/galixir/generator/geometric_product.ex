@@ -1,5 +1,11 @@
 defmodule Galixir.Generator.GeometricProduct do
   import Galixir.Generator.Utils, only: [sum: 1]
+  alias Galixir.GeneratorBehaviour
+  @behaviour GeneratorBehaviour
+  @impl GeneratorBehaviour
+  def generate_implementation(%Galixir.Meta{table: t, size: size, bases: b, signature: sig}) do
+    geometric_product_impl(t, size, b, sig)
+  end
 
   def geometric_product_impl(table, size, bases, signature) do
     lhs = Macro.var(:lhs, nil)
@@ -69,7 +75,7 @@ defmodule Galixir.Generator.GeometricProduct do
             #{inspect(__MODULE__)}.new(scalar: #{unquote(first_matric)})
 
         """
-        def gp(%__MODULE__{data: lhs}, %__MODULE{data: rhs}) do
+        def gp(%__MODULE__{data: lhs}, %__MODULE__{data: rhs}) do
           %__MODULE__{data: gp(lhs, rhs)}
         end
       end,

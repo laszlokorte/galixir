@@ -15,6 +15,15 @@ defmodule Galixir.Generator.Canonical do
   """
   import Galixir.Generator.Utils, only: [vars: 2, tuple_ast: 1]
 
+  @behaviour Galixir.GeneratorBehaviour
+  @impl Galixir.GeneratorBehaviour
+  def generate_implementation(%Galixir.Meta{module: m, dimensions: d, bases: b}) do
+    [
+      max_abs_component_impl(m, d, b),
+      canonical_sign_impl(m, d, b)
+    ]
+  end
+
   @doc """
   Generates a `max_abs_component/1` function.
 
@@ -35,7 +44,7 @@ defmodule Galixir.Generator.Canonical do
       5.0
 
   """
-  def max_abs_component_impl(dimension, module, bases) do
+  def max_abs_component_impl(module, dimension, bases) do
     blade_count = Bitwise.bsl(1, dimension)
 
     first_blade = elem(bases, 0)
@@ -66,10 +75,10 @@ defmodule Galixir.Generator.Canonical do
           5.0
       """
       def max_abs_component(%__MODULE__{data: d}) do
-        max_abs_component(d)
+        max_abs_component_tuple(d)
       end
 
-      def max_abs_component(unquote(tuple_ast(a))) do
+      def max_abs_component_tuple(unquote(tuple_ast(a))) do
         Enum.max([
           unquote_splicing(values)
         ])
@@ -101,7 +110,7 @@ defmodule Galixir.Generator.Canonical do
       # => -1
 
   """
-  def canonical_sign_impl(dimension, module, bases) do
+  def canonical_sign_impl(module, dimension, bases) do
     blade_count = Bitwise.bsl(1, dimension)
 
     a = vars(:a, blade_count)
@@ -151,10 +160,10 @@ defmodule Galixir.Generator.Canonical do
 
       """
       def canonical_sign(%__MODULE__{data: d}) do
-        canonical_sign(d)
+        canonical_sign_tuple(d)
       end
 
-      def canonical_sign(unquote(tuple_ast(a))) do
+      def canonical_sign_tuple(unquote(tuple_ast(a))) do
         result =
           [
             unquote_splicing(clauses)

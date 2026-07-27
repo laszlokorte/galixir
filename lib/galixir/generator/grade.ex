@@ -1,5 +1,14 @@
 defmodule Galixir.Generator.Grade do
   import Galixir.Generator.Utils, only: [blade_grade: 1, tuple_ast: 1]
+  alias Galixir.GeneratorBehaviour
+  @behaviour GeneratorBehaviour
+  @impl GeneratorBehaviour
+  def generate_implementation(%Galixir.Meta{dimensions: dim, bases: bases}) do
+    [
+      grade_impl(dim, bases),
+      grades_impl(dim, bases)
+    ]
+  end
 
   def grade_impl(dimension, bases) do
     blade_count = Bitwise.bsl(1, dimension)

@@ -1,4 +1,13 @@
 defmodule Galixir.Generator.Inspect do
+  alias Galixir.GeneratorBehaviour
+  @behaviour GeneratorBehaviour
+  @impl GeneratorBehaviour
+  def generate_implementation(%Galixir.Meta{bases: bases}) do
+    [
+      inspect_impl(bases)
+    ]
+  end
+
   def inspect_impl(bases) do
     first_blade = "e#{elem(bases, 0)}"
 

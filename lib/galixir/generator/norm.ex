@@ -1,4 +1,13 @@
 defmodule Galixir.Generator.Norm do
+  alias Galixir.GeneratorBehaviour
+  @behaviour GeneratorBehaviour
+  @impl GeneratorBehaviour
+  def generate_implementation(%Galixir.Meta{}) do
+    [
+      norm_impl()
+    ]
+  end
+
   def norm_impl() do
     quote do
       @doc """

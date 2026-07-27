@@ -1,6 +1,16 @@
 defmodule Galixir.Generator.Predicates do
   alias Galixir.Chain
   import Galixir.Generator.Utils, only: [tuple_ast: 1]
+  alias Galixir.GeneratorBehaviour
+  @behaviour GeneratorBehaviour
+  @impl GeneratorBehaviour
+  def generate_implementation(%Galixir.Meta{bases: bases, dimensions: dimensions}) do
+    [
+      scalar_check_impl(dimensions, bases),
+      zero_check_impl(dimensions, bases),
+      blade_check_impl(bases)
+    ]
+  end
 
   def scalar_check_impl(dimension, bases) do
     blade_count = Bitwise.bsl(1, dimension)

@@ -2,6 +2,17 @@ defmodule Galixir.Generator.InnerProduct do
   import Galixir.Generator.Utils,
     only: [vars: 2, sum: 1, blade_grade: 1, tuple_ast: 1]
 
+  alias Galixir.GeneratorBehaviour
+  @behaviour GeneratorBehaviour
+  @impl GeneratorBehaviour
+  def generate_implementation(%Galixir.Meta{signature: sig, bases: bases}) do
+    [
+      inner_product_impl(sig, bases, :inner),
+      inner_product_impl(sig, bases, :left),
+      inner_product_impl(sig, bases, :right)
+    ]
+  end
+
   def inner_product_impl(signature, bases, mode \\ :inner) do
     dimension = tuple_size(signature)
     blade_count = Bitwise.bsl(1, dimension)

@@ -1,6 +1,15 @@
 defmodule Galixir.Generator.ScalarProduct do
   import Galixir.Generator.Utils, only: [tuple_ast: 1, sum: 1]
 
+  alias Galixir.GeneratorBehaviour
+  @behaviour GeneratorBehaviour
+  @impl GeneratorBehaviour
+  def generate_implementation(%Galixir.Meta{dimensions: dimensions, signature: sig, bases: bases}) do
+    [
+      scalar_product_impl(dimensions, sig, bases)
+    ]
+  end
+
   def scalar_product_impl(dimension, signature, bases) do
     blade_count = Bitwise.bsl(1, dimension)
 

@@ -317,18 +317,6 @@ defmodule Galixir.Algebras.CGA3 do
   end
 
   @doc """
-  Computes the conformal dual of a multivector.
-
-  The dual is calculated using the inverse pseudoscalar.
-  """
-  def dual(x) do
-    gp(
-      blade_inverse(pseudoscalar()),
-      x
-    )
-  end
-
-  @doc """
   Returns the CGA3 pseudoscalar:
 
       e1 ∧ e2 ∧ e3 ∧ ep ∧ em

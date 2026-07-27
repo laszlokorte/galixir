@@ -1,5 +1,13 @@
 defmodule Galixir.Generator.WedgeProduct do
   import Galixir.Generator.Utils, only: [vars: 2, sum: 1, tuple_ast: 1]
+  alias Galixir.GeneratorBehaviour
+  @behaviour GeneratorBehaviour
+  @impl GeneratorBehaviour
+  def generate_implementation(%Galixir.Meta{dimensions: dimensions, signature: sig, bases: bases}) do
+    [
+      wedge_product_impl(dimensions, sig, bases)
+    ]
+  end
 
   def wedge_product_impl(dimension, signature, bases) do
     blade_count = Bitwise.bsl(1, dimension)

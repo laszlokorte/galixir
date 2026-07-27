@@ -1074,6 +1074,46 @@ defmodule GalixirTest do
              PGA3.new()
   end
 
+  test "cga3 sigil" do
+    import Galixir.Algebras.CGA3, only: [sigil_G: 2]
+    assert ~G"5e2 + 7" == Galixir.Algebras.CGA3.new(e2: 5, scalar: 7)
+    assert ~G"3e1" == Galixir.Algebras.CGA3.new(e1: 3)
+    assert ~G"42" == Galixir.Algebras.CGA3.new(scalar: 42)
+    assert ~G"1e123" == Galixir.Algebras.CGA3.new(e123: 1)
+    assert ~G"2e12 + 3e23" == Galixir.Algebras.CGA3.new(e12: 2, e23: 3)
+    assert ~G"4e31 + 9" == Galixir.Algebras.CGA3.new(e31: 4, scalar: 9)
+    assert ~G"8e123 + 5e1" == Galixir.Algebras.CGA3.new(e123: 8, e1: 5)
+    assert ~G"6e3 + 2e2 + 1e1" == Galixir.Algebras.CGA3.new(e3: 6, e2: 2, e1: 1)
+    assert ~G"1e1 + 2e2 + 3e3" == Galixir.Algebras.CGA3.new(e1: 1, e2: 2, e3: 3)
+    assert ~G"7e12 + 8e23 + 9e31" == Galixir.Algebras.CGA3.new(e12: 7, e23: 8, e31: 9)
+    assert ~G"5e1 + 6e12 + 7e123" == Galixir.Algebras.CGA3.new(e1: 5, e12: 6, e123: 7)
+    assert ~G"11e2 + 13e13" == Galixir.Algebras.CGA3.new(e2: 11, e13: 13)
+    assert ~G"99e3" == Galixir.Algebras.CGA3.new(e3: 99)
+    assert ~G"10e23 + 20" == Galixir.Algebras.CGA3.new(e23: 10, scalar: 20)
+    assert ~G"2e1 + 4e2 + 8e3 + 16" == Galixir.Algebras.CGA3.new(e1: 2, e2: 4, e3: 8, scalar: 16)
+
+    assert ~G"1e1 + 1e2 + 1e3 + 1e12 + 1e23 + 1e31 + 1e123 + 1" ==
+             Galixir.Algebras.CGA3.new(
+               e1: 1,
+               e2: 1,
+               e3: 1,
+               e12: 1,
+               e23: 1,
+               e31: 1,
+               e123: 1,
+               scalar: 1
+             )
+
+    assert ~G"15e13 + 25e31" == Galixir.Algebras.CGA3.new(e13: 15, e31: 25)
+    assert ~G"123e123 + 456" == Galixir.Algebras.CGA3.new(e123: 123, scalar: 456)
+
+    assert ~G"17e2 + 19e12 + 23e123" ==
+             Galixir.Algebras.CGA3.new(e2: 17, e12: 19, e123: 23)
+
+    assert ~G"100e1 + 200e2 + 300e3 + 400e123" ==
+             Galixir.Algebras.CGA3.new(e1: 100, e2: 200, e3: 300, e123: 400)
+  end
+
   defp tuple_add(a, b) do
     Tuple.to_list(a)
     |> Enum.zip(Tuple.to_list(b))

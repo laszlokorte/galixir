@@ -1,4 +1,14 @@
 defmodule Galixir.Generator.New do
+  alias Galixir.GeneratorBehaviour
+  @behaviour GeneratorBehaviour
+  @impl GeneratorBehaviour
+
+  def generate_implementation(%Galixir.Meta{size: size}) do
+    [
+      new_impl(size)
+    ]
+  end
+
   def new_impl(size) do
     quote do
       def new(basis \\ [])
@@ -18,7 +28,7 @@ defmodule Galixir.Generator.New do
             index =
               Map.fetch!(@blade_indices, canonical)
 
-            put_elem(acc, index, sign * coef + elem(acc, index))
+            put_elem(acc, index, 1.0 * sign * coef + elem(acc, index))
           end)
 
         %__MODULE__{data: coeffs}
