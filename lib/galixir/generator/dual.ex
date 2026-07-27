@@ -4,13 +4,13 @@ defmodule Galixir.Generator.Dual do
 
   @behaviour Galixir.GeneratorBehaviour
   @impl Galixir.GeneratorBehaviour
-  def generate_implementation(%Galixir.Meta{module: m, bases: b, dimensions: d}) do
+  def generate_implementation(%Galixir.Meta{bases: b, dimensions: d}) do
     [
-      dual_impl(m, d, b)
+      dual_impl(d, b)
     ]
   end
 
-  def dual_impl(module, dimension, bases) do
+  def dual_impl(dimension, bases) do
     blade_count = Bitwise.bsl(1, dimension)
     full_mask = blade_count - 1
 
@@ -85,13 +85,11 @@ defmodule Galixir.Generator.Dual do
         [
           {
             quote do
-              unquote(module).dual(
-                unquote(module).new(unquote(Utils.keyword_ast(first_blade, 1)))
-              )
+              dual(new(unquote(Utils.keyword_ast(first_blade, 1))))
               |> inspect
             end,
             quote do
-              unquote(module).new(unquote(Utils.keyword_ast(dual_blade, dual_value))) |> inspect
+              new(unquote(Utils.keyword_ast(dual_blade, dual_value))) |> inspect
             end
           }
         ]
@@ -114,14 +112,10 @@ defmodule Galixir.Generator.Dual do
         [
           {
             quote do
-              unquote(module).undual(
-                unquote(module).dual(
-                  unquote(module).new(unquote(Utils.keyword_ast(first_blade, 2)))
-                )
-              )
+              undual(dual(new(unquote(Utils.keyword_ast(first_blade, 2)))))
             end,
             quote do
-              unquote(module).new(unquote(Utils.keyword_ast(first_blade, 2)))
+              new(unquote(Utils.keyword_ast(first_blade, 2)))
             end
           }
         ]

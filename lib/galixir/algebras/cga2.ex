@@ -35,6 +35,8 @@ defmodule Galixir.Algebras.CGA2 do
     signature: {1, 1, 1, -1},
     bases: {1, 2, :p, :m}
 
+  @eps 1.0e-10
+
   @doc """
   Returns the zero multivector.
   """
@@ -282,21 +284,72 @@ defmodule Galixir.Algebras.CGA2 do
     new(e12pm: 1)
   end
 
+  @doc """
+  Normalizes a conformal point so that its weight is one.
+
+  Raises `ArgumentError` if the point has zero weight.
+
+  ## Examples
+
+      iex> p = point(2, 3) |> scale(5)
+      iex> normalized = normalize_point(p)
+      iex> dot(normalized, e_o())
+      1.0
+  """
   def normalize_point(p) do
     w = dot(p, e_o())
 
-    if abs(w) < 1.0e-5 do
-      dbg(p)
+    if abs(w) < @eps do
       raise ArgumentError, "cannot normalize point with zero weight"
     end
 
     scale(p, 1.0 / w)
   end
 
+  @doc """
+  Returns whether a multivector is a finite conformal point.
+
+  A finite point is a grade-1 null vector with non-zero weight.
+
+  ## Examples
+
+      iex> point?(point(1, 2))
+      true
+
+      iex> point?(new(e1: 1, e2: 1))
+      false
+  """
   def point?(p) do
     grades(p) == [1] and
       null?(p) and
-      abs(dot(p, e_inf())) > 1.0e-10
+      abs(dot(p, e_o())) > @eps
+  end
+
+  @doc """
+  Removes coefficients whose absolute value is below `eps`.
+
+  This is useful for cleaning up floating-point round-off errors after
+  geometric computations.
+
+  ## Examples
+
+      iex> new(e1: 1.0, e2: 1.0e-12)
+      ...> |> cleanup()
+      ...> |> coefficient(:e2)
+      0.0
+  """
+  def cleanup(m, eps \\ @eps) do
+    %__MODULE__{data: data} = m
+
+    data =
+      data
+      |> Tuple.to_list()
+      |> Enum.map(fn x ->
+        if abs(x) < eps, do: 0.0, else: x
+      end)
+      |> List.to_tuple()
+
+    %__MODULE__{data: data}
   end
 
   defp null?(p) do
@@ -308,22 +361,74 @@ defmodule Galixir.Algebras.CGA2 do
       |> Enum.map(&abs/1)
       |> Enum.sum()
 
-    n2 < 1.0e-12 * max(scale * scale, 1.0)
+    n2 < @eps * max(scale * scale, 1.0)
   end
 
+  @doc """
+  Returns whether a multivector is an OPNS circle.
+
+  Lines are also represented by grade-3 blades, so `line?/1` should be
+  used to distinguish between circles and lines.
+
+  ## Examples
+
+      iex> circle?(circle(point(0, 0), 2))
+      true
+  """
   def circle?(c) do
     grades(c) == [3]
   end
 
+  @doc """
+  Returns whether a multivector is an OPNS line.
+
+  ## Examples
+
+      iex> line?(line(point(0, 0), point(1, 0)))
+      true
+
+      iex> line?(circle(point(0, 0), 1))
+      false
+  """
   def line?(l) do
     grades(l) == [3] and
-      coefficient(l, :e12pm) == 0
+      norm(wedge(l, e_inf())) < @eps
   end
 
+  @doc """
+  Returns whether a multivector has the grade of a point pair.
+
+  This function only checks the grade. Use `split/1` to determine whether
+  the bivector represents a valid point pair.
+
+  ## Examples
+
+      iex> pp = meet(
+      ...>   circle(point(0, 0), 2),
+      ...>   line(point(-2, 0), point(2, 0))
+      ...> )
+      iex> point_pair?(pp)
+      true
+  """
   def point_pair?(x) do
     grades(x) == [2]
   end
 
+  @doc """
+  Extracts the Euclidean parameters of an OPNS circle or line.
+
+  Returns either
+
+    * `{:circle, {{x, y}, radius}}`
+    * `{:line, {a, b, c}}`
+
+  where the line satisfies `ax + by + c = 0`.
+
+  ## Examples
+
+      iex> circle_parameters(circle(point(1, 2), 3))
+      {:circle, {{1.0, 2.0}, 3.0}}
+  """
   def circle_parameters(c) do
     v = gp(c, inverse(pseudoscalar()))
 
@@ -335,13 +440,8 @@ defmodule Galixir.Algebras.CGA2 do
 
     w = em - ep
 
-    if abs(w) < 1.0e-10 do
-      {:line,
-       {
-         e1,
-         e2,
-         (em + ep) / 2
-       }}
+    if norm(wedge(c, e_inf())) < @eps do
+      {:line, line_parameters(c)}
     else
       x = e1 / w
       y = e2 / w
@@ -355,10 +455,40 @@ defmodule Galixir.Algebras.CGA2 do
             2 * k
         )
 
-      {:circle, {{x, y}, r}}
+      {:circle, {{clean_zero(x), clean_zero(y)}, r}}
     end
   end
 
+  @doc """
+  Splits a point pair into its two conformal points.
+
+  Returns
+
+  * `{:real, p1, p2}` for two real points,
+  * `{:imag, p1, p2}` for an imaginary point pair, or
+  * `:invalid` if the bivector is not a valid point pair.
+
+  ## Examples
+
+  iex> l = line(point(-2, 0), point(2, 0))
+  iex> c = circle(point(0, 0), 1)
+  iex> {:real, p1, p2} = split(meet(c, l))
+  iex> Enum.sort([point_coordinates(p1), point_coordinates(p2)])
+  [{-1.0, 0.0}, {1.0, 0.0}]
+
+  iex> c1 = circle(point(-0.5, 0), 1)
+  iex> c2 = circle(point(0.5, 0), 1)
+  iex> {:real, p1, p2} = split(meet(c1, c2))
+  iex> [{x1, y1}, {x2, y2}] = Enum.sort([point_coordinates(p1), point_coordinates(p2)])
+  iex> abs(x1) < 1.0e-10 and abs(x2) < 1.0e-10
+  true
+  iex> (y1 < 0) != (y2 < 0)
+  true
+  iex> abs(abs(y1) - :math.sqrt(0.75)) < 1.0e-10
+  true
+  iex> abs(abs(y2) - :math.sqrt(0.75)) < 1.0e-10
+  true
+  """
   def split(o) do
     ei = e_inf()
     eo = e_o()
@@ -367,18 +497,14 @@ defmodule Galixir.Algebras.CGA2 do
 
     nix2 = scalar_part(inner(nix, nix))
 
-    if abs(nix2) < 1.0e-12 do
+    if abs(nix2) < @eps do
       :invalid
-      # raise ArgumentError, "invalid point pair"
     else
-      r2 =
-        scalar_part(inner(o, o)) / nix2
+      r2 = scalar_part(inner(o, o)) / nix2
 
       r = :math.sqrt(abs(r2))
 
-      pos =
-        o
-        |> gp(inverse(nix))
+      pos = o |> gp(inverse(nix))
 
       attitude =
         wedge(ei, eo)
@@ -386,14 +512,7 @@ defmodule Galixir.Algebras.CGA2 do
         |> normalize()
         |> scale(r)
 
-      kind =
-        cond do
-          r2 >= 0 ->
-            :real
-
-          true ->
-            :imag
-        end
+      kind = if(r2 >= 0, do: :real, else: :imag)
 
       {
         kind,
@@ -403,16 +522,76 @@ defmodule Galixir.Algebras.CGA2 do
     end
   end
 
+  @doc """
+  Classifies a geometric object and extracts its Euclidean parameters.
+
+  Returns one of
+
+    * `{:point, {x, y}}`
+    * `{:line, {a, b, c}}`
+    * `{:circle, {{x, y}, radius}}`
+    * `{:point_pair, kind, {p1, p2}}`
+    * `{:unknown, multivector}`
+
+  ## Examples
+
+      iex> classify(point(2, 3))
+      {:point, {2.0, 3.0}}
+
+      iex> classify(point(2, 3))
+      {:point, {2.0, 3.0}}
+
+      iex> classify(point(-5, 4))
+      {:point, {-5.0, 4.0}}
+
+      iex> {:line, {a, b, c}} = classify(line(point(0, 0), point(0, 1)))
+      iex> abs(a) == 1.0 and b == 0.0 and c == 0.0
+      true
+
+      iex> {:line, {a, b, c}} = classify(line(point(0, 0), point(1, 0)))
+      iex> a == 0.0 and abs(b) == 1.0 and c == 0.0
+      true
+
+      iex> classify(circle(point(0, 0), 2))
+      {:circle, {{0.0, 0.0}, 2.0}}
+
+      iex> classify(circle(point(3, -2), 5))
+      {:circle, {{3.0, -2.0}, 5.0}}
+
+      iex> pp =
+      ...>   meet(
+      ...>     circle(point(0, 0), 2),
+      ...>     line(point(-3, 0), point(3, 0))
+      ...>   )
+      iex> {:point_pair, :real, points} = classify(pp)
+      iex> Enum.sort(Tuple.to_list(points))
+      [{-2.0, 0.0}, {2.0, 0.0}]
+
+      iex> pp =
+      ...>   meet(
+      ...>     circle(point(0, 0), 1),
+      ...>     line(point(-2, 0), point(2, 0))
+      ...>   )
+      iex> match?({:point_pair, :real, _}, classify(pp))
+      true
+
+      iex> classify(new(e1: 1))
+      {:unknown, new(e1: 1)}
+  """
   def classify(x) do
     cond do
       point?(x) ->
         {:point, point_coordinates(x)}
 
-      circle?(x) ->
-        {:circle, circle_parameters(x)}
-
       line?(x) ->
         {:line, line_parameters(x)}
+
+      circle?(x) ->
+        circle_parameters(x)
+        |> case do
+          {:circle, c} -> {:circle, c}
+          {:line, l} -> {:line, l}
+        end
 
       point_pair?(x) ->
         split(x)
@@ -433,11 +612,30 @@ defmodule Galixir.Algebras.CGA2 do
     end
   end
 
+  @doc """
+  Returns the Euclidean coefficients of an OPNS line.
+
+  The returned tuple `{a, b, c}` satisfies
+
+      ax + by + c = 0
+
+  ## Examples
+
+    iex> {a, b, c} = line_parameters(line(point(0, 0), point(0, 1)))
+    iex> {abs(a), b, c}
+    {1.0, 0.0, 0.0}
+  """
   def line_parameters(l) do
+    l = dual(l)
+
     {
-      coefficient(l, :e12p),
-      coefficient(l, :e12m),
-      coefficient(l, :e1pm)
+      dot(l, new(e1: 1)),
+      dot(l, new(e2: 1)),
+      dot(l, e_o())
     }
   end
+
+  # handle IEEE-754 negative zero
+  defp clean_zero(x) when x == 0.0, do: 0.0
+  defp clean_zero(x), do: x
 end

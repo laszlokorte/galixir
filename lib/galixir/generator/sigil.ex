@@ -4,20 +4,19 @@ defmodule Galixir.Generator.Sigil do
   @behaviour GeneratorBehaviour
 
   @impl GeneratorBehaviour
-  def generate_implementation(%Galixir.Meta{module: module}) do
+  def generate_implementation(%Galixir.Meta{}) do
     [
-      sigil_impl(module)
+      sigil_impl()
     ]
   end
 
-  def sigil_impl(module) do
+  def sigil_impl() do
     quote do
       defmacro sigil_G({:<<>>, _, [string]}, []) do
         fields = parse_expression(string, [])
-        m = unquote(module)
 
         quote do
-          unquote(m).new(unquote(fields))
+          unquote(__MODULE__).new(unquote(fields))
         end
       end
 

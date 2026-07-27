@@ -9,13 +9,13 @@ defmodule Galixir.Generator.Cofficients do
 
   @behaviour Galixir.GeneratorBehaviour
   @impl Galixir.GeneratorBehaviour
-  def generate_implementation(%Galixir.Meta{module: m, bases: b}) do
+  def generate_implementation(%Galixir.Meta{bases: b}) do
     [
-      coefficient_impl(m, b)
+      coefficient_impl(b)
     ]
   end
 
-  def coefficient_impl(module, bases) do
+  def coefficient_impl(bases) do
     first_blade = elem(bases, 0)
 
     blade = :"e#{first_blade}"
@@ -30,8 +30,8 @@ defmodule Galixir.Generator.Cofficients do
 
          ## Examples
 
-        iex> #{unquote(module)}.coefficient(
-        ...>   #{unquote(module)}.new(#{unquote(blade)}: 3),
+        iex> coefficient(
+        ...>   new(#{unquote(blade)}: 3),
         ...>   :#{unquote(blade)}
         ...> )
         3.0
@@ -51,7 +51,7 @@ defmodule Galixir.Generator.Cofficients do
 
       ## Examples
 
-          iex> #{unquote(module)}.scalar_part(#{unquote(module)}.new(scalar: 5.0, #{unquote(blade)}: 2.0))
+          iex> scalar_part(new(scalar: 5.0, #{unquote(blade)}: 2.0))
           5.0
 
       """

@@ -17,10 +17,10 @@ defmodule Galixir.Generator.Canonical do
 
   @behaviour Galixir.GeneratorBehaviour
   @impl Galixir.GeneratorBehaviour
-  def generate_implementation(%Galixir.Meta{module: m, dimensions: d, bases: b}) do
+  def generate_implementation(%Galixir.Meta{dimensions: d, bases: b}) do
     [
-      max_abs_component_impl(m, d, b),
-      canonical_sign_impl(m, d, b)
+      max_abs_component_impl(d, b),
+      canonical_sign_impl(d, b)
     ]
   end
 
@@ -44,7 +44,7 @@ defmodule Galixir.Generator.Canonical do
       5.0
 
   """
-  def max_abs_component_impl(module, dimension, bases) do
+  def max_abs_component_impl(dimension, bases) do
     blade_count = Bitwise.bsl(1, dimension)
 
     first_blade = elem(bases, 0)
@@ -68,10 +68,10 @@ defmodule Galixir.Generator.Canonical do
 
       ## Example
 
-          iex> #{unquote(module)}.max_abs_component(#{unquote(module)}.new(#{unquote(blade)}: 2, scalar: 5))
+          iex> max_abs_component(new(#{unquote(blade)}: 2, scalar: 5))
           5.0
 
-          iex> #{unquote(module)}.max_abs_component(#{unquote(module)}.new(#{unquote(blade)}: 5, scalar: 2))
+          iex> max_abs_component(new(#{unquote(blade)}: 5, scalar: 2))
           5.0
       """
       def max_abs_component(%__MODULE__{data: d}) do
@@ -110,7 +110,7 @@ defmodule Galixir.Generator.Canonical do
       # => -1
 
   """
-  def canonical_sign_impl(module, dimension, bases) do
+  def canonical_sign_impl(dimension, bases) do
     blade_count = Bitwise.bsl(1, dimension)
 
     a = vars(:a, blade_count)
@@ -149,13 +149,13 @@ defmodule Galixir.Generator.Canonical do
 
       ## Examples
 
-          iex> #{unquote(module)}.canonical_sign(#{unquote(module)}.new(#{unquote(blade)}: 2))
+          iex> canonical_sign(new(#{unquote(blade)}: 2))
           1
 
-          iex> #{unquote(module)}.canonical_sign(#{unquote(module)}.new(#{unquote(blade)}: -2))
+          iex> canonical_sign(new(#{unquote(blade)}: -2))
           -1
 
-          iex> #{unquote(module)}.canonical_sign(#{unquote(module)}.new())
+          iex> canonical_sign(new())
           0
 
       """

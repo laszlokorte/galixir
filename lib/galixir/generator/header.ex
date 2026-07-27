@@ -29,7 +29,6 @@ defmodule Galixir.Generator.Header do
 
   @impl GeneratorBehaviour
   def generate_implementation(%Meta{
-        module: module,
         signature: signature,
         table: table,
         blade_indices: blade_indices,
@@ -87,7 +86,7 @@ defmodule Galixir.Generator.Header do
 
         ## Example
 
-            iex> #{unquote(module)}.table() |> Map.has_key?({#{unquote(elem(bases, 0))}, #{unquote(elem(bases, 0))}})
+            iex> table() |> Map.has_key?({#{unquote(elem(bases, 0))}, #{unquote(elem(bases, 0))}})
             #{unquote(elem(signature, 0) != 0)}
         """
         def table do
@@ -102,7 +101,7 @@ defmodule Galixir.Generator.Header do
 
         ## Example
 
-            iex> #{unquote(module)}.blade_indices()[:e#{unquote(elem(bases, 0))}]
+            iex> blade_indices()[:e#{unquote(elem(bases, 0))}]
             1
         """
         def blade_indices do
