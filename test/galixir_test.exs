@@ -930,7 +930,7 @@ defmodule GalixirTest do
     a = PGA3.point(0, 0, 0)
     b = PGA3.point(1, 0, 0)
 
-    dir = PGA3.ideal_direction(PGA3.line(a, b))
+    dir = PGA3.ideal_point_on_line(PGA3.line(a, b))
 
     assert PGA3.ideal?(dir)
   end
@@ -949,8 +949,8 @@ defmodule GalixirTest do
       )
 
     assert PGA3.coincident?(
-             PGA3.ideal_direction(l1),
-             PGA3.ideal_direction(l2)
+             PGA3.ideal_point_on_line(l1),
+             PGA3.ideal_point_on_line(l2)
            )
   end
 
@@ -1112,6 +1112,108 @@ defmodule GalixirTest do
 
     assert ~G"100e1 + 200e2 + 300e3 + 400e123" ==
              Galixir.Algebras.CGA3.new(e1: 100, e2: 200, e3: 300, e123: 400)
+  end
+
+  test "cga3 sigil with float" do
+    import Galixir.Algebras.CGA3, only: [sigil_G: 2]
+    assert ~G"6.9e2 + 6.7" == Galixir.Algebras.CGA3.new(e2: 6.9, scalar: 6.7)
+    assert ~G"2.3e2 + 4.2e1" == Galixir.Algebras.CGA3.new(e1: 4.2, e2: 2.3)
+    assert ~G"42.23" == Galixir.Algebras.CGA3.new(scalar: 42.23)
+  end
+
+  test "sigil parses coefficients, signs and whitespace" do
+    import Galixir.Algebras.CGA3, only: [sigil_G: 2, new: 1]
+    assert ~G"e1" == new(e1: 1)
+    assert ~G"+e1" == new(e1: 1)
+    assert ~G"-e1" == new(e1: -1)
+
+    assert ~G" e1 " == new(e1: 1)
+    assert ~G"- e1" == new(e1: -1)
+    assert ~G"+ e1" == new(e1: 1)
+
+    assert ~G"2e1" == new(e1: 2)
+    assert ~G"+2e1" == new(e1: 2)
+    assert ~G"-2e1" == new(e1: -2)
+  end
+
+  test "sigil parses sums" do
+    import Galixir.Algebras.CGA3, only: [sigil_G: 2, new: 1]
+
+    assert ~G"e1+e2" ==
+             new(e1: 1, e2: 1)
+
+    assert ~G"e1 + e2" ==
+             new(e1: 1, e2: 1)
+
+    assert ~G"e1+e2+e12" ==
+             new(e1: 1, e2: 1, e12: 1)
+
+    assert ~G"e1 + e2 + e12" ==
+             new(e1: 1, e2: 1, e12: 1)
+  end
+
+  test "sigil parses negative terms" do
+    import Galixir.Algebras.CGA3, only: [sigil_G: 2, new: 1]
+
+    assert ~G"e1-e2" ==
+             new(e1: 1, e2: -1)
+
+    assert ~G"e1 - e2" ==
+             new(e1: 1, e2: -1)
+
+    assert ~G"e1-e2-e12" ==
+             new(e1: 1, e2: -1, e12: -1)
+
+    assert ~G"e1 - e2 - e12" ==
+             new(e1: 1, e2: -1, e12: -1)
+  end
+
+  test "sigil parses mixed explicit and implicit coefficients" do
+    import Galixir.Algebras.CGA3, only: [sigil_G: 2, new: 1]
+
+    assert ~G"e1 + 2e2 + e12" ==
+             new(e1: 1, e2: 2, e12: 1)
+
+    assert ~G"e1 - 2e2 - e12" ==
+             new(e1: 1, e2: -2, e12: -1)
+
+    assert ~G"-e1 + 2e2 - 3e12" ==
+             new(e1: -1, e2: 2, e12: -3)
+  end
+
+  test "sigil parses decimal coefficients" do
+    import Galixir.Algebras.CGA3, only: [sigil_G: 2, new: 1]
+
+    assert ~G"1.5e1" ==
+             new(e1: 1.5)
+
+    assert ~G"-1.5e1" ==
+             new(e1: -1.5)
+
+    assert ~G"1.5e1 + 2.5e2" ==
+             new(e1: 1.5, e2: 2.5)
+
+    assert ~G"1.5e1 - 2.5e2" ==
+             new(e1: 1.5, e2: -2.5)
+  end
+
+  test "sigil accepts blade permutations" do
+    import Galixir.Algebras.CGA3, only: [sigil_G: 2, new: 1]
+
+    assert ~G"e12" ==
+             new(e12: 1)
+
+    assert ~G"e21" ==
+             new(e12: -1)
+
+    assert ~G"e12p" ==
+             new(e12p: 1)
+
+    assert ~G"e1p2" ==
+             new(e12p: -1)
+
+    assert ~G"ep12" ==
+             new(e12p: 1)
   end
 
   defp tuple_add(a, b) do

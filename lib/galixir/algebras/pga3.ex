@@ -67,6 +67,11 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Returns the Euclidean origin point.
+
+  ## Examples
+
+      iex> point_coordinates(origin())
+      {0.0, 0.0, 0.0}
   """
   def origin do
     point(0, 0, 0)
@@ -102,6 +107,18 @@ defmodule Galixir.Algebras.PGA3 do
   The homogeneous representation is:
 
       P = e123 + x*e032 + y*e013 + z*e021
+
+
+  ## Examples
+
+      iex> point_coordinates(point(1, 2, 3))
+      {1.0, 2.0, 3.0}
+
+      iex> finite_point?(point(1, 2, 3))
+      true
+
+      iex> ideal_point?(ideal_point(1, 0, 0))
+      true
   """
   def point(x, y, z, w \\ 1) do
     new(
@@ -114,6 +131,11 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Creates a Euclidean direction vector.
+
+  ## Examples
+
+      iex> vector(1, 2, 3)
+      new(e1: 1, e2: 2, e3: 3)
   """
   def vector(x, y, z) do
     new(
@@ -125,6 +147,14 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Creates the line through two points.
+
+  ## Examples
+
+      iex> a = point(0, 0, 0)
+      iex> b = point(1, 0, 0)
+      iex> l = line(a, b)
+      iex> homogeneous_grade(l)
+      2
   """
   def line(a, b) do
     join(a, b)
@@ -137,10 +167,11 @@ defmodule Galixir.Algebras.PGA3 do
   @doc """
   Creates a plane from coefficients.
 
-  Represents:
+  ## Examples
 
-      ax + by + cz + d = 0
-
+      iex> p = plane(0, 0, 1, 0)
+      iex> plane_normal(p)
+      new(e1: 0, e2: 0, e3: 1)
   """
   def plane(a, b, c, d) do
     new(
@@ -153,6 +184,16 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Creates a plane from a normal vector and a point.
+
+  ## Examples
+
+    iex> p = plane_from_normal_point(vector(0, 0, 1), point(1, 2, 3))
+    iex> contains?(p, point(10, -5, 3))
+    true
+
+    iex> p = plane_from_normal_point(vector(0, 0, 1), point(1, 2, 3))
+    iex> contains?(p, point(10, -5, 4))
+    false
   """
   def plane_from_normal_point(n, p) do
     n = normalize(n)
@@ -201,6 +242,15 @@ defmodule Galixir.Algebras.PGA3 do
 
       point ∨ point -> line
       line ∨ point  -> plane
+
+
+  ## Examples
+
+    iex> a = point(0, 0, 0)
+    iex> b = point(1, 0, 0)
+    iex> line = join(a, b)
+    iex> homogeneous_grade(line)
+    2
   """
   def join(a, b) do
     undual(wedge(dual(a), dual(b)))
@@ -215,6 +265,14 @@ defmodule Galixir.Algebras.PGA3 do
 
       plane ∧ plane -> line
       line ∧ line   -> point
+
+  ## Examples
+
+      iex> p1 = plane(1, 0, 0, 0)
+      iex> p2 = plane(0, 1, 0, 0)
+      iex> l = meet(p1, p2)
+      iex> homogeneous_grade(l)
+      2
   """
   def meet(a, b) do
     wedge(a, b)
@@ -222,6 +280,13 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Tests whether two objects are incident.
+
+  ## Examples
+
+    iex> p = point(1, 2, 3)
+    iex> l = line(point(0, 2, 3), point(5, 2, 3))
+    iex> incident?(p, l)
+    true
   """
   def incident?(a, b) do
     zero?(join(a, b))
@@ -229,6 +294,16 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Tests whether an object contains another object.
+
+  ## Examples
+
+    iex> p = plane(0, 0, 1, 0)
+    iex> contains?(p, point(1, 2, 0))
+    true
+
+    iex> p = plane(0, 0, 1, 0)
+    iex> contains?(p, point(1, 2, 3))
+    false
   """
   def contains?(container, object) do
     zero?(join(container, object))
@@ -237,7 +312,12 @@ defmodule Galixir.Algebras.PGA3 do
   @doc """
   Checks whether two objects are parallel.
 
-  This is true when their intersection is an ideal object.
+  ## Examples
+
+      iex> l1 = line(point(0, 0, 0), point(1, 0, 0))
+      iex> l2 = line(point(0, 1, 0), point(1, 1, 0))
+      iex> parallel?(l1, l2)
+      true
   """
   def parallel?(a, b) do
     ideal?(meet(a, b))
@@ -245,6 +325,23 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Checks whether two objects intersect in a finite object.
+
+  ## Examples
+
+    iex> p1 = plane_from_normal_point(vector(1, 1, 0), point(2, 0, 0))
+    iex> p2 = plane_from_normal_point(vector(1, 0, 0), point(0, 0, 0))
+    iex> intersects?(p1, p2)
+    true
+
+    iex> p1 = plane_from_normal_point(vector(1, 1, 0), point(1, 1, 0))
+    iex> p2 = plane_from_normal_point(vector(1, 1, 0), point(0, 0, 0))
+    iex> intersects?(p1, p2)
+    false
+
+    iex> p1 = plane_from_normal_point(vector(1, 0, 0), point(0, 1, 0))
+    iex> p2 = plane_from_normal_point(vector(1, 0, 0), point(0, 0, 0))
+    iex> intersects?(p1, p2)
+    false
   """
   def intersects?(a, b) do
     m = meet(a, b)
@@ -256,11 +353,20 @@ defmodule Galixir.Algebras.PGA3 do
   Checks whether an object lies entirely at infinity.
   """
   def ideal?(x) do
-    zero?(wedge(x, new(e0: 1)))
+    case homogeneous_grade(x) do
+      3 -> ideal_point?(x)
+      _ -> zero?(wedge(x, new(e0: 1)))
+    end
   end
 
   @doc """
   Checks whether two homogeneous objects represent the same entity.
+  ## Examples
+
+    iex> a = point(1, 2, 3)
+    iex> b = point(2, 4, 6, 2)
+    iex> coincident?(a, b)
+    true
   """
   def coincident?(a, b) do
     homogeneous_grade(a) == homogeneous_grade(b) and
@@ -274,20 +380,26 @@ defmodule Galixir.Algebras.PGA3 do
   @doc """
   Returns the ideal point representing a line direction.
   """
-  def ideal_direction(line) do
+  def ideal_point_on_line(line) do
     meet(line, new(e0: 1))
   end
 
   @doc """
   Extracts a Euclidean direction vector from a line.
+
+  ## Examples
+
+    iex> l = line(point(0, 0, 0), point(0, 0, 1))
+    iex> direction_vector(l)
+    new(e3: 1)
   """
   def direction_vector(line) do
-    d = ideal_direction(line)
+    d = ideal_point_on_line(line)
 
     vector(
-      coefficient(d, :e230),
+      coefficient(d, :e023),
       coefficient(d, :e013),
-      coefficient(d, :e120)
+      coefficient(d, :e021)
     )
   end
 
@@ -304,6 +416,13 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Creates a translation motor from a vector.
+  ## Examples
+
+    iex> t1 = translator(1, 0, 0)
+    iex> t2 = translator(0, 2, 0)
+    iex> p = transform(gp(t2, t1), origin())
+    iex> point_coordinates(p)
+    {1.0, 2.0, 0.0}
   """
   def translator(v) do
     new(
@@ -315,21 +434,35 @@ defmodule Galixir.Algebras.PGA3 do
   end
 
   @doc """
-  Creates a translation motor from coordinates.
+  Creates a translation motor.
+
+  ## Examples
+
+    iex> t = translator(1, 2, 3)
+    iex> p = transform(t, origin())
+    iex> point_coordinates(p)
+    {1.0, 2.0, 3.0}
   """
   def translator(x, y, z) do
     new(
       scalar: 1,
-      e01: x / 2,
-      e02: y / 2,
-      e03: z / 2
+      e01: -x / 2,
+      e02: -y / 2,
+      e03: -z / 2
     )
   end
 
   @doc """
-  Creates a rotation motor around an axis line.
+  Creates a rotation motor around an axis.
 
-  The angle is specified in radians.
+  ## Examples
+
+    iex> axis = line(point(0, 0, 0), point(0, 0, 1))
+    iex> r = rotor(axis, :math.pi())
+    iex> p = transform(r, point(1, 0, 0))
+    iex> {x, y, z} = point_coordinates(p)
+    iex> abs(x + 1.0) < 1.0e-10 and abs(y) < 1.0e-10 and abs(z) < 1.0e-10
+
   """
   def rotor(line_axis, angle) do
     line_axis = normalize_line(line_axis)
@@ -346,13 +479,19 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Normalizes a line motor axis.
+
+  ## Examples
+
+    iex> l = line(point(0, 0, 0), point(0, 0, 1))
+    iex> n = normalize_line(l)
+    iex> scalar_part(gp(n, n))
+    -1.0
   """
   def normalize_line(line) do
-    d = ideal_direction(line)
-
     n =
-      gp(d, reverse(d))
+      gp(line, reverse(line))
       |> scalar_part()
+      |> abs()
       |> :math.sqrt()
 
     scale(1 / n, line)
@@ -383,9 +522,9 @@ defmodule Galixir.Algebras.PGA3 do
     w = coefficient(p, :e123)
 
     {
-      coefficient(p, :e032) / w,
-      coefficient(p, :e013) / w,
-      coefficient(p, :e021) / w
+      clean_zero(coefficient(p, :e032) / w),
+      clean_zero(coefficient(p, :e013) / w),
+      clean_zero(coefficient(p, :e021) / w)
     }
   end
 
@@ -404,6 +543,11 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Computes the Euclidean distance between two points.
+
+  ## Examples
+
+      iex> distance(point(0, 0, 0), point(3, 4, 0))
+      5.0
   """
   def distance(a, b) do
     {ax, ay, az} = point_coordinates(a)
@@ -484,6 +628,14 @@ defmodule Galixir.Algebras.PGA3 do
   Raises a motor to a scalar power.
 
   Useful for motor interpolation.
+
+  ## Examples
+
+    iex> t = translator(10, 0, 0)
+    iex> half = motor_pow(t, 0.5)
+    iex> p = transform(half, origin())
+    iex> point_coordinates(p)
+    {5.0, 0.0, 0.0}
   """
   def motor_pow(motor, t) do
     motor
@@ -491,4 +643,8 @@ defmodule Galixir.Algebras.PGA3 do
     |> scale(t)
     |> motor_exp()
   end
+
+  # handle IEEE-754 negative zero
+  defp clean_zero(x) when x == 0.0, do: 0.0
+  defp clean_zero(x), do: x
 end

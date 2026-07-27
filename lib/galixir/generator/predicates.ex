@@ -75,6 +75,15 @@ defmodule Galixir.Generator.Predicates do
 
     condition = checks |> Chain.and_chain()
 
+    guard_checks =
+      for i <- 0..(blade_count - 1) do
+        quote do
+          elem(mv.data, unquote(i)) == 0
+        end
+      end
+
+    guard_condition = guard_checks |> Chain.and_chain()
+
     first_basis = "e#{elem(bases, 0)}"
 
     quote do
@@ -96,6 +105,8 @@ defmodule Galixir.Generator.Predicates do
       def zero?(unquote(tuple_ast(a))) do
         unquote(condition)
       end
+
+      defguard guard_zero?(mv) when unquote(guard_condition)
     end
   end
 

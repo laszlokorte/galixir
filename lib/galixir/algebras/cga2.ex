@@ -39,6 +39,11 @@ defmodule Galixir.Algebras.CGA2 do
 
   @doc """
   Returns the zero multivector.
+
+  ## Examples
+
+    iex> zero()
+    ~G"0"
   """
   def zero do
     new()
@@ -50,6 +55,11 @@ defmodule Galixir.Algebras.CGA2 do
   This is the multiplicative identity:
 
       1
+    ## Examples
+
+    iex> one()
+    ~G"1.0"
+
   """
   def one do
     new(scalar: 1)
@@ -61,6 +71,11 @@ defmodule Galixir.Algebras.CGA2 do
   The infinity vector represents the point at infinity in conformal space:
 
       e_inf = e_m + e_p
+
+    ## Examples
+
+    iex> dot(e_inf(), e_inf())
+    0.0
   """
   def e_inf do
     new(em: 1, ep: 1)
@@ -72,6 +87,11 @@ defmodule Galixir.Algebras.CGA2 do
   The origin is defined as:
 
       e_o = (e_m - e_p) / 2
+
+      ## Examples
+
+    iex> dot(e_o(), e_inf())
+    -1.0
   """
   def e_o do
     scale(
@@ -91,6 +111,14 @@ defmodule Galixir.Algebras.CGA2 do
       x*e1 + y*e2
 
   It is not a conformal point. Use `point/2` to embed a point.
+
+  ## Examples
+
+    iex> point?(vector(1, 2))
+    false
+
+    iex> point?(point(1, 2))
+    true
   """
   def vector(x, y) do
     new(
@@ -141,6 +169,17 @@ defmodule Galixir.Algebras.CGA2 do
   Creates a circle from a center point and radius.
 
   The returned multivector represents the conformal circle object.
+
+  ## Examples
+
+  iex> circle(1, 2, 3)
+  ~G"1.5e12p + 2.5e12m + 2.0e1pm - e2pm"
+
+  iex> circle?(circle(1, 2, 3))
+  true
+
+  iex> circle_parameters(circle(1, 2, 3))
+  {:circle, {{1.0, 2.0}, 3.0}}
   """
   def circle(p, r) do
     sub(

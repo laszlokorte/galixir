@@ -109,7 +109,6 @@ defmodule Galixir.GeometricAlgebra do
       end
 
   """
-
   defmacro __using__(opts) do
     module = __CALLER__.module
 
@@ -126,7 +125,7 @@ defmodule Galixir.GeometricAlgebra do
       |> Keyword.get(:bases)
       |> then(&if(&1, do: Code.eval_quoted(&1, [], __CALLER__)))
       |> case do
-        nil -> for i <- 1..tuple_size(signature), do: i
+        nil -> List.to_tuple(for i <- 1..tuple_size(signature), do: i)
         {b, _} -> b
       end
 

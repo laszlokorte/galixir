@@ -41,6 +41,7 @@ defmodule Galixir.Generator.Header do
         @signature unquote(Macro.escape(signature))
         @table unquote(Macro.escape(table))
         @size unquote(size)
+        @basis_names unquote(Tuple.to_list(bases) |> Enum.map(&to_string/1))
         @blade_indices unquote(Macro.escape(blade_indices))
         @blade_aliases unquote(Macro.escape(blade_aliases))
 
