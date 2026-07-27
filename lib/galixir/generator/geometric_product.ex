@@ -68,11 +68,11 @@ defmodule Galixir.Generator.GeometricProduct do
 
         ## Examples
 
-            iex> #{inspect(__MODULE__)}.gp(
-            ...>   #{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 1),
-            ...>   #{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 1)
+            iex> gp(
+            ...>   new(#{unquote(first_blade)}: 1),
+            ...>   new(#{unquote(first_blade)}: 1)
             ...> )
-            #{inspect(__MODULE__)}.new(scalar: #{unquote(first_matric)})
+            new(scalar: #{unquote(first_matric)})
 
         """
         def gp(%__MODULE__{data: lhs}, %__MODULE__{data: rhs}) do

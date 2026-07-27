@@ -29,10 +29,10 @@ defmodule Galixir.Generator.Inverse do
 
               ## Examples
 
-                  iex> #{inspect(__MODULE__)}.inverse(
-                  ...>   #{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 2)
+                  iex> inverse(
+                  ...>   new(#{unquote(first_blade)}: 2)
                   ...> )|> inspect
-                  #{inspect(__MODULE__)}.new(#{unquote(first_blade)}: #{unquote(2 / metric / 4)}) |> inspect
+                  new(#{unquote(first_blade)}: #{unquote(2 / metric / 4)}) |> inspect
           """
         end
       else
@@ -51,7 +51,7 @@ defmodule Galixir.Generator.Inverse do
               ## Examples
 
                   iex> assert_raise ArgumentError, fn ->
-                  ...>   #{inspect(__MODULE__)}.inverse(#{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 1))
+                  ...>   inverse(new(#{unquote(first_blade)}: 1))
                   ...> end
           """
         end

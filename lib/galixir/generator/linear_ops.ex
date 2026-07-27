@@ -33,10 +33,10 @@ defmodule Galixir.Generator.LinearOps do
 
         ## Examples
 
-            iex> a = #{inspect(__MODULE__)}.new(scalar: 2)
-            iex> b = #{inspect(__MODULE__)}.new(scalar: 3)
-            iex> #{inspect(__MODULE__)}.add(a, b)
-            #{inspect(__MODULE__)}.new(scalar: 5)
+            iex> a = new(scalar: 2)
+            iex> b = new(scalar: 3)
+            iex> add(a, b)
+            new(scalar: 5)
         """
       end
     )
@@ -64,10 +64,10 @@ defmodule Galixir.Generator.LinearOps do
 
         ## Examples
 
-            iex> a = #{inspect(__MODULE__)}.new(scalar: 5)
-            iex> b = #{inspect(__MODULE__)}.new(scalar: 2)
-            iex> #{inspect(__MODULE__)}.sub(a, b)
-            #{inspect(__MODULE__)}.new(scalar: 3)
+            iex> a = new(scalar: 5)
+            iex> b = new(scalar: 2)
+            iex> sub(a, b)
+            new(scalar: 3)
         """
       end
     )

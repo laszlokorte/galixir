@@ -21,8 +21,8 @@ defmodule Galixir.Generator.Norm do
 
       ## Example
 
-          iex> a = #{inspect(__MODULE__)}.new(scalar: 3)
-          iex> #{inspect(__MODULE__)}.squared_norm(a)
+          iex> a = new(scalar: 3)
+          iex> squared_norm(a)
           9.0
       """
       def squared_norm(%__MODULE__{} = a) do
@@ -36,8 +36,8 @@ defmodule Galixir.Generator.Norm do
 
       ## Example
 
-          iex> a = #{inspect(__MODULE__)}.new(scalar: 3)
-          iex> #{inspect(__MODULE__)}.norm(a)
+          iex> a = new(scalar: 3)
+          iex> norm(a)
           3.0
       """
       def norm(%__MODULE__{} = a) do
@@ -55,8 +55,8 @@ defmodule Galixir.Generator.Norm do
 
       ## Example
 
-          iex> a = #{inspect(__MODULE__)}.new(scalar: 2)
-          iex> #{inspect(__MODULE__)}.norm(#{inspect(__MODULE__)}.normalize(a))
+          iex> a = new(scalar: 2)
+          iex> norm(normalize(a))
           1.0
       """
       def normalize(%__MODULE__{} = a) do

@@ -76,9 +76,9 @@ defmodule Galixir.Algebras.CGA2 do
   def e_o do
     scale(
       0.5,
-      add(
+      sub(
         new(em: 1),
-        new(ep: -1)
+        new(ep: 1)
       )
     )
   end
@@ -624,14 +624,17 @@ defmodule Galixir.Algebras.CGA2 do
     iex> {a, b, c} = line_parameters(line(point(0, 0), point(0, 1)))
     iex> {abs(a), b, c}
     {1.0, 0.0, 0.0}
+
+    iex> line_parameters(line(point(0, 0), point(1, 2)))
+    {-2.0, 1.0, 0.0}
   """
   def line_parameters(l) do
     l = dual(l)
 
     {
-      dot(l, new(e1: 1)),
-      dot(l, new(e2: 1)),
-      dot(l, e_o())
+      clean_zero(coefficient(l, :e1)),
+      clean_zero(coefficient(l, :e2)),
+      clean_zero(0.5 * dot(l, e_inf()))
     }
   end
 

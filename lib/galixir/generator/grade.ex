@@ -54,17 +54,17 @@ defmodule Galixir.Generator.Grade do
 
       ## Examples
 
-          iex> #{inspect(__MODULE__)}.grade(
-          ...>   #{inspect(__MODULE__)}.new(scalar: 1, #{unquote(first_blade)}: 2),
+          iex> grade(
+          ...>   new(scalar: 1, #{unquote(first_blade)}: 2),
           ...>   1
           ...> )
-          #{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 2)
+          new(#{unquote(first_blade)}: 2)
 
-          iex> #{inspect(__MODULE__)}.grade(
-          ...>   #{inspect(__MODULE__)}.new(scalar: 1, #{unquote(first_blade)}: 2),
+          iex> grade(
+          ...>   new(scalar: 1, #{unquote(first_blade)}: 2),
           ...>   0
           ...> )
-          #{inspect(__MODULE__)}.new(scalar: 1)
+          new(scalar: 1)
 
       """
       def grade(%__MODULE__{data: d}, g) do
@@ -128,23 +128,23 @@ defmodule Galixir.Generator.Grade do
 
       ## Examples
 
-          iex> #{inspect(__MODULE__)}.grades(
-          ...>   #{inspect(__MODULE__)}.new(scalar: 1)
+          iex> grades(
+          ...>   new(scalar: 1)
           ...> )
           [0]
 
-          iex> #{inspect(__MODULE__)}.grades(
-          ...>   #{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 2)
+          iex> grades(
+          ...>   new(#{unquote(first_blade)}: 2)
           ...> )
           [1]
 
-          iex> #{inspect(__MODULE__)}.grades(
-          ...>   #{inspect(__MODULE__)}.new(scalar: 1, #{unquote(first_blade)}: 2)
+          iex> grades(
+          ...>   new(scalar: 1, #{unquote(first_blade)}: 2)
           ...> )
           [0, 1]
 
-          iex> #{inspect(__MODULE__)}.grades(
-          ...>   #{inspect(__MODULE__)}.new()
+          iex> grades(
+          ...>   new()
           ...> )
           []
 

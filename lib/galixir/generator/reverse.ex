@@ -50,14 +50,14 @@ defmodule Galixir.Generator.Reverse do
 
           ## Examples
 
-              iex> #{inspect(__MODULE__)}.reverse(#{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 2)) |> inspect
-              #{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 2)|> inspect
+              iex> reverse(new(#{unquote(first_basis)}: 2)) |> inspect
+              new(#{unquote(first_basis)}: 2)|> inspect
 
-              iex> #{inspect(__MODULE__)}.reverse(#{inspect(__MODULE__)}.new(#{unquote(bibasis)}: 2))|> inspect
-              #{inspect(__MODULE__)}.new(#{unquote(bibasis)}: -2)|> inspect
+              iex> reverse(new(#{unquote(bibasis)}: 2))|> inspect
+              new(#{unquote(bibasis)}: -2)|> inspect
 
-              iex> #{inspect(__MODULE__)}.reverse(#{inspect(__MODULE__)}.new(scalar: 3))|> inspect
-              #{inspect(__MODULE__)}.new(scalar: 3)|> inspect
+              iex> reverse(new(scalar: 3))|> inspect
+              new(scalar: 3)|> inspect
 
           """
         end
@@ -84,11 +84,11 @@ defmodule Galixir.Generator.Reverse do
 
           ## Examples
 
-              iex> #{inspect(__MODULE__)}.reverse(#{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 2)) |> inspect
-              #{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 2)|> inspect
+              iex> reverse(new(#{unquote(first_basis)}: 2)) |> inspect
+              new(#{unquote(first_basis)}: 2)|> inspect
 
-              iex> #{inspect(__MODULE__)}.reverse(#{inspect(__MODULE__)}.new(scalar: 3))|> inspect
-              #{inspect(__MODULE__)}.new(scalar: 3)|> inspect
+              iex> reverse(new(scalar: 3))|> inspect
+              new(scalar: 3)|> inspect
           """
         end
       end

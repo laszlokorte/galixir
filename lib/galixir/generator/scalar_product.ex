@@ -94,9 +94,9 @@ defmodule Galixir.Generator.ScalarProduct do
 
       ## Examples
 
-          iex> #{inspect(__MODULE__)}.scalar_product(
-          ...>   #{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 2),
-          ...>   #{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 3)
+          iex> scalar_product(
+          ...>   new(#{unquote(first_basis)}: 2),
+          ...>   new(#{unquote(first_basis)}: 3)
           ...> )
           #{unquote(6.0 * first_sig)}
 

@@ -72,23 +72,23 @@ defmodule Galixir.Generator.WedgeProduct do
 
           ## Examples
 
-              iex> #{inspect(__MODULE__)}.wedge(
-              ...>   #{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 1),
-              ...>   #{inspect(__MODULE__)}.new(#{unquote(second_basis)}: 1)
+              iex> wedge(
+              ...>   new(#{unquote(first_basis)}: 1),
+              ...>   new(#{unquote(second_basis)}: 1)
               ...> )
-              #{inspect(__MODULE__)}.new(#{unquote(bibasis)}: 1)
+              new(#{unquote(bibasis)}: 1)
 
-              iex> #{inspect(__MODULE__)}.wedge(
-              ...>   #{inspect(__MODULE__)}.new(#{unquote(second_basis)}: 1),
-              ...>   #{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 1)
+              iex> wedge(
+              ...>   new(#{unquote(second_basis)}: 1),
+              ...>   new(#{unquote(first_basis)}: 1)
               ...> )
-              #{inspect(__MODULE__)}.new(#{unquote(bibasis)}: -1)
+              new(#{unquote(bibasis)}: -1)
 
-              iex> #{inspect(__MODULE__)}.wedge(
-              ...>   #{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 1),
-              ...>   #{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 1)
+              iex> wedge(
+              ...>   new(#{unquote(first_basis)}: 1),
+              ...>   new(#{unquote(first_basis)}: 1)
               ...> )
-              #{inspect(__MODULE__)}.new()
+              new()
 
           """
         end
@@ -108,11 +108,11 @@ defmodule Galixir.Generator.WedgeProduct do
 
           ## Examples
 
-              iex> #{inspect(__MODULE__)}.wedge(
-              ...>   #{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 1),
-              ...>   #{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 1)
+              iex> wedge(
+              ...>   new(#{unquote(first_basis)}: 1),
+              ...>   new(#{unquote(first_basis)}: 1)
               ...> )
-              #{inspect(__MODULE__)}.new()
+              new()
 
           """
         end

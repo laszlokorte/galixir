@@ -35,13 +35,13 @@ defmodule Galixir.Generator.Predicates do
 
       ## Examples
 
-          iex> #{inspect(__MODULE__)}.scalar?(#{inspect(__MODULE__)}.new(scalar: 3))
+          iex> scalar?(new(scalar: 3))
           true
 
-          iex> #{inspect(__MODULE__)}.scalar?(#{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 3))
+          iex> scalar?(new(#{unquote(first_basis)}: 3))
           false
 
-          iex> #{inspect(__MODULE__)}.scalar?(#{inspect(__MODULE__)}.new())
+          iex> scalar?(new())
           true
       """
       def scalar?(%__MODULE__{data: d}) do
@@ -83,10 +83,10 @@ defmodule Galixir.Generator.Predicates do
 
       ## Examples
 
-          iex> #{inspect(__MODULE__)}.zero?(#{inspect(__MODULE__)}.new())
+          iex> zero?(new())
           true
 
-          iex> #{inspect(__MODULE__)}.zero?(#{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 1))
+          iex> zero?(new(#{unquote(first_basis)}: 1))
           false
       """
       def zero?(%__MODULE__{data: d}) do
@@ -116,19 +116,19 @@ defmodule Galixir.Generator.Predicates do
 
           ## Examples
 
-              iex> #{inspect(__MODULE__)}.blade?(#{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 2))
+              iex> blade?(new(#{unquote(first_basis)}: 2))
               true
 
-              iex> #{inspect(__MODULE__)}.blade?(#{inspect(__MODULE__)}.new(#{unquote(bibasis)}: 1))
+              iex> blade?(new(#{unquote(bibasis)}: 1))
               true
 
-              iex> #{inspect(__MODULE__)}.blade?(#{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 1, #{unquote(second_basis)}: 1))
+              iex> blade?(new(#{unquote(first_basis)}: 1, #{unquote(second_basis)}: 1))
               true
 
-              iex> #{inspect(__MODULE__)}.blade?(#{inspect(__MODULE__)}.new(scalar: 2, #{unquote(first_basis)}: 2))
+              iex> blade?(new(scalar: 2, #{unquote(first_basis)}: 2))
               false
 
-              iex> #{inspect(__MODULE__)}.blade?(#{inspect(__MODULE__)}.new(#{unquote(second_basis)}: 2, #{unquote(bibasis)}: 2))
+              iex> blade?(new(#{unquote(second_basis)}: 2, #{unquote(bibasis)}: 2))
               false
           """
         end
@@ -145,13 +145,13 @@ defmodule Galixir.Generator.Predicates do
 
           ## Examples
 
-              iex> #{inspect(__MODULE__)}.blade?(#{inspect(__MODULE__)}.new(#{unquote(first_basis)}: 2))
+              iex> blade?(new(#{unquote(first_basis)}: 2))
               true
 
-              iex> #{inspect(__MODULE__)}.blade?(#{inspect(__MODULE__)}.new(scalar: 2))
+              iex> blade?(new(scalar: 2))
               true
 
-              iex> #{inspect(__MODULE__)}.blade?(#{inspect(__MODULE__)}.new(scalar: 2, #{unquote(first_basis)}: 1))
+              iex> blade?(new(scalar: 2, #{unquote(first_basis)}: 1))
               false
           """
         end

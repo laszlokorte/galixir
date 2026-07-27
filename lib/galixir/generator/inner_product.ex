@@ -129,9 +129,9 @@ defmodule Galixir.Generator.InnerProduct do
 
       ## Example
 
-          iex> #{inspect(__MODULE__)}.#{unquote(function_name)}(
-          ...>   #{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 2),
-          ...>   #{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 3)
+          iex> #{unquote(function_name)}(
+          ...>   new(#{unquote(first_blade)}: 2),
+          ...>   new(#{unquote(first_blade)}: 3)
           ...> )
 
       """

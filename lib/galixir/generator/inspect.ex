@@ -20,16 +20,16 @@ defmodule Galixir.Generator.Inspect do
 
       ## Examples
 
-          iex> inspect(#{inspect(__MODULE__)}.new())
+          iex> inspect(new())
           "0"
 
-          iex> inspect(#{inspect(__MODULE__)}.new(scalar: 2))
+          iex> inspect(new(scalar: 2))
           "2.0"
 
-          iex> inspect(#{inspect(__MODULE__)}.new(#{unquote(first_blade)}: 1))
+          iex> inspect(new(#{unquote(first_blade)}: 1))
           "#{unquote(first_blade)}"
 
-          iex> inspect(#{inspect(__MODULE__)}.new(scalar: 1, #{unquote(first_blade)}: 2))
+          iex> inspect(new(scalar: 1, #{unquote(first_blade)}: 2))
           "1.0 + 2.0#{unquote(first_blade)}"
       """
       def to_string(v) do
