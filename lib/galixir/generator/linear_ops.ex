@@ -80,7 +80,7 @@ defmodule Galixir.Generator.LinearOps do
     result =
       for i <- 0..(size - 1) do
         quote do
-          unquote(s) * unquote(Enum.at(a, i))
+          (unquote(s) * unquote(Enum.at(a, i))) |> then(&if(&1 == 0.0, do: 0.0, else: &1))
         end
       end
 

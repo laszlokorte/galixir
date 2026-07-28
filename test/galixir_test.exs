@@ -847,18 +847,21 @@ defmodule GalixirTest do
     assert PGA3.grade(line, 2) == line
   end
 
-  test "parallel planes do not intersect" do
+  test "parallel planes meet in an ideal line" do
     a = PGA3.plane(1, 0, 0, 0)
     b = PGA3.plane(1, 0, 0, -1)
 
-    refute PGA3.intersects?(a, b)
+    assert PGA3.ideal_line?(PGA3.meet(a, b))
   end
 
-  test "planes intersect" do
+  test "intersecting planes meet in a finite line" do
     a = PGA3.plane(1, 0, 0, 0)
     b = PGA3.plane(0, 1, 0, 0)
 
-    assert PGA3.intersects?(a, b)
+    meet = PGA3.meet(a, b)
+
+    refute PGA3.ideal_line?(meet)
+    assert PGA3.grade(meet) == 2
   end
 
   test "line contains point" do
@@ -868,7 +871,7 @@ defmodule GalixirTest do
 
     line = PGA3.line(a, b)
 
-    assert PGA3.contains?(line, p)
+    assert PGA3.incident?(line, p)
   end
 
   test "debug join via undual" do
@@ -885,21 +888,15 @@ defmodule GalixirTest do
 
     line = PGA3.line(a, b)
 
-    refute PGA3.contains?(line, p)
-  end
-
-  test "parallel planes are ideal intersection" do
-    a = PGA3.plane(1, 0, 0, 0)
-    b = PGA3.plane(1, 0, 0, -1)
-
-    assert PGA3.ideal?(PGA3.meet(a, b))
+    refute PGA3.incident?(line, p)
   end
 
   test "intersecting planes are not ideal" do
     a = PGA3.plane(1, 0, 0, 0)
     b = PGA3.plane(0, 1, 0, 0)
 
-    refute PGA3.ideal?(PGA3.meet(a, b))
+    refute PGA3.ideal_line?(PGA3.meet(a, b))
+    refute PGA3.ideal_point?(PGA3.meet(a, b))
   end
 
   test "same planes are coincident" do
@@ -926,13 +923,17 @@ defmodule GalixirTest do
     refute PGA3.coincident?(a, b)
   end
 
-  test "direction of x axis line" do
-    a = PGA3.point(0, 0, 0)
-    b = PGA3.point(1, 0, 0)
+  test "direction point of x axis line has x direction" do
+    dir =
+      PGA3.line(
+        PGA3.point(0, 0, 0),
+        PGA3.point(1, 0, 0)
+      )
+      |> PGA3.direction_point()
 
-    dir = PGA3.ideal_point_on_line(PGA3.line(a, b))
-
-    assert PGA3.ideal?(dir)
+    assert PGA3.coefficient(dir, :e032) == 1
+    assert PGA3.coefficient(dir, :e013) == 0
+    assert PGA3.coefficient(dir, :e021) == 0
   end
 
   test "parallel lines have same direction" do
@@ -949,8 +950,8 @@ defmodule GalixirTest do
       )
 
     assert PGA3.coincident?(
-             PGA3.ideal_point_on_line(l1),
-             PGA3.ideal_point_on_line(l2)
+             PGA3.direction_point(l1),
+             PGA3.direction_point(l2)
            )
   end
 
