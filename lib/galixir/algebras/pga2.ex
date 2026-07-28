@@ -97,14 +97,14 @@ defmodule Galixir.Algebras.PGA2 do
 
   ## Examples
 
-  iex> point_coordinates(point(1, 2))
-  {1.0, 2.0}
+      iex> point_coordinates(point(1, 2))
+      {1.0, 2.0}
 
-  iex> point_coordinates(point(1, 2, 2))
-  {1.0, 2.0}
+      iex> point_coordinates(point(1, 2, 2))
+      {1.0, 2.0}
 
-  iex> point_coordinates(point(1, 2, 0.5))
-  {1.0, 2.0}
+      iex> point_coordinates(point(1, 2, 0.5))
+      {1.0, 2.0}
 
   """
   def point(x, y, w \\ 1) when w != 0 do
@@ -160,14 +160,14 @@ defmodule Galixir.Algebras.PGA2 do
 
   ## Examples
 
-  iex> ideal_point?(ideal_point(1,0))
-  true
+      iex> ideal_point?(ideal_point(1,0))
+      true
 
-  iex> ideal_point?(point(1,0))
-  false
+      iex> ideal_point?(point(1,0))
+      false
 
-  iex> ideal_point?(vector(1,0))
-  false
+      iex> ideal_point?(vector(1,0))
+      false
 
   """
   def ideal_point?(p) do
@@ -254,12 +254,11 @@ defmodule Galixir.Algebras.PGA2 do
 
     join(point1, point2)
 
-
   ## Examples
 
-  iex> l = line(point(23, 42), point(3,4))
-  iex> incident?(point(23,42), l)
-  true
+      iex> l = line(point(23, 42), point(3,4))
+      iex> incident?(point(23,42), l)
+      true
   """
   def line(a, b) do
     join(a, b)
@@ -380,42 +379,42 @@ defmodule Galixir.Algebras.PGA2 do
 
   ## Examples
 
-  iex> incident?(point(0,0), line(0,1,0))
-  true
+      iex> incident?(point(0,0), line(0,1,0))
+      true
 
-  iex> p = point(1, 2)
-  iex> l = line(point(1, 2), point(3, 4))
-  iex> incident?(p, l)
-  true
+      iex> p = point(1, 2)
+      iex> l = line(point(1, 2), point(3, 4))
+      iex> incident?(p, l)
+      true
 
-  iex> p = point(1, 2)
-  iex> l = line(point(0, 0), point(1, 0))
-  iex> incident?(p, l)
-  false
+      iex> p = point(1, 2)
+      iex> l = line(point(0, 0), point(1, 0))
+      iex> incident?(p, l)
+      false
 
-  iex> l1 = line(point(0, 0), point(1, 0))
-  iex> l2 = line(point(2, 0), point(3, 0))
-  iex> incident?(l1, l2)
-  true
+      iex> l1 = line(point(0, 0), point(1, 0))
+      iex> l2 = line(point(2, 0), point(3, 0))
+      iex> incident?(l1, l2)
+      true
 
-  iex> incident?(point(0, 0), line(point(0, 0), point(1, 0)))
-  true
+      iex> incident?(point(0, 0), line(point(0, 0), point(1, 0)))
+      true
 
-  iex> incident?(point(0, 1), line(point(0, 0), point(1, 0)))
-  false
+      iex> incident?(point(0, 1), line(point(0, 0), point(1, 0)))
+      false
 
-  iex> incident?(ideal_point(1, 0), line(point(0, 0), point(1, 0)))
-  true
+      iex> incident?(ideal_point(1, 0), line(point(0, 0), point(1, 0)))
+      true
 
-  iex> p = ideal_point(1, 0)
-  iex> l = line(point(0, 0), point(1, 0))
-  iex> incident?(p, l)
-  true
+      iex> p = ideal_point(1, 0)
+      iex> l = line(point(0, 0), point(1, 0))
+      iex> incident?(p, l)
+      true
 
-  iex> p = ideal_point(0, 1)
-  iex> l = line(point(0, 0), point(1, 0))
-  iex> incident?(p, l)
-  false
+      iex> p = ideal_point(0, 1)
+      iex> l = line(point(0, 0), point(1, 0))
+      iex> incident?(p, l)
+      false
 
   """
   def incident?(a, b) do
@@ -441,8 +440,8 @@ defmodule Galixir.Algebras.PGA2 do
 
   ## Examples
 
-  iex> direction_vector(line(point(0,1), point(2,0)))
-  new(e1: 2, e2: -1)
+      iex> direction_vector(line(point(0,1), point(2,0)))
+      new(e1: 2, e2: -1)
 
   """
   def direction_vector(line) do
@@ -472,24 +471,24 @@ defmodule Galixir.Algebras.PGA2 do
 
   ## Examples
 
-    iex> m = translator(3, 4)
-    iex> point_coordinates(transform(m, origin()))
-    {3.0, 4.0}
+      iex> m = translator(3, 4)
+      iex> point_coordinates(transform(m, origin()))
+      {3.0, 4.0}
 
 
-    iex> point_coordinates(transform(translator(3, 4), origin()))
-    {3.0, 4.0}
+      iex> point_coordinates(transform(translator(3, 4), origin()))
+      {3.0, 4.0}
 
-    iex> point_coordinates(transform(translator(-2, 5), point(1, 2)))
-    {-1.0, 7.0}
+      iex> point_coordinates(transform(translator(-2, 5), point(1, 2)))
+      {-1.0, 7.0}
 
-    iex> p = point(1, 2)
-    iex> point_coordinates(transform(translator(0, 0), p))
-    {1.0, 2.0}
+      iex> p = point(1, 2)
+      iex> point_coordinates(transform(translator(0, 0), p))
+      {1.0, 2.0}
 
-    iex> m = translator(3,4)
-    iex> point_coordinates(transform(inverse(m), transform(m, point(5,6))))
-    {5.0,6.0}
+      iex> m = translator(3,4)
+      iex> point_coordinates(transform(inverse(m), transform(m, point(5,6))))
+      {5.0,6.0}
   """
   def translator(x, y) do
     new(
@@ -504,9 +503,9 @@ defmodule Galixir.Algebras.PGA2 do
 
   ## Examples
 
-    iex> m = translator(vector(3, 4))
-    iex> point_coordinates(transform(m, origin()))
-    {3.0, 4.0}
+      iex> m = translator(vector(3, 4))
+      iex> point_coordinates(transform(m, origin()))
+      {3.0, 4.0}
   """
   def translator(v) do
     translator(
@@ -522,16 +521,16 @@ defmodule Galixir.Algebras.PGA2 do
 
   ## Examples
 
-  iex> p = point(1,0)
-  iex> {x, y} = point_coordinates(transform(rotor(:math.pi / 2), p))
-  iex> {Float.round(x, 10), Float.round(y, 10)}
-  {0.0, 1.0}
+      iex> p = point(1,0)
+      iex> {x, y} = point_coordinates(transform(rotor(:math.pi / 2), p))
+      iex> {Float.round(x, 10), Float.round(y, 10)}
+      {0.0, 1.0}
 
-  iex> p = point(3,4)
-  iex> {x,y} = point_coordinates(transform(rotor(-:math.pi/2),
-  ...>   transform(rotor(:math.pi/2), p)))
-  iex> {Float.round(x,10), Float.round(y,10)}
-  {3.0,4.0}
+      iex> p = point(3,4)
+      iex> {x,y} = point_coordinates(transform(rotor(-:math.pi/2),
+      ...>   transform(rotor(:math.pi/2), p)))
+      iex> {Float.round(x,10), Float.round(y,10)}
+      {3.0,4.0}
   """
   def rotor(angle) do
     new(

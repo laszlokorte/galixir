@@ -42,8 +42,8 @@ defmodule Galixir.Algebras.CGA2 do
 
   ## Examples
 
-    iex> zero()
-    ~G"0"
+      iex> zero()
+      ~G"0"
   """
   def zero do
     new()
@@ -52,13 +52,12 @@ defmodule Galixir.Algebras.CGA2 do
   @doc """
   Returns the scalar identity element.
 
-  This is the multiplicative identity:
+  This is the multiplicative identity.
 
-      1
-    ## Examples
+  ## Examples
 
-    iex> one()
-    ~G"1.0"
+      iex> one()
+      ~G"1.0"
 
   """
   def one do
@@ -72,10 +71,10 @@ defmodule Galixir.Algebras.CGA2 do
 
       e_inf = e_m + e_p
 
-    ## Examples
+  ## Examples
 
-    iex> scalar_product(e_inf(), e_inf())
-    0.0
+      iex> scalar_product(e_inf(), e_inf())
+      0.0
   """
   def e_inf do
     new(em: 1, ep: 1)
@@ -88,10 +87,10 @@ defmodule Galixir.Algebras.CGA2 do
 
       e_o = (e_m - e_p) / 2
 
-      ## Examples
+  ## Examples
 
-    iex> scalar_product(e_o(), e_inf())
-    -1.0
+      iex> scalar_product(e_o(), e_inf())
+      -1.0
   """
   def e_o do
     scale(
@@ -114,11 +113,11 @@ defmodule Galixir.Algebras.CGA2 do
 
   ## Examples
 
-    iex> point?(vector(1, 2))
-    false
+      iex> point?(vector(1, 2))
+      false
 
-    iex> point?(point(1, 2))
-    true
+      iex> point?(point(1, 2))
+      true
   """
   def vector(x, y) do
     new(
@@ -172,14 +171,14 @@ defmodule Galixir.Algebras.CGA2 do
 
   ## Examples
 
-  iex> circle(1, 2, 3)
-  ~G"1.5e12p + 2.5e12m + 2.0e1pm - e2pm"
+      iex> circle(1, 2, 3)
+      ~G"1.5e12p + 2.5e12m + 2.0e1pm - e2pm"
 
-  iex> circle?(circle(1, 2, 3))
-  true
+      iex> circle?(circle(1, 2, 3))
+      true
 
-  iex> circle_parameters(circle(1, 2, 3))
-  {:circle, {{1.0, 2.0}, 3.0}}
+      iex> circle_parameters(circle(1, 2, 3))
+      {:circle, {{1.0, 2.0}, 3.0}}
   """
   def circle(p, r) do
     sub(
@@ -509,24 +508,24 @@ defmodule Galixir.Algebras.CGA2 do
 
   ## Examples
 
-  iex> l = line(point(-2, 0), point(2, 0))
-  iex> c = circle(point(0, 0), 1)
-  iex> {:real, p1, p2} = split(meet(c, l))
-  iex> Enum.sort([point_coordinates(p1), point_coordinates(p2)])
-  [{-1.0, 0.0}, {1.0, 0.0}]
+      iex> l = line(point(-2, 0), point(2, 0))
+      iex> c = circle(point(0, 0), 1)
+      iex> {:real, p1, p2} = split(meet(c, l))
+      iex> Enum.sort([point_coordinates(p1), point_coordinates(p2)])
+      [{-1.0, 0.0}, {1.0, 0.0}]
 
-  iex> c1 = circle(point(-0.5, 0), 1)
-  iex> c2 = circle(point(0.5, 0), 1)
-  iex> {:real, p1, p2} = split(meet(c1, c2))
-  iex> [{x1, y1}, {x2, y2}] = Enum.sort([point_coordinates(p1), point_coordinates(p2)])
-  iex> abs(x1) < 1.0e-10 and abs(x2) < 1.0e-10
-  true
-  iex> (y1 < 0) != (y2 < 0)
-  true
-  iex> abs(abs(y1) - :math.sqrt(0.75)) < 1.0e-10
-  true
-  iex> abs(abs(y2) - :math.sqrt(0.75)) < 1.0e-10
-  true
+      iex> c1 = circle(point(-0.5, 0), 1)
+      iex> c2 = circle(point(0.5, 0), 1)
+      iex> {:real, p1, p2} = split(meet(c1, c2))
+      iex> [{x1, y1}, {x2, y2}] = Enum.sort([point_coordinates(p1), point_coordinates(p2)])
+      iex> abs(x1) < 1.0e-10 and abs(x2) < 1.0e-10
+      true
+      iex> (y1 < 0) != (y2 < 0)
+      true
+      iex> abs(abs(y1) - :math.sqrt(0.75)) < 1.0e-10
+      true
+      iex> abs(abs(y2) - :math.sqrt(0.75)) < 1.0e-10
+      true
   """
   def split(o) do
     ei = e_inf()
@@ -660,12 +659,12 @@ defmodule Galixir.Algebras.CGA2 do
 
   ## Examples
 
-    iex> {a, b, c} = line_parameters(line(point(0, 0), point(0, 1)))
-    iex> {abs(a), b, c}
-    {1.0, 0.0, 0.0}
+      iex> {a, b, c} = line_parameters(line(point(0, 0), point(0, 1)))
+      iex> {abs(a), b, c}
+      {1.0, 0.0, 0.0}
 
-    iex> line_parameters(line(point(0, 0), point(1, 2)))
-    {-2.0, 1.0, 0.0}
+      iex> line_parameters(line(point(0, 0), point(1, 2)))
+      {-2.0, 1.0, 0.0}
   """
   def line_parameters(l) do
     l = dual(l)

@@ -80,6 +80,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Returns the zero multivector.
+
   ## Examples
 
     iex> zero()
@@ -139,6 +140,7 @@ defmodule Galixir.Algebras.PGA3 do
   Checks whether a point is finite.
 
   A finite point has a non-zero homogeneous component.
+
   ## Examples
 
     iex> finite_point?(point(1, 2, 3))
@@ -264,6 +266,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Extracts the normal vector from a plane.
+
   ## Examples
 
     iex> plane_normal(plane(1, 2, 3, 4))
@@ -279,6 +282,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Returns the normalized plane normal.
+
   ## Examples
 
     iex> normalized_plane_normal(plane(0, 0, 5, 0))
@@ -404,6 +408,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Checks whether two homogeneous objects represent the same entity.
+
   ## Examples
 
     iex> a = point(1, 2, 3, 1)
@@ -448,6 +453,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Returns the ideal point representing a line direction.
+
   ## Examples
 
     iex> l = line(point(0,0,0), point(1,0,0))
@@ -479,6 +485,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Returns a normalized line direction vector.
+
   ## Examples
 
     iex> l = line(point(0,0,0), point(0,0,5))
@@ -495,6 +502,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Creates a translation motor from a vector.
+
   ## Examples
 
     iex> t1 = translator(1, 0, 0)
@@ -664,6 +672,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Returns Cartesian coordinates of a finite point.
+
   ## Examples
 
     iex> point_coordinates(point(4,5,6))
@@ -686,6 +695,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Returns the vector from point `a` to point `b`.
+
   ## Examples
 
     iex> direction_between_points(point(1,2,3), point(4,6,8))
@@ -722,6 +732,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Negates a multivector.
+
   ## Examples
 
     iex> negate(vector(1,2,3)).data
@@ -733,6 +744,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Computes the scalar product.
+
   ## Examples
 
     iex> scalar_product(vector(1,2,3), vector(4,5,6))
@@ -758,6 +770,7 @@ defmodule Galixir.Algebras.PGA3 do
   An empty set of constraints returns the identity motor.
 
   Uses an [iterative PGA look-at style construction](https://observablehq.com/@enkimute/glu-lookat-in-3d-pga).
+
   ## Examples
 
     iex> align([], []) == one()
@@ -766,8 +779,6 @@ defmodule Galixir.Algebras.PGA3 do
     iex> m = align([point(0,0,0)], [point(1,2,3)])
     iex> point_coordinates(transform(m, point(0,0,0)))
     {1.0, 2.0, 3.0}
-
-    ## Examples
 
     iex> from = [
     ...>   point(0, 0, 0),
@@ -780,7 +791,6 @@ defmodule Galixir.Algebras.PGA3 do
     iex> m = align(from, to)
     iex> point_coordinates(transform(m, point(1, 0, 0)))
     {0.0, 1.0, 0.0}
-
 
     iex> from = [
     ...>   point(0, 0, 0),
@@ -884,6 +894,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Computes the logarithm of a motor.
+
   ## Examples
 
     iex> t = translator(10,0,0)
@@ -896,6 +907,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   @doc """
   Computes the exponential of a bivector motor logarithm.
+
   ## Examples
 
     iex> b = motor_log(translator(5,0,0))
