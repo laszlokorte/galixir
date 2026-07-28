@@ -10,13 +10,13 @@ defmodule Galixir.Algebras.CGA2 do
 
       e1, e2, ep, em
 
-  where `ep` and `em` are the positive and negative null-space basis
-  used to construct the conformal origin and infinity vectors.
+  where `ep` and `em` are the positive and negative signature basis
+  vectors used to construct the null vectors `e_inf` and `e_o`.
 
   The conformal basis is defined as:
 
       e_inf = e_m + e_p
-       e_o = (e_m - e_p) / 2
+      e_o = (e_m - e_p) / 2
 
   Points are embedded using the standard conformal embedding:
 
@@ -24,6 +24,9 @@ defmodule Galixir.Algebras.CGA2 do
 
   Objects are represented as multivectors and can be combined using the
   operations provided by `Galixir.GeometricAlgebra`.
+
+  The implementation uses the pseudoscalar to convert between OPNS
+  and IPNS representations.
 
   ## Examples
 
@@ -133,6 +136,11 @@ defmodule Galixir.Algebras.CGA2 do
 
       P = e_o + x*e1 + y*e2 + 1/2(x²+y²)e_inf
 
+  ## Examples
+
+      iex> point_coordinates(point(1, 2))
+      {1.0, 2.0}
+
   """
   def point(x, y) do
     add(
@@ -154,13 +162,23 @@ defmodule Galixir.Algebras.CGA2 do
 
       {x, y}
 
+  ## Examples
+      iex> point(2, 3)
+      ...> |> scale(7)
+      ...> |> point_coordinates()
+      {2.0, 3.0}
+
   """
   def point_coordinates(p) do
     w = -scalar_product(p, e_inf())
 
+    if abs(w) < @eps do
+      raise ArgumentError, "cannot extract coordinates from point at infinity"
+    end
+
     {
-      scalar_product(p, new(e1: 1)) / w,
-      scalar_product(p, new(e2: 1)) / w
+      clean_zero(scalar_product(p, new(e1: 1)) / w),
+      clean_zero(scalar_product(p, new(e2: 1)) / w)
     }
   end
 
@@ -179,6 +197,12 @@ defmodule Galixir.Algebras.CGA2 do
 
       iex> circle_parameters(circle(1, 2, 3))
       {:circle, {{1.0, 2.0}, 3.0}}
+
+      iex> c = circle(point(1, 2), 3)
+      iex> contains?(c, point(4, 2))
+      true
+      iex> contains?(c, point(5, 2))
+      false
   """
   def circle(p, r) do
     sub(
@@ -189,6 +213,50 @@ defmodule Galixir.Algebras.CGA2 do
       )
     )
     |> gp(inverse(pseudoscalar()))
+  end
+
+  @doc """
+  Creates an OPNS circle or degenerate line through three conformal points.
+
+  The circle is represented by the outer product:
+
+      C = a ∧ b ∧ c
+
+  For collinear points this degenerates to a line.
+
+  ## Examples
+
+    iex> c =
+    ...>   line_or_circle_from_points(
+    ...>     point(1, 0),
+    ...>     point(0, 1),
+    ...>     point(-1, 0)
+    ...>   )
+    iex> circle?(c)
+    true
+    iex> circle_parameters(c)
+    {:circle, {{0.0, 0.0}, 1.0}}
+
+    iex> c =
+    ...>   line_or_circle_from_points(
+    ...>     point(0, 0),
+    ...>     point(1, 0),
+    ...>     point(0, 1)
+    ...>   )
+    iex> contains?(c, point(0, 0))
+    true
+
+    iex> c =
+    ...>   line_or_circle_from_points(
+    ...>     point(0, 0),
+    ...>     point(1, 0),
+    ...>     point(2, 0)
+    ...>   )
+    iex> line?(c)
+    true
+  """
+  def line_or_circle_from_points(a, b, c) do
+    join(a, b, c)
   end
 
   @doc """
@@ -204,6 +272,29 @@ defmodule Galixir.Algebras.CGA2 do
   The line is represented using the outer product:
 
       L = a ∧ b ∧ e_inf
+  ## Examples
+
+      iex> line?(line(point(0,0), point(1,0)))
+      true
+
+      iex> contains?(line(point(0,0), point(1,0)), point(0.5,0))
+      true
+
+      iex> l = line(point(0, 0), point(1, 0))
+      iex> line?(l)
+      true
+
+      iex> contains?(line(point(0, 0), point(1, 0)), point(2, 0))
+      true
+
+      iex> contains?(line(point(0, 0), point(1, 0)), point(0, 1))
+      false
+
+      iex> l = line(point(2, -1), point(2, 3))
+      iex> contains?(l, point(2, 10))
+      true
+      iex> contains?(l, point(3, 0))
+      false
   """
   def line(a, b) do
     wedge(
@@ -216,26 +307,16 @@ defmodule Galixir.Algebras.CGA2 do
   end
 
   @doc """
-  Creates a plane object from three points.
-
-  In CGA2 this corresponds to the generalized line/circle construction
-  obtained from three points and infinity.
-  """
-  def plane_from_points(a, b, c) do
-    wedge(
-      wedge(
-        wedge(a, b),
-        c
-      ),
-      e_inf()
-    )
-  end
-
-  @doc """
   Tests whether a point lies on a conformal object.
 
   Returns `true` when the incidence meet operation produces the zero
   multivector.
+
+  iex> l = line(point(0,0), point(1,0))
+  iex> contains?(l, point(2,0))
+  true
+  iex> contains?(l, point(0,1))
+  false
   """
   def contains?(object, point) do
     zero?(meet(object, point))
@@ -244,7 +325,38 @@ defmodule Galixir.Algebras.CGA2 do
   @doc """
   Computes the meet (incidence) operation between two objects.
 
-  Currently implemented as the outer product.
+  The meet is implemented using duality:
+
+    meet(a,b) = dual(dual(a) ∧ dual(b))
+
+  ## Examples
+
+      iex> l = line(point(-2,0), point(2,0))
+      iex> c = circle(point(0,0),1)
+      iex> point_pair?(meet(c,l))
+      true
+
+      iex> c1 = circle(point(1, 2), 1)
+      iex> c2 = circle(point(3, 2), 1)
+      iex> {:tangent, p} = split(meet(c1, c2))
+      iex> p |> point_coordinates()
+      {2.0, 2.0}
+
+      iex> c1 = circle(point(1, -1), 1)
+      iex> c2 = circle(point(1, -3), 1)
+      iex> {:tangent, p} = split(meet(c1, c2))
+      iex> p |> point_coordinates()
+      {1.0, -2.0}
+
+
+      iex> pp =
+      ...>   meet(
+      ...>     circle(point(0,0),1),
+      ...>     circle(point(5,0),1)
+      ...>   )
+      iex> match?({:point_pair, :imag, _}, classify(pp))
+      true
+
   """
   def meet(a, b) do
     wedge(
@@ -255,9 +367,65 @@ defmodule Galixir.Algebras.CGA2 do
   end
 
   @doc """
+  Computes the outer product join of two CGA objects.
+
+  The join is the wedge product:
+
+    join(a, b) = a ∧ b
+
+  This operates on the actual multivector representations.
+  Objects represented in IPNS form should be converted to OPNS form
+  before using the join.
+
+  For OPNS objects, the result is the smallest blade containing both.
+
+  ## Examples
+
+      iex> l =
+      ...>   join(
+      ...>     point(0, 0),
+      ...>     point(1, 0)
+      ...>   )
+      iex> grades(l)
+      [2]
+
+      iex> c =
+      ...>   join(
+      ...>     join(
+      ...>       point(1, 0),
+      ...>       point(0, 1)
+      ...>     ),
+      ...>     point(-1, 0)
+      ...>   )
+      iex> grades(c)
+      [3]
+
+
+      iex> c =
+      ...>   join(
+      ...>     point(1,0),
+      ...>     point(0,1),
+      ...>     point(-1,0)
+      ...>   )
+      iex> circle_parameters(c)
+      {:circle, {{0.0, 0.0}, 1.0}}
+  """
+  def join(a, b) do
+    wedge(a, b)
+  end
+
+  def join(a, b, c) do
+    wedge(wedge(a, b), c)
+  end
+
+  @doc """
   Creates a translator motor for translating by `(x, y)`.
 
   The returned motor can be applied with `transform/2`.
+
+  iex> p = point(1, 2) |> transform(translator(3, -1))
+  iex> point_coordinates(p)
+  {4.0, 1.0}
   """
   def translator(x, y) do
     t =
@@ -279,6 +447,17 @@ defmodule Galixir.Algebras.CGA2 do
   Creates a Euclidean rotation rotor.
 
   Rotates by `angle` radians around the origin.
+
+  The rotor is normalized before being returned.
+
+  iex> {x, y} = point(1, 0)
+  ...> |> transform(rotor(:math.pi() / 2))
+  ...> |> cleanup()
+  ...> |> point_coordinates()
+  iex> abs(x) < 1.0e-10
+  true
+  iex> abs(y - 1.0) < 1.0e-10
+  true
   """
   def rotor(angle) do
     add(
@@ -288,6 +467,7 @@ defmodule Galixir.Algebras.CGA2 do
         new(e12: 1)
       )
     )
+    |> normalize()
   end
 
   @doc """
@@ -296,8 +476,14 @@ defmodule Galixir.Algebras.CGA2 do
   Performs the sandwich product:
 
       M * X * reverse(M)
+  ## Examples
+
+    iex> point(1, 2)
+    ...> |> transform(translator(3, -1))
+    ...> |> point_coordinates()
+    {4.0, 1.0}
   """
-  def transform(motor, object) do
+  def transform(object, motor) do
     gp(
       gp(motor, object),
       reverse(motor)
@@ -308,6 +494,7 @@ defmodule Galixir.Algebras.CGA2 do
   Computes the scalar product of two multivectors.
 
   This is the scalar part of the geometric product.
+  It uses the CGA metric defined by the module signature.
   """
   def scalar_product(a, b) do
     scalar_part(gp(a, b))
@@ -317,13 +504,24 @@ defmodule Galixir.Algebras.CGA2 do
   Returns the CGA pseudoscalar:
 
       e1 ∧ e2 ∧ ep ∧ em
+
+      iex> grades(pseudoscalar())
+      [4]
   """
   def pseudoscalar do
     new(e12pm: 1)
   end
 
   @doc """
-  Normalizes a conformal point so that its weight is one.
+  Normalizes a conformal point so that its conformal weight is -1.
+
+  The weight is defined as:
+
+    w = p · e_o
+
+  and this module uses the convention that normalized points satisfy:
+
+    p · e_o = -1
 
   Raises `ArgumentError` if the point has zero weight.
 
@@ -332,16 +530,16 @@ defmodule Galixir.Algebras.CGA2 do
       iex> p = point(2, 3) |> scale(5)
       iex> normalized = normalize_point(p)
       iex> scalar_product(normalized, e_o())
-      1.0
+      -1.0
   """
   def normalize_point(p) do
     w = scalar_product(p, e_o())
 
     if abs(w) < @eps do
-      raise ArgumentError, "cannot normalize point with zero weight"
+      raise ArgumentError, "cannot normalize point with zero weight, given #{inspect(p)}"
     end
 
-    scale(p, 1.0 / w)
+    scale(p, -1.0 / w)
   end
 
   @doc """
@@ -403,18 +601,37 @@ defmodule Galixir.Algebras.CGA2 do
   end
 
   @doc """
-  Returns whether a multivector is an OPNS circle.
+  Returns whether a multivector is an OPNS circle or line.
 
-  Lines are also represented by grade-3 blades, so `line?/1` should be
-  used to distinguish between circles and lines.
+  In CGA2 both circles and lines are grade-3 objects.
+  Lines are exactly those trivectors containing e_inf.
+
+  Use `line?/1` to distinguish lines.
+
+  ## Examples
+
+      iex> circle_or_line?(circle(point(0, 0), 2))
+      true
+  """
+  def circle_or_line?(c) do
+    grades(c) == [3]
+  end
+
+  @doc """
+  Returns whether a multivector represents an OPNS circle.
+
+  Lines are also grade-3 blades in CGA2, so they are excluded.
 
   ## Examples
 
       iex> circle?(circle(point(0, 0), 2))
       true
+
+      iex> circle?(line(point(0, 0), point(1, 0)))
+      false
   """
-  def circle?(c) do
-    grades(c) == [3]
+  def circle?(x) do
+    circle_or_line?(x) and not line?(x)
   end
 
   @doc """
@@ -434,7 +651,9 @@ defmodule Galixir.Algebras.CGA2 do
   end
 
   @doc """
-  Returns whether a multivector has the grade of a point pair.
+  This function checks that the object has bivector grade and
+  contains finite point-pair structure. Use split/1 to extract
+  the actual points.
 
   This function only checks the grade. Use `split/1` to determine whether
   the bivector represents a valid point pair.
@@ -449,7 +668,7 @@ defmodule Galixir.Algebras.CGA2 do
       true
   """
   def point_pair?(x) do
-    grades(x) == [2]
+    grade?(x, 2) and not zero?(wedge(x, e_inf()))
   end
 
   @doc """
@@ -526,38 +745,81 @@ defmodule Galixir.Algebras.CGA2 do
       true
       iex> abs(abs(y2) - :math.sqrt(0.75)) < 1.0e-10
       true
+
+      iex> split(meet(circle(point(0,0),1), circle(point(0,0),1)))
+      :invalid
+
+      iex> c1 = circle(point(0,0),1)
+      iex> c2 = circle(point(5,0),1)
+      iex> {:imag, _, _} = split(meet(c1,c2))
+
+      iex> l = line(point(-1,1), point(1,1))
+      iex> c = circle(point(0,0),1)
+      iex> {:tangent, p} = split(meet(c,l))
+      iex> point_coordinates(p)
+      {0.0,1.0}
+
+      iex> split(meet(circle(point(0,0),1), line(point(-2,0), point(2,0)))) |> dbg
+      iex> split(meet(circle(point(1,2),1), circle(point(3,2),1))) |> dbg
+      iex> pp = join(point(0,0), point(1,0))
+      iex> split(pp)
+      {point(0,0), point(1,0)}
   """
   def split(o) do
     ei = e_inf()
     eo = e_o()
 
     nix = wedge(o, ei)
-
     nix2 = scalar_part(inner(nix, nix))
 
     if abs(nix2) < @eps do
       :invalid
     else
-      r2 = scalar_part(inner(o, o)) / nix2
+      pos =
+        gp(
+          gp(o, nix),
+          inverse(gp(nix, nix))
+        )
 
-      r = :math.sqrt(abs(r2))
+      r2 =
+        scalar_part(inner(o, o)) /
+          scalar_part(inner(nix, nix))
 
-      pos = o |> gp(inverse(nix))
+      if abs(r2) < @eps do
+        tangent =
+          o
+          |> point_pair_center()
 
-      attitude =
-        wedge(ei, eo)
-        |> inner(nix)
-        |> normalize()
-        |> scale(r)
+        {:tangent, tangent}
+      else
+        r = :math.sqrt(abs(r2))
 
-      kind = if(r2 >= 0, do: :real, else: :imag)
+        attitude =
+          wedge(ei, eo)
+          |> inner(nix)
+          |> normalize()
+          |> scale(r)
 
-      {
-        kind,
-        normalize_point(add(pos, attitude)),
-        normalize_point(sub(pos, attitude))
-      }
+        kind = if r2 >= 0, do: :real, else: :imag
+
+        {
+          kind,
+          normalize_point(add(pos, attitude)),
+          normalize_point(sub(pos, attitude))
+        }
+      end
     end
+  end
+
+  defp point_pair_center(o) do
+    # For a tangent point pair, the point pair degenerates to a single
+    # conformal point multiplied by e_inf. Extract the finite point by
+    # dividing by the remaining projective weight.
+    nix = wedge(o, e_inf())
+    pos = gp(o, inverse(nix))
+    w = scalar_product(pos, sub(e_inf(), one()))
+
+    scale(pos, 1.0 / w)
   end
 
   @doc """
@@ -572,9 +834,6 @@ defmodule Galixir.Algebras.CGA2 do
     * `{:unknown, multivector}`
 
   ## Examples
-
-      iex> classify(point(2, 3))
-      {:point, {2.0, 3.0}}
 
       iex> classify(point(2, 3))
       {:point, {2.0, 3.0}}
@@ -613,8 +872,27 @@ defmodule Galixir.Algebras.CGA2 do
       iex> match?({:point_pair, :real, _}, classify(pp))
       true
 
+      iex> pp =
+      ...>   meet(
+      ...>     circle(point(1, 2), 1),
+      ...>     circle(point(3, 2), 1)
+      ...>   )
+      iex> classify(pp)
+      {:point_pair, :tangent, {2.0, 2.0}}
+
+      iex> pp =
+      ...>   meet(
+      ...>     circle(point(1, -1), 1),
+      ...>     circle(point(1, -3), 1)
+      ...>   )
+      iex> classify(pp)
+      {:point_pair, :tangent, {1.0, -2.0}}
+
       iex> classify(new(e1: 1))
       {:unknown, new(e1: 1)}
+
+      iex> {:unknown, _} =  classify(join(point(0,0), point(1,0)))
+
   """
   def classify(x) do
     cond do
@@ -628,12 +906,14 @@ defmodule Galixir.Algebras.CGA2 do
         circle_parameters(x)
         |> case do
           {:circle, c} -> {:circle, c}
-          {:line, l} -> {:line, l}
         end
 
       point_pair?(x) ->
         split(x)
         |> case do
+          {:tangent, p} ->
+            {:point_pair, :tangent, point_coordinates(p)}
+
           {kind, p1, p2} ->
             {
               :point_pair,
@@ -665,6 +945,9 @@ defmodule Galixir.Algebras.CGA2 do
 
       iex> line_parameters(line(point(0, 0), point(1, 2)))
       {-2.0, 1.0, 0.0}
+
+      iex> line_parameters(line(point(0,0), point(1,0)))
+      {0.0, 1.0, 0.0}
   """
   def line_parameters(l) do
     l = dual(l)

@@ -472,22 +472,22 @@ defmodule Galixir.Algebras.PGA2 do
   ## Examples
 
       iex> m = translator(3, 4)
-      iex> point_coordinates(transform(m, origin()))
+      iex> point_coordinates(transform(origin(), m))
       {3.0, 4.0}
 
 
-      iex> point_coordinates(transform(translator(3, 4), origin()))
+      iex> point_coordinates(transform(origin(), translator(3, 4)))
       {3.0, 4.0}
 
-      iex> point_coordinates(transform(translator(-2, 5), point(1, 2)))
+      iex> point_coordinates(transform(point(1, 2), translator(-2, 5)))
       {-1.0, 7.0}
 
       iex> p = point(1, 2)
-      iex> point_coordinates(transform(translator(0, 0), p))
+      iex> point_coordinates(transform(p, translator(0, 0)))
       {1.0, 2.0}
 
       iex> m = translator(3,4)
-      iex> point_coordinates(transform(inverse(m), transform(m, point(5,6))))
+      iex> point_coordinates(transform(transform(point(5,6), m), inverse(m)))
       {5.0,6.0}
   """
   def translator(x, y) do
@@ -504,7 +504,7 @@ defmodule Galixir.Algebras.PGA2 do
   ## Examples
 
       iex> m = translator(vector(3, 4))
-      iex> point_coordinates(transform(m, origin()))
+      iex> point_coordinates(transform(origin(), m))
       {3.0, 4.0}
   """
   def translator(v) do
@@ -522,13 +522,15 @@ defmodule Galixir.Algebras.PGA2 do
   ## Examples
 
       iex> p = point(1,0)
-      iex> {x, y} = point_coordinates(transform(rotor(:math.pi / 2), p))
+      iex> {x, y} = point_coordinates(transform(p, rotor(:math.pi / 2)))
       iex> {Float.round(x, 10), Float.round(y, 10)}
       {0.0, 1.0}
 
       iex> p = point(3,4)
-      iex> {x,y} = point_coordinates(transform(rotor(-:math.pi/2),
-      ...>   transform(rotor(:math.pi/2), p)))
+      iex> {x, y} = p
+      ...>  |> transform(rotor(:math.pi() / 2))
+      ...>  |> transform(rotor(-:math.pi() / 2))
+      ...>  |> point_coordinates()
       iex> {Float.round(x,10), Float.round(y,10)}
       {3.0,4.0}
   """
@@ -547,7 +549,7 @@ defmodule Galixir.Algebras.PGA2 do
 
       M X M⁻¹
   """
-  def transform(motor, object) do
+  def transform(object, motor) do
     gp(gp(motor, object), inverse(motor))
   end
 

@@ -300,7 +300,7 @@ defmodule Galixir.Algebras.CGA3 do
 
       M X reverse(M)
   """
-  def transform(motor, object) do
+  def transform(object, motor) do
     gp(
       gp(motor, object),
       reverse(motor)

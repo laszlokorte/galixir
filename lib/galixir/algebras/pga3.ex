@@ -507,8 +507,9 @@ defmodule Galixir.Algebras.PGA3 do
 
     iex> t1 = translator(1, 0, 0)
     iex> t2 = translator(0, 2, 0)
-    iex> p = transform(gp(t2, t1), origin())
-    iex> point_coordinates(p)
+    iex> origin()
+    ...> |> transform(gp(t2, t1))
+    ...> |> point_coordinates()
     {1.0, 2.0, 0.0}
   """
   def translator(v) do
@@ -524,21 +525,21 @@ defmodule Galixir.Algebras.PGA3 do
 
   ## Examples
 
-    iex> point_coordinates(transform(translator(1, 2, 3), origin()))
+    iex> point_coordinates(transform(origin(), translator(1, 2, 3)))
     {1.0, 2.0, 3.0}
 
-    iex> point_coordinates(transform(translator(-1, -2, -3), point(1, 2, 3)))
+    iex> point_coordinates(transform(point(1, 2, 3), translator(-1, -2, -3)))
     {0.0, 0.0, 0.0}
 
     iex> p = point(4, 5, 6)
-    iex> point_coordinates(transform(translator(1, 2, 3), p))
+    iex> point_coordinates(transform(p, translator(1, 2, 3)))
     {5.0, 7.0, 9.0}
 
-    iex> point_coordinates(transform(translator(vector(1, 2, 3)), origin()))
+    iex> point_coordinates(transform(origin(), translator(vector(1, 2, 3))))
     {1.0, 2.0, 3.0}
 
     iex> v = vector(-3, 4, 5)
-    iex> point_coordinates(transform(translator(v), origin()))
+    iex> point_coordinates(transform(origin(), translator(v)))
     {-3.0, 4.0, 5.0}
   """
   def translator(x, y, z) do
@@ -557,32 +558,38 @@ defmodule Galixir.Algebras.PGA3 do
 
     iex> axis = line(point(0, 0, 0), point(0, 0, 1))
     iex> r = rotor(axis, :math.pi())
-    iex> p = transform(r, point(1, 0, 0))
-    iex> {x, y, z} = point_coordinates(p)
+    iex> {x, y, z} = point(1, 0, 0)
+    ...> |> transform(r)
+    ...> |> point_coordinates()
     iex> abs(x + 1.0) < 1.0e-10 and abs(y) < 1.0e-10 and abs(z) < 1.0e-10
 
     iex> axis = line(point(0, 0, 0), point(0, 0, 1))
-    iex> p = transform(rotor(axis, :math.pi() / 2), point(1, 0, 0))
-    iex> {x, y, z} = point_coordinates(p)
+    iex> {x, y, z} = point(1, 0, 0)
+    ...> |> transform(rotor(axis, :math.pi() / 2))
+    ...> |> point_coordinates()
     iex> {clean_zero(Float.round(x, 10)), clean_zero(Float.round(y, 10)), clean_zero(Float.round(z, 10))}
     {0.0, 1.0, 0.0}
 
     iex> axis = line(point(0, 0, 0), point(1, 0, 0))
-    iex> p = transform(rotor(axis, :math.pi() / 2), point(0, 1, 0))
-    iex> {x, y, z} = point_coordinates(p)
+    iex> {x, y, z} = point(0, 1, 0)
+    ...> |> transform(rotor(axis, :math.pi() / 2))
+    ...> |> point_coordinates()
     iex> {clean_zero(Float.round(x, 10)), clean_zero(Float.round(y, 10)), clean_zero(Float.round(z, 10))}
     {0.0, 0.0, 1.0}
 
     iex> axis = line(point(0, 0, 0), point(0, 1, 0))
-    iex> p = transform(rotor(axis, :math.pi()), point(1, 0, 0))
-    iex> {x, y, z} = point_coordinates(p)
+    iex> {x, y, z} = point(1, 0, 0)
+    ...> |> transform(rotor(axis, :math.pi()))
+    ...> |> point_coordinates()
     iex> {clean_zero(Float.round(x, 10)), clean_zero(Float.round(y, 10)), clean_zero(Float.round(z, 10))}
     {-1.0, 0.0, 0.0}
 
     iex> axis = line(point(0, 0, 0), point(0, 0, 1))
     iex> r = rotor(axis, :math.pi() / 3)
-    iex> p = point(2, 3, 4)
-    iex> point_coordinates(transform(inverse(r), transform(r, p)))
+    iex> point(2, 3, 4)
+    ...> |> transform(r)
+    ...> |> transform(inverse(r))
+    ...> |> point_coordinates()
     {2.0, 3.0, 4.0}
 
   """
@@ -628,25 +635,31 @@ defmodule Galixir.Algebras.PGA3 do
 
   ## Examples
 
-    iex> p = transform(translator(1,2,3), origin())
-    iex> point_coordinates(p)
+    iex> origin()
+    ...> |> transform(translator(1, 2, 3))
+    ...> |> point_coordinates()
     {1.0, 2.0, 3.0}
 
     iex> m = translator(3, 4, 5)
-    iex> p = transform(m, origin())
-    iex> point_coordinates(p)
+    iex> origin()
+    ...> |> transform(m)
+    ...> |> point_coordinates()
     {3.0, 4.0, 5.0}
 
     iex> m = translator(3, 4, 5)
-    iex> p = point(1, 2, 3)
-    iex> point_coordinates(transform(inverse(m), transform(m, p)))
+    iex> point(1, 2, 3)
+    ...> |> transform(m)
+    ...> |> transform(inverse(m))
+    ...> |> point_coordinates()
     {1.0, 2.0, 3.0}
 
     iex> m = gp(translator(1, 0, 0), translator(0, 2, 0))
-    iex> point_coordinates(transform(m, origin()))
+    iex> origin()
+    ...> |> transform(m)
+    ...> |> point_coordinates()
     {1.0, 2.0, 0.0}
   """
-  def transform(motor, object) do
+  def transform(object, motor) do
     # Motors are normalized, therefore reverse == inverse
     gp(gp(motor, object), reverse(motor))
   end
@@ -777,7 +790,9 @@ defmodule Galixir.Algebras.PGA3 do
     true
 
     iex> m = align([point(0,0,0)], [point(1,2,3)])
-    iex> point_coordinates(transform(m, point(0,0,0)))
+    iex> point(0, 0, 0)
+    ...> |> transform(m)
+    ...> |> point_coordinates()
     {1.0, 2.0, 3.0}
 
     iex> from = [
@@ -789,7 +804,9 @@ defmodule Galixir.Algebras.PGA3 do
     ...>   point(0, 1, 0)
     ...> ]
     iex> m = align(from, to)
-    iex> point_coordinates(transform(m, point(1, 0, 0)))
+    iex> point(1, 0, 0)
+    ...> |> transform(m)
+    ...> |> point_coordinates()
     {0.0, 1.0, 0.0}
 
     iex> from = [
@@ -803,37 +820,37 @@ defmodule Galixir.Algebras.PGA3 do
     ...>   point(0, 2, 3)
     ...> ]
     iex> m = align(from, to)
-    iex> point_coordinates(transform(m, point(1, 0, 0)))
+    iex> point_coordinates(transform(point(1, 0, 0), m))
     {1.0, 3.0, 3.0}
 
     iex> l1 = line(point(0, 0, 0), point(1, 0, 0))
     iex> l2 = line(point(0, 0, 0), point(0, 1, 0))
     iex> m = align([l1], [l2])
-    iex> transformed = transform(m, l1)
+    iex> transformed = transform(l1, m)
     iex> coincident?(transformed, l2)
     true
 
     iex> l1 = line(point(0, 0, 0), point(1, 0, 0))
     iex> l2 = line(point(5, 6, 7), point(6, 6, 7))
     iex> m = align([l1], [l2])
-    iex> coincident?(transform(m, l1), l2)
+    iex> coincident?(transform(l1, m), l2)
     true
 
     iex> p1 = plane(0, 0, 1, 0)
     iex> p2 = plane(1, 0, 0, 0)
     iex> m = align([p1], [p2])
-    iex> coincident?(transform(m, p1), p2)
+    iex> coincident?(transform(p1, m), p2)
     true
 
     iex> p1 = plane(0, 0, 1, 0)
     iex> p2 = plane(0, 0, 1, -5)
     iex> m = align([p1], [p2])
-    iex> coincident?(transform(m, p1), p2)
+    iex> coincident?(transform(p1, m), p2)
     true
 
     iex> p = point(1, 2, 3)
     iex> m = align([p], [p])
-    iex> point_coordinates(transform(m, p))
+    iex> point_coordinates(transform(p, m))
     {1.0, 2.0, 3.0}
 
 
@@ -847,7 +864,7 @@ defmodule Galixir.Algebras.PGA3 do
     ...> ]
     iex> m = align(from, to)
     iex> inv = inverse(m)
-    iex> point_coordinates(transform(inv, transform(m, point(7, 8, 9))))
+    iex> point_coordinates(transform(transform(point(7, 8, 9), m), inv))
     {7.0, 8.0, 9.0}
 
     iex> l2 = line(point(10, 20, 30), point(10, 21, 30))
@@ -860,13 +877,13 @@ defmodule Galixir.Algebras.PGA3 do
     ...>   point(10,21,30)
     ...> ]
     iex> m = align(from, to)
-    iex> coincident?(transform(m, line(Enum.at(from,0), Enum.at(from,1))), l2)
+    iex> coincident?(transform(line(Enum.at(from,0), Enum.at(from,1)), m), l2)
     true
 
     iex> l1 = line(point(0, 0, 0), point(0, 0, 1))
     iex> l2 = line(point(5, 5, 5), point(5, 5, 6))
     iex> m = align([l1], [l2])
-    iex> coincident?(transform(m, l1), l2)
+    iex> coincident?(transform(l1, m), l2)
     true
 
     iex> align([point(0, 0, 0)], [])
@@ -884,7 +901,7 @@ defmodule Galixir.Algebras.PGA3 do
     initial_q = dual(new(scalar: 1))
 
     Enum.zip_reduce(ps, qs, {initial_m, initial_q}, fn p, q, {m, prev_q} ->
-      p = prev_q |> join(transform(m, p)) |> normalize()
+      p = prev_q |> join(transform(p, m)) |> normalize()
       new_q = prev_q |> join(q) |> normalize() |> blade_inverse()
       new_m = new_q |> gp(p) |> add(identity) |> gp(m)
       {new_m, new_q}
@@ -931,7 +948,7 @@ defmodule Galixir.Algebras.PGA3 do
 
     iex> t = translator(10, 0, 0)
     iex> half = motor_pow(t, 0.5)
-    iex> p = transform(half, origin())
+    iex> p = transform(origin(), half)
     iex> point_coordinates(p)
     {5.0, 0.0, 0.0}
   """
