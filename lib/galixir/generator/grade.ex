@@ -1,12 +1,18 @@
 defmodule Galixir.Generator.Grade do
   import Galixir.Generator.Utils, only: [blade_grade: 1, tuple_ast: 1]
+  alias Galixir.Chain
   alias Galixir.GeneratorBehaviour
   @behaviour GeneratorBehaviour
   @impl GeneratorBehaviour
-  def generate_implementation(%Galixir.Meta{dimensions: dim, bases: bases}) do
+  def generate_implementation(%Galixir.Meta{
+        dimensions: dim,
+        bases: bases,
+        blade_indices: blade_indices
+      }) do
     [
       grade_impl(dim, bases),
-      grades_impl(dim, bases)
+      grades_impl(dim, bases),
+      guard_impl(blade_indices)
     ]
   end
 
@@ -160,5 +166,130 @@ defmodule Galixir.Generator.Grade do
         |> List.flatten()
       end
     end
+  end
+
+  def guard_impl(blade_indices) do
+    conditions =
+      for {grade, condition} <- grade_guard_conditions(blade_indices) do
+        quote do
+          unquote(grade) == grade and unquote(condition)
+        end
+      end
+
+    guard_condition =
+      Enum.reduce(conditions, fn a, b ->
+        quote do
+          unquote(a) or unquote(b)
+        end
+      end)
+
+    quote do
+      @doc """
+      Checks whether a multivector contains components of the given grade only.
+
+      A multivector is considered to have a grade if all non-zero components belong
+      to that grade. The zero multivector is considered to have grade 0.
+
+      The `is_grade(vector, grade)` guard can be used in function guards:
+
+          def foo(mv) when is_grade(mv, 1) do
+            mv
+          end
+
+      ## Examples
+
+          iex> grade?(new(e1: 1), 1)
+          true
+
+          iex> grade?(new(scalar: 1, e1: 2), 2)
+          false
+
+          iex> grade?(new(scalar: 1), 0)
+          true
+
+          iex> grade?(new(), 0)
+          true
+
+      See `grade?/2`
+      """
+      defguard is_grade(mv, grade) when unquote(guard_condition)
+
+      @doc """
+      Checks whether a multivector contains components of the given grade only.
+
+      A multivector is considered to have a grade if all non-zero components belong
+      to that grade. The zero multivector is considered to have grade 0.
+
+      ## Examples
+
+          iex> grade?(new(e1: 1), 1)
+          true
+
+          iex> grade?(new(scalar: 1, e1: 2), 2)
+          false
+
+          iex> grade?(new(scalar: 1), 0)
+          true
+
+          iex> grade?(new(), 0)
+          true
+
+      See `is_grade/2`
+      """
+      def grade?(mv, g) when is_grade(mv, g), do: true
+      def grade?(_mv, _g), do: false
+    end
+  end
+
+  defp grade_guard_conditions(blade_indices) do
+    grades =
+      blade_indices
+      |> Enum.group_by(fn {_name, mask} ->
+        Galixir.Blade.grade(mask)
+      end)
+
+    Enum.map(grades, fn {grade, blades} ->
+      condition =
+        if grade == 0 do
+          # Scalars and zero
+          blade_indices
+          |> Enum.reject(fn {_name, mask} ->
+            Galixir.Blade.grade(mask) == 0
+          end)
+          |> Enum.map(fn {_name, index} ->
+            quote do
+              elem(mv.data, unquote(index)) == 0
+            end
+          end)
+          |> Chain.and_chain()
+        else
+          present =
+            blades
+            |> Enum.map(fn {_name, index} ->
+              quote do
+                elem(mv.data, unquote(index)) != 0
+              end
+            end)
+            |> Chain.or_chain()
+
+          absent =
+            blade_indices
+            |> Enum.reject(fn {_name, mask} ->
+              Galixir.Blade.grade(mask) == grade
+            end)
+            |> Enum.map(fn {_name, index} ->
+              quote do
+                elem(mv.data, unquote(index)) == 0
+              end
+            end)
+            |> Chain.and_chain()
+
+          quote do
+            unquote(present) and unquote(absent)
+          end
+        end
+
+      {grade, condition}
+    end)
   end
 end

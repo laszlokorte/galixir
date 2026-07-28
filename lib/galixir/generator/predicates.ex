@@ -4,11 +4,16 @@ defmodule Galixir.Generator.Predicates do
   alias Galixir.GeneratorBehaviour
   @behaviour GeneratorBehaviour
   @impl GeneratorBehaviour
-  def generate_implementation(%Galixir.Meta{bases: bases, dimensions: dimensions}) do
+  def generate_implementation(%Galixir.Meta{
+        bases: bases,
+        dimensions: dimensions,
+        blade_indices: bi
+      }) do
     [
       scalar_check_impl(dimensions, bases),
       zero_check_impl(dimensions, bases),
-      blade_check_impl(bases)
+      blade_check_impl(bases),
+      blade_guard_impl(bi)
     ]
   end
 
@@ -106,7 +111,14 @@ defmodule Galixir.Generator.Predicates do
         unquote(condition)
       end
 
-      defguard guard_zero?(mv) when unquote(guard_condition)
+      @doc """
+      A guard that matches multi vectors that are all zero.
+
+      Can be used in function guards:
+
+          def foo(x) when is_zero(x), do: x
+      """
+      defguard is_zero(mv) when unquote(guard_condition)
     end
   end
 
@@ -174,6 +186,53 @@ defmodule Galixir.Generator.Predicates do
       def blade?(%__MODULE__{} = a) do
         Enum.count(grades(a)) <= 1
       end
+    end
+  end
+
+  def blade_guard_impl(blade_indices) do
+    grades =
+      blade_indices
+      |> Enum.group_by(fn {_name, index} ->
+        Galixir.Blade.grade(index)
+      end)
+
+    grade_checks =
+      grades
+      |> Map.values()
+      |> Enum.map(fn blades ->
+        blades
+        |> Enum.map(fn {_name, index} ->
+          quote do
+            elem(mv.data, unquote(index)) != 0.0
+          end
+        end)
+        |> Enum.reduce(fn a, b ->
+          quote do
+            unquote(a) or unquote(b)
+          end
+        end)
+      end)
+
+    guard_condition =
+      grade_checks
+      |> Enum.with_index()
+      |> Enum.flat_map(fn {a, i} ->
+        grade_checks
+        |> Enum.drop(i + 1)
+        |> Enum.map(fn b ->
+          quote do
+            not (unquote(a) and unquote(b))
+          end
+        end)
+      end)
+      |> Enum.reduce(fn a, b ->
+        quote do
+          unquote(a) and unquote(b)
+        end
+      end)
+
+    quote do
+      defguard is_blade(mv) when unquote(guard_condition)
     end
   end
 end
