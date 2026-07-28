@@ -192,7 +192,7 @@ defmodule GalixirTest do
     a = PGA2.new({0, 1, 0, 0, 1, 0, 0, 0})
     b = PGA2.new({0, 0, 1, 1, 0, 0, 0, 0})
 
-    assert inspect(PGA2.add(a, b) |> PGA2.gp(a)) == "1 - e2 - e12 + e20 + e120"
+    assert inspect(PGA2.add(a, b) |> PGA2.gp(a)) == "1.0 - e2 - e12 + e20 + e120"
   end
 
   test "inspect scalars" do

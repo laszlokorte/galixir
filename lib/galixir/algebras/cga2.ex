@@ -74,7 +74,7 @@ defmodule Galixir.Algebras.CGA2 do
 
     ## Examples
 
-    iex> dot(e_inf(), e_inf())
+    iex> scalar_product(e_inf(), e_inf())
     0.0
   """
   def e_inf do
@@ -90,7 +90,7 @@ defmodule Galixir.Algebras.CGA2 do
 
       ## Examples
 
-    iex> dot(e_o(), e_inf())
+    iex> scalar_product(e_o(), e_inf())
     -1.0
   """
   def e_o do
@@ -157,11 +157,11 @@ defmodule Galixir.Algebras.CGA2 do
 
   """
   def point_coordinates(p) do
-    w = -dot(p, e_inf())
+    w = -scalar_product(p, e_inf())
 
     {
-      dot(p, new(e1: 1)) / w,
-      dot(p, new(e2: 1)) / w
+      scalar_product(p, new(e1: 1)) / w,
+      scalar_product(p, new(e2: 1)) / w
     }
   end
 
@@ -310,7 +310,7 @@ defmodule Galixir.Algebras.CGA2 do
 
   This is the scalar part of the geometric product.
   """
-  def dot(a, b) do
+  def scalar_product(a, b) do
     scalar_part(gp(a, b))
   end
 
@@ -332,11 +332,11 @@ defmodule Galixir.Algebras.CGA2 do
 
       iex> p = point(2, 3) |> scale(5)
       iex> normalized = normalize_point(p)
-      iex> dot(normalized, e_o())
+      iex> scalar_product(normalized, e_o())
       1.0
   """
   def normalize_point(p) do
-    w = dot(p, e_o())
+    w = scalar_product(p, e_o())
 
     if abs(w) < @eps do
       raise ArgumentError, "cannot normalize point with zero weight"
@@ -361,7 +361,7 @@ defmodule Galixir.Algebras.CGA2 do
   def point?(p) do
     grades(p) == [1] and
       null?(p) and
-      abs(dot(p, e_o())) > @eps
+      abs(scalar_product(p, e_o())) > @eps
   end
 
   @doc """
@@ -392,7 +392,7 @@ defmodule Galixir.Algebras.CGA2 do
   end
 
   defp null?(p) do
-    n2 = abs(dot(p, p))
+    n2 = abs(scalar_product(p, p))
 
     scale =
       p.data
@@ -671,9 +671,9 @@ defmodule Galixir.Algebras.CGA2 do
     l = dual(l)
 
     {
-      clean_zero(coefficient(l, :e1)),
-      clean_zero(coefficient(l, :e2)),
-      clean_zero(0.5 * dot(l, e_inf()))
+      coefficient(l, :e1),
+      coefficient(l, :e2),
+      0.5 * scalar_product(l, e_inf())
     }
   end
 

@@ -137,12 +137,12 @@ defmodule Galixir.Algebras.CGA3 do
       {x, y, z}
   """
   def point_coordinates(p) do
-    w = -dot(p, einf())
+    w = -scalar_product(p, einf())
 
     {
-      dot(p, new(e1: 1)) / w,
-      dot(p, new(e2: 1)) / w,
-      dot(p, new(e3: 1)) / w
+      scalar_product(p, new(e1: 1)) / w,
+      scalar_product(p, new(e2: 1)) / w,
+      scalar_product(p, new(e3: 1)) / w
     }
   end
 
@@ -312,7 +312,7 @@ defmodule Galixir.Algebras.CGA3 do
 
   Returns the scalar part of their geometric product.
   """
-  def dot(a, b) do
+  def scalar_product(a, b) do
     scalar_part(gp(a, b))
   end
 

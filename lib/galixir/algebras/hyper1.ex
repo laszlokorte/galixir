@@ -229,7 +229,7 @@ defmodule Galixir.Algebras.Hyper1 do
   @doc """
   Computes the scalar product of two hyperbolic multivectors.
   """
-  def dot(a, b) do
+  def scalar_product(a, b) do
     scalar_part(gp(a, b))
   end
 end

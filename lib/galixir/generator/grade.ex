@@ -165,6 +165,40 @@ defmodule Galixir.Generator.Grade do
         ]
         |> List.flatten()
       end
+
+      @doc """
+      Returns the grade of a homogeneous multivector.
+
+      The zero multivector is considered grade 0.
+
+      Returns `nil` for mixed-grade multivectors.
+
+        iex> grade(
+        ...>   new(scalar: 1)
+        ...> )
+        0
+
+        iex> grade(
+        ...>   new(#{unquote(first_blade)}: 2)
+        ...> )
+        1
+
+        iex> grade(
+        ...>   new(scalar: 1, #{unquote(first_blade)}: 2)
+        ...> )
+        nil
+
+        iex> grade(
+        ...>   new()
+        ...> )
+        nil
+      """
+      def grade(x) do
+        case grades(x) do
+          [g] -> g
+          _ -> nil
+        end
+      end
     end
   end
 

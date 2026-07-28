@@ -16,12 +16,12 @@ defmodule Galixir.Generator.Reverse do
       for mask <- 0..(size - 1) do
         sign = reverse_sign(blade_grade(mask))
 
-        if sign == 1 do
-          Enum.at(a, mask)
-        else
+        if sign == -1 do
           quote do
-            -unquote(Enum.at(a, mask))
+            unquote(Enum.at(a, mask)) |> Galixir.negate_coefficient()
           end
+        else
+          Enum.at(a, mask)
         end
       end
 
@@ -50,14 +50,14 @@ defmodule Galixir.Generator.Reverse do
 
           ## Examples
 
-              iex> reverse(new(#{unquote(first_basis)}: 2)) |> inspect
-              new(#{unquote(first_basis)}: 2)|> inspect
+              iex> reverse(new(#{unquote(first_basis)}: 2))
+              new(#{unquote(first_basis)}: 2)
 
-              iex> reverse(new(#{unquote(bibasis)}: 2))|> inspect
-              new(#{unquote(bibasis)}: -2)|> inspect
+              iex> reverse(new(#{unquote(bibasis)}: 2))
+              new(#{unquote(bibasis)}: -2)
 
-              iex> reverse(new(scalar: 3))|> inspect
-              new(scalar: 3)|> inspect
+              iex> reverse(new(scalar: 3))
+              new(scalar: 3)
 
           """
         end
@@ -84,11 +84,11 @@ defmodule Galixir.Generator.Reverse do
 
           ## Examples
 
-              iex> reverse(new(#{unquote(first_basis)}: 2)) |> inspect
-              new(#{unquote(first_basis)}: 2)|> inspect
+              iex> reverse(new(#{unquote(first_basis)}: 2))
+              new(#{unquote(first_basis)}: 2)
 
-              iex> reverse(new(scalar: 3))|> inspect
-              new(scalar: 3)|> inspect
+              iex> reverse(new(scalar: 3))
+              new(scalar: 3)
           """
         end
       end

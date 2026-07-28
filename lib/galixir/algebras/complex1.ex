@@ -226,7 +226,7 @@ defmodule Galixir.Algebras.Complex1 do
   @doc """
   Computes the scalar product of two multivectors.
   """
-  def dot(a, b) do
+  def scalar_product(a, b) do
     scalar_part(gp(a, b))
   end
 end

@@ -34,7 +34,7 @@ defmodule Galixir.Generator.GeometricProduct do
 
             -1 ->
               quote do
-                -(unquote(ca) * unquote(cb))
+                (unquote(ca) * unquote(cb)) |> Galixir.negate_coefficient()
               end
           end
 

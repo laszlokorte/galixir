@@ -103,9 +103,9 @@ defmodule Galixir.Algebras.Vector3 do
   # ----------------
 
   @doc """
-  Computes the dot product of two vectors.
+  Computes the scalar_product product of two vectors.
   """
-  def dot(a, b) do
+  def scalar_product(a, b) do
     scalar_part(gp(a, b))
   end
 
@@ -113,7 +113,7 @@ defmodule Galixir.Algebras.Vector3 do
   Computes the Euclidean length of a vector.
   """
   def len(v) do
-    :math.sqrt(dot(v, v))
+    :math.sqrt(scalar_product(v, v))
   end
 
   @doc """

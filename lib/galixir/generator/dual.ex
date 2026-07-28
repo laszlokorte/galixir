@@ -25,12 +25,12 @@ defmodule Galixir.Generator.Dual do
 
             value = Enum.at(a, mask)
 
-            if sign == 1 do
-              value
-            else
+            if sign == -1 do
               quote do
-                -unquote(value)
+                unquote(value) |> Galixir.negate_coefficient()
               end
+            else
+              value
             end
           end
 
@@ -48,7 +48,7 @@ defmodule Galixir.Generator.Dual do
           if sign == 1 do
             Enum.at(a, complement)
           else
-            quote(do: -unquote(Enum.at(a, complement)))
+            quote(do: -unquote(Enum.at(a, complement)) |> then(&if(&1 == 0.0, do: 0.0, else: &1)))
           end
 
         List.replace_at(acc, mask, value)

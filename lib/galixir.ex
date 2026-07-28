@@ -27,7 +27,7 @@ defmodule Galixir do
 
     * geometric product (`gp/2`)
     * outer product (`wedge/2`)
-    * inner product (`dot/2`)
+    * inner product (`scalar_product/2`)
     * reverse
     * dual
     * inverse
@@ -106,4 +106,8 @@ defmodule Galixir do
     * [Geometric Algebra (paper by Eric Chisolm)](https://arxiv.org/abs/1205.5935)
 
   """
+
+  def negate_coefficient(-0.0), do: 0.0
+  def negate_coefficient(+0.0), do: 0.0
+  def negate_coefficient(x), do: -1.0 * x
 end

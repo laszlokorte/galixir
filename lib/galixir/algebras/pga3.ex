@@ -87,7 +87,7 @@ defmodule Galixir.Algebras.PGA3 do
   An ideal point has no finite homogeneous component.
   """
   def ideal_point?(p) do
-    homogeneous_grade(p) == 3 and
+    grade?(p, 3) and
       coefficient(p, :e123) == 0
   end
 
@@ -97,7 +97,7 @@ defmodule Galixir.Algebras.PGA3 do
   A finite point has a non-zero homogeneous component.
   """
   def finite_point?(p) do
-    homogeneous_grade(p) == 3 and
+    grade?(p, 3) and
       coefficient(p, :e123) != 0
   end
 
@@ -153,7 +153,7 @@ defmodule Galixir.Algebras.PGA3 do
       iex> a = point(0, 0, 0)
       iex> b = point(1, 0, 0)
       iex> l = line(a, b)
-      iex> homogeneous_grade(l)
+      iex> single_grade(l)
       2
   """
   def line(a, b) do
@@ -249,7 +249,7 @@ defmodule Galixir.Algebras.PGA3 do
     iex> a = point(0, 0, 0)
     iex> b = point(1, 0, 0)
     iex> line = join(a, b)
-    iex> homogeneous_grade(line)
+    iex> single_grade(line)
     2
   """
   def join(a, b) do
@@ -271,7 +271,7 @@ defmodule Galixir.Algebras.PGA3 do
       iex> p1 = plane(1, 0, 0, 0)
       iex> p2 = plane(0, 1, 0, 0)
       iex> l = meet(p1, p2)
-      iex> homogeneous_grade(l)
+      iex> single_grade(l)
       2
   """
   def meet(a, b) do
@@ -353,7 +353,7 @@ defmodule Galixir.Algebras.PGA3 do
   Checks whether an object lies entirely at infinity.
   """
   def ideal?(x) do
-    case homogeneous_grade(x) do
+    case single_grade(x) do
       3 -> ideal_point?(x)
       _ -> zero?(wedge(x, new(e0: 1)))
     end
@@ -369,7 +369,7 @@ defmodule Galixir.Algebras.PGA3 do
     true
   """
   def coincident?(a, b) do
-    homogeneous_grade(a) == homogeneous_grade(b) and
+    single_grade(a) == single_grade(b) and
       zero?(sub(canonicalize(a), canonicalize(b)))
   end
 
@@ -572,7 +572,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   Returns `nil` for mixed-grade multivectors.
   """
-  def homogeneous_grade(x) do
+  def single_grade(x) do
     case grades(x) do
       [g] -> g
       _ -> nil
@@ -582,7 +582,7 @@ defmodule Galixir.Algebras.PGA3 do
   @doc """
   Computes the scalar product.
   """
-  def dot(a, b) do
+  def scalar_product(a, b) do
     gp(a, b)
     |> scalar_part()
   end
