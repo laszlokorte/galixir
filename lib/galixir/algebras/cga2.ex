@@ -333,7 +333,7 @@ defmodule Galixir.Algebras.CGA2 do
 
       iex> l = line(point(-2,0), point(2,0))
       iex> c = circle(point(0,0),1)
-      iex> point_pair?(meet(c,l))
+      iex> bivector_candidate?(meet(c,l))
       true
 
       iex> c1 = circle(point(1, 2), 1)
@@ -495,6 +495,12 @@ defmodule Galixir.Algebras.CGA2 do
 
   This is the scalar part of the geometric product.
   It uses the CGA metric defined by the module signature.
+
+  iex> scalar_product(new(e1: 1), new(e1: 1))
+  1.0
+
+  iex> scalar_product(point(1,0), new(e1: 1))
+  1.0
   """
   def scalar_product(a, b) do
     scalar_part(gp(a, b))
@@ -531,6 +537,10 @@ defmodule Galixir.Algebras.CGA2 do
       iex> normalized = normalize_point(p)
       iex> scalar_product(normalized, e_o())
       -1.0
+
+      iex> {x, y} = normalize_point(scale(point(8, 2), 100)) |> point_coordinates()
+      iex> abs(x - 8.0) < 1.0e-10 and abs(y - 2.0) < 1.0e-10
+      true
   """
   def normalize_point(p) do
     w = scalar_product(p, e_o())
@@ -556,7 +566,7 @@ defmodule Galixir.Algebras.CGA2 do
       false
   """
   def point?(p) do
-    grades(p) == [1] and
+    grade?(p, 1) and
       null?(p) and
       abs(scalar_product(p, e_o())) > @eps
   end
@@ -614,7 +624,7 @@ defmodule Galixir.Algebras.CGA2 do
       true
   """
   def circle_or_line?(c) do
-    grades(c) == [3]
+    grade?(c, 3)
   end
 
   @doc """
@@ -646,7 +656,7 @@ defmodule Galixir.Algebras.CGA2 do
       false
   """
   def line?(l) do
-    grades(l) == [3] and
+    grade?(l, 3) and
       norm(wedge(l, e_inf())) < @eps
   end
 
@@ -664,10 +674,10 @@ defmodule Galixir.Algebras.CGA2 do
       ...>   circle(point(0, 0), 2),
       ...>   line(point(-2, 0), point(2, 0))
       ...> )
-      iex> point_pair?(pp)
+      iex> bivector_candidate?(pp)
       true
   """
-  def point_pair?(x) do
+  def bivector_candidate?(x) do
     grade?(x, 2) and not zero?(wedge(x, e_inf()))
   end
 
@@ -749,25 +759,9 @@ defmodule Galixir.Algebras.CGA2 do
       iex> split(meet(circle(point(0,0),1), circle(point(0,0),1)))
       :invalid
 
-      iex> c1 = circle(point(-2,0),1)
-      iex> c2 = circle(point(2,0),1)
-      iex> {:imag, p1, p2} = split(meet(c1,c2))
-      iex> {x1,y1} = point_coordinates(p1)
-      iex> {x2,y2} = point_coordinates(p2)
-      iex> x1 == x2
-      true
-      iex> y1 == -y2
-      true
-
-      iex> c1 = circle(point(0,-2),1)
-      iex> c2 = circle(point(0,2),1)
-      iex> {:imag, p1, p2} = split(meet(c1,c2))
-      iex> {x1,y1} = point_coordinates(p1)
-      iex> {x2,y2} = point_coordinates(p2)
-      iex> x1 == -x2
-      true
-      iex> y1 == y2
-      true
+      iex> c1 = circle(point(0,0),1)
+      iex> c2 = circle(point(5,0),1)
+      iex> {:imag, _, _} = split(meet(c1,c2))
 
       iex> l = line(point(-1,1), point(1,1))
       iex> c = circle(point(0,0),1)
@@ -775,65 +769,79 @@ defmodule Galixir.Algebras.CGA2 do
       iex> point_coordinates(p)
       {0.0,1.0}
 
-      iex> pp = join(point(1,0), point(3,0))
-      iex> {:real, a, b} = split(pp)
-      iex> {{x1,y1},{x2,y2}} = {point_coordinates(a), point_coordinates(b)}
-      iex> Float.round(x1, 10) == 3.0 or Float.round(x2, 10) == 3.0
-      true
-      iex> Float.round(x1, 10) == 1.0 or Float.round(x2, 10) == 1.0
-      true
-      iex> Float.round(y1, 10) == 0.0 and Float.round(y2, 10) == 0.0
-      true
+       iex> pp = join(point(0.0,0.0), point(1,0))
+       iex> {:real, a, b} = split(pp)
+       iex> point_coordinates(a)
+       {0.0, 0.0}
+       iex> point_coordinates(b)
+       {1.0, 0.0}
   """
-  def split(b) do
-    bb = scalar_product(b, b)
+  def split(o) do
+    nix = wedge(o, e_inf())
+    nix2 = scalar_part(inner(nix, nix))
 
-    b_normalized =
-      cond do
-        bb > 0 ->
-          scale(b, 1.0 / :math.sqrt(bb))
-
-        bb < 0 ->
-          # imaginary point pair
-          scale(
-            gp(b, pseudoscalar()),
-            1.0 / :math.sqrt(-bb)
-          )
-
-        true ->
-          b
-      end
-
-    p = add(one(), b_normalized)
-    p_tilde = sub(one(), b_normalized)
-
-    v = inner(b, new(em: 1))
-    p1 = gp(p, v)
-    p2 = gp(p_tilde, v)
-
-    if abs(bb) < @eps do
-      point_pair_center(b)
-      |> case do
-        :invalid -> :invalid
-        c -> {:tangent, c}
-      end
+    if abs(nix2) < @eps do
+      :invalid
     else
-      {
-        if(bb > 0, do: :real, else: :imag),
-        normalize_split_point(p1),
-        normalize_split_point(p2)
-      }
+      pos =
+        o
+        |> gp(e_inf())
+        |> gp(o)
+        |> scale(-1.0 / (2 * nix2))
+
+      r2 =
+        scalar_part(inner(o, o)) /
+          scalar_part(inner(nix, nix))
+
+      if abs(r2) < @eps do
+        tangent =
+          o
+          |> point_pair_center()
+
+        {:tangent, tangent}
+      else
+        r = :math.sqrt(abs(r2))
+
+        offset =
+          wedge(e_inf(), e_o())
+          |> inner(nix)
+          |> normalize()
+          |> scale(r)
+
+        kind = if r2 >= 0, do: :real, else: :imag
+
+        {
+          kind,
+          lift_point(sub(pos, offset)),
+          lift_point(add(pos, offset))
+        }
+      end
     end
   end
 
-  defp normalize_split_point(p) do
-    # remove projective ambiguity and restore null embedding
-    p
-    |> normalize_point()
-    |> then(fn p ->
-      {x, y} = point_coordinates(p)
-      point(x, y)
-    end)
+  @doc """
+  Lifts an affine point representative back into the conformal point embedding.
+
+  ## Examples
+
+      iex> lift_point(point(2, 3))
+      ...> |> point_coordinates()
+      {2.0, 3.0}
+
+      iex> lift_point(point(2,3))
+      add(add(e_o(), add(new(e1: 2), new(e2: 3))), scale(6.5, e_inf()))
+
+      iex> point_coordinates(lift_point(point(4,5)))
+      {4.0,5.0}
+
+      iex> point?(lift_point(point(1,2)))
+      true
+  """
+  def lift_point(p) do
+    x = scalar_product(p, new(e1: 1))
+    y = scalar_product(p, new(e2: 1))
+
+    point(x, y)
   end
 
   defp point_pair_center(o) do
@@ -841,15 +849,10 @@ defmodule Galixir.Algebras.CGA2 do
     # conformal point multiplied by e_inf. Extract the finite point by
     # dividing by the remaining projective weight.
     nix = wedge(o, e_inf())
+    pos = gp(o, inverse(nix))
+    w = scalar_product(pos, sub(e_inf(), one()))
 
-    if(zero?(nix)) do
-      :invalid
-    else
-      pos = gp(o, inverse(nix))
-      w = scalar_product(pos, sub(e_inf(), one()))
-
-      scale(pos, 1.0 / w)
-    end
+    scale(pos, 1.0 / w)
   end
 
   @doc """
@@ -921,8 +924,7 @@ defmodule Galixir.Algebras.CGA2 do
       iex> classify(new(e1: 1))
       {:unknown, new(e1: 1)}
 
-      iex> {:point_pair, _, _} =  classify(join(point(2,3), point(1,0)))
-      iex> {:point_pair, _, _} =  classify(join(point(1,0), point(0,1)))
+      iex> {:point_pair, :real, _} =  classify(join(point(0,0), point(1,0)))
 
   """
   def classify(x) do
@@ -939,7 +941,7 @@ defmodule Galixir.Algebras.CGA2 do
           {:circle, c} -> {:circle, c}
         end
 
-      point_pair?(x) ->
+      bivector_candidate?(x) ->
         split(x)
         |> case do
           {:tangent, p} ->

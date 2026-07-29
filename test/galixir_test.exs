@@ -10,6 +10,13 @@ defmodule GalixirTest do
   alias Galixir.Algebras.PGA3
   alias Galixir.Table
 
+  test "debug" do
+    import Galixir.Algebras.CGA2
+    pp = join(point(0.0, 0.0), point(1, 0))
+    split(pp)
+    {:real, point(1, 0.0), point(0.0, 0.0)}
+  end
+
   test "dimension" do
     assert PGA2.dimension() == 3
     assert PGA3.dimension() == 4
