@@ -75,12 +75,16 @@ projected = {sx / sz * fov, sy / sz * fov}
 ```elixir
 def deps do
   [
-    {:galixir, "~> 0.11.0"}
+    {:galixir, "~> 0.27.0"}
   ]
 end
 ```
 
-This library is currently experimental, documentation is still missing. Contributions are welcome.
+Some of the concrete algebras are not fully implemented yet. `PGA2`, `PGA3` and `CGA2` are pretty complete and provide many manually implemented helper functions and doctests on top of the macro generated core.
+
+Others, like `Complex1` and `Vector2`, are merely prototypes generated via `use Galixir.GeometricAlgebra` macro and serve mostly as test cases for the macro itself.
+
+Contributions are welcome.
 
 ## Example
 

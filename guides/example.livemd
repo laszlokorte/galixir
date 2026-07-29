@@ -2,7 +2,7 @@
 
 ```elixir
 Mix.install([
-  {:galixir, "~> 0.11.0"},
+  {:galixir, "~> 0.27.0"},
   {:kino, "~> 0.19.0"}
 ])
 ```
@@ -31,7 +31,7 @@ defmodule Utils do
      initial_q = dual(new(scalar: 1))
 
      Enum.zip_reduce(ps, qs, {initial_m, initial_q}, fn p, q, {m, prev_q} ->
-       p = prev_q |> join(transform(m, p)) |> normalize() |> inverse()
+       p = prev_q |> join(transform(p, m)) |> normalize() |> inverse()
        new_q = prev_q |> join(q)
        new_m = normalize(new_q) |> gp(p) |> add(one) |> normalize() |> gp(m)
 
@@ -68,7 +68,7 @@ defmodule Scene do
 
   def to_svg(%__MODULE__{points: points, edges: edges, faces: faces, labels: labels}, camera) do
     project = fn cam, p ->
-      camera_point = PGA3.transform(cam, p)
+      camera_point = PGA3.transform(p, cam)
       {x, y, z} = PGA3.point_coordinates(camera_point)
       screen_x = x * 100 / z
       screen_y = -y * 100 / z
