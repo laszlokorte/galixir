@@ -749,9 +749,25 @@ defmodule Galixir.Algebras.CGA2 do
       iex> split(meet(circle(point(0,0),1), circle(point(0,0),1)))
       :invalid
 
-      iex> c1 = circle(point(0,0),1)
-      iex> c2 = circle(point(5,0),1)
-      iex> {:imag, _, _} = split(meet(c1,c2))
+      iex> c1 = circle(point(-2,0),1)
+      iex> c2 = circle(point(2,0),1)
+      iex> {:imag, p1, p2} = split(meet(c1,c2))
+      iex> {x1,y1} = point_coordinates(p1)
+      iex> {x2,y2} = point_coordinates(p2)
+      iex> x1 == x2
+      true
+      iex> y1 == -y2
+      true
+
+      iex> c1 = circle(point(0,-2),1)
+      iex> c2 = circle(point(0,2),1)
+      iex> {:imag, p1, p2} = split(meet(c1,c2))
+      iex> {x1,y1} = point_coordinates(p1)
+      iex> {x2,y2} = point_coordinates(p2)
+      iex> x1 == -x2
+      true
+      iex> y1 == y2
+      true
 
       iex> l = line(point(-1,1), point(1,1))
       iex> c = circle(point(0,0),1)
@@ -759,56 +775,65 @@ defmodule Galixir.Algebras.CGA2 do
       iex> point_coordinates(p)
       {0.0,1.0}
 
-      iex> split(meet(circle(point(0,0),1), line(point(-2,0), point(2,0)))) |> dbg
-      iex> split(meet(circle(point(1,2),1), circle(point(3,2),1))) |> dbg
-      iex> pp = join(point(0,0), point(1,0))
-      iex> split(pp)
-      {point(0,0), point(1,0)}
+      iex> pp = join(point(1,0), point(3,0))
+      iex> {:real, a, b} = split(pp)
+      iex> {{x1,y1},{x2,y2}} = {point_coordinates(a), point_coordinates(b)}
+      iex> Float.round(x1, 10) == 3.0 or Float.round(x2, 10) == 3.0
+      true
+      iex> Float.round(x1, 10) == 1.0 or Float.round(x2, 10) == 1.0
+      true
+      iex> Float.round(y1, 10) == 0.0 and Float.round(y2, 10) == 0.0
+      true
   """
-  def split(o) do
-    ei = e_inf()
-    eo = e_o()
+  def split(b) do
+    bb = scalar_product(b, b)
 
-    nix = wedge(o, ei)
-    nix2 = scalar_part(inner(nix, nix))
+    b_normalized =
+      cond do
+        bb > 0 ->
+          scale(b, 1.0 / :math.sqrt(bb))
 
-    if abs(nix2) < @eps do
-      :invalid
-    else
-      pos =
-        gp(
-          gp(o, nix),
-          inverse(gp(nix, nix))
-        )
+        bb < 0 ->
+          # imaginary point pair
+          scale(
+            gp(b, pseudoscalar()),
+            1.0 / :math.sqrt(-bb)
+          )
 
-      r2 =
-        scalar_part(inner(o, o)) /
-          scalar_part(inner(nix, nix))
-
-      if abs(r2) < @eps do
-        tangent =
-          o
-          |> point_pair_center()
-
-        {:tangent, tangent}
-      else
-        r = :math.sqrt(abs(r2))
-
-        attitude =
-          wedge(ei, eo)
-          |> inner(nix)
-          |> normalize()
-          |> scale(r)
-
-        kind = if r2 >= 0, do: :real, else: :imag
-
-        {
-          kind,
-          normalize_point(add(pos, attitude)),
-          normalize_point(sub(pos, attitude))
-        }
+        true ->
+          b
       end
+
+    p = add(one(), b_normalized)
+    p_tilde = sub(one(), b_normalized)
+
+    v = inner(b, new(em: 1))
+    p1 = gp(p, v)
+    p2 = gp(p_tilde, v)
+
+    if abs(bb) < @eps do
+      point_pair_center(b)
+      |> case do
+        :invalid -> :invalid
+        c -> {:tangent, c}
+      end
+    else
+      {
+        if(bb > 0, do: :real, else: :imag),
+        normalize_split_point(p1),
+        normalize_split_point(p2)
+      }
     end
+  end
+
+  defp normalize_split_point(p) do
+    # remove projective ambiguity and restore null embedding
+    p
+    |> normalize_point()
+    |> then(fn p ->
+      {x, y} = point_coordinates(p)
+      point(x, y)
+    end)
   end
 
   defp point_pair_center(o) do
@@ -816,10 +841,15 @@ defmodule Galixir.Algebras.CGA2 do
     # conformal point multiplied by e_inf. Extract the finite point by
     # dividing by the remaining projective weight.
     nix = wedge(o, e_inf())
-    pos = gp(o, inverse(nix))
-    w = scalar_product(pos, sub(e_inf(), one()))
 
-    scale(pos, 1.0 / w)
+    if(zero?(nix)) do
+      :invalid
+    else
+      pos = gp(o, inverse(nix))
+      w = scalar_product(pos, sub(e_inf(), one()))
+
+      scale(pos, 1.0 / w)
+    end
   end
 
   @doc """
@@ -891,7 +921,8 @@ defmodule Galixir.Algebras.CGA2 do
       iex> classify(new(e1: 1))
       {:unknown, new(e1: 1)}
 
-      iex> {:unknown, _} =  classify(join(point(0,0), point(1,0)))
+      iex> {:point_pair, _, _} =  classify(join(point(2,3), point(1,0)))
+      iex> {:point_pair, _, _} =  classify(join(point(1,0), point(0,1)))
 
   """
   def classify(x) do
