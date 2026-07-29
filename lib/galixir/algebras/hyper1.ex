@@ -7,7 +7,7 @@ defmodule Galixir.Algebras.Hyper1 do
 
       Cl(1,0)
 
-  with signature:
+  with metric:
 
       {1}
 
@@ -43,8 +43,8 @@ defmodule Galixir.Algebras.Hyper1 do
   """
 
   use Galixir.GeometricAlgebra,
-    signature: {1},
-    bases: {1}
+    metric: {1},
+    bases: {"1"}
 
   @doc """
   Returns the zero hyperbolic number:

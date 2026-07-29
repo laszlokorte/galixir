@@ -1,19 +1,22 @@
 defmodule Galixir.Generator.Reverse do
   import Galixir.Generator.Utils, only: [vars: 2, tuple_ast: 1, blade_grade: 1, reverse_sign: 1]
+  alias Galixir.Table
   alias Galixir.GeneratorBehaviour
   @behaviour GeneratorBehaviour
   @impl GeneratorBehaviour
-  def generate_implementation(%Galixir.Meta{size: size, bases: bases}) do
+  def generate_implementation(%Galixir.Meta{metric: metric, bases: bases}) do
+    blade_count = Table.blade_count(metric)
+
     [
-      reverse_impl(size, bases)
+      reverse_impl(blade_count, bases)
     ]
   end
 
-  def reverse_impl(size, bases) do
-    a = vars(:a, size)
+  def reverse_impl(blade_count, bases) do
+    a = vars(:a, blade_count)
 
     result =
-      for mask <- 0..(size - 1) do
+      for mask <- 0..(blade_count - 1) do
         sign = reverse_sign(blade_grade(mask))
 
         if sign == -1 do

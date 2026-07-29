@@ -2,7 +2,7 @@ defmodule Galixir.Algebras.CGA3 do
   @moduledoc """
   Three-dimensional Conformal Geometric Algebra (CGA).
 
-  This module implements CGA for Euclidean 3-space using the signature:
+  This module implements CGA for Euclidean 3-space using the metric:
 
       {1, 1, 1, 1, -1}
 
@@ -36,8 +36,8 @@ defmodule Galixir.Algebras.CGA3 do
   """
 
   use Galixir.GeometricAlgebra,
-    signature: {1, 1, 1, 1, -1},
-    bases: {1, 2, 3, :p, :m}
+    metric: {1, 1, 1, 1, -1},
+    bases: {"1", "2", "3", "p", "m"}
 
   @doc """
   Returns the zero multivector.

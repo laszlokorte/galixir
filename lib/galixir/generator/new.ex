@@ -3,22 +3,24 @@ defmodule Galixir.Generator.New do
   @behaviour GeneratorBehaviour
   @impl GeneratorBehaviour
 
-  def generate_implementation(%Galixir.Meta{size: size}) do
+  def generate_implementation(%Galixir.Meta{metric: metric}) do
+    blade_count = Galixir.Table.blade_count(metric)
+
     [
-      new_impl(size)
+      new_impl(blade_count)
     ]
   end
 
-  def new_impl(size) do
+  def new_impl(blade_count) do
     quote do
       def new(basis \\ [])
 
-      def new(data) when is_tuple(data) and tuple_size(data) == unquote(size) do
+      def new(data) when is_tuple(data) and tuple_size(data) == unquote(blade_count) do
         %__MODULE__{data: data}
       end
 
       def new(fields) when is_list(fields) do
-        coeffs = :erlang.make_tuple(@size, 0.0)
+        coeffs = :erlang.make_tuple(unquote(blade_count), 0.0)
 
         coeffs =
           Enum.reduce(fields, coeffs, fn {blade, coef}, acc ->

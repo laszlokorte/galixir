@@ -4,14 +4,14 @@ defmodule Galixir.Generator.Header do
 
   This generator injects compile-time metadata and helper functions into an
   algebra implementation module. The generated metadata describes the algebra
-  structure, including its metric signature, basis blade layout, multiplication
+  structure, including its metric, basis blade layout, multiplication
   table, and coefficient storage information.
 
   The generated functions provide access to:
 
     * the number of stored coefficients
     * the algebra dimension
-    * the metric signature
+    * the metric
     * the precomputed geometric product table
     * the mapping between blade names and storage indices
 
@@ -29,42 +29,49 @@ defmodule Galixir.Generator.Header do
 
   @impl GeneratorBehaviour
   def generate_implementation(%Meta{
-        signature: signature,
+        metric: metric,
         table: table,
         blade_indices: blade_indices,
         blade_aliases: blade_aliases,
-        size: size,
-        bases: bases
+        bases: bases,
+        epsilon: epsilon
       }) do
+    blade_count = Galixir.Table.blade_count(metric)
+
     [
       quote do
-        @signature unquote(Macro.escape(signature))
+        @metric unquote(Macro.escape(metric))
         @table unquote(Macro.escape(table))
-        @size unquote(size)
+        @blade_count unquote(blade_count)
         @basis_names unquote(Tuple.to_list(bases) |> Enum.map(&to_string/1))
         @blade_indices unquote(Macro.escape(blade_indices))
         @blade_aliases unquote(Macro.escape(blade_aliases))
+        @epsilon unquote(epsilon)
+
+        def epsilon() do
+          @epsilon
+        end
 
         @doc """
         Returns the number of coefficients stored by the algebra.
 
         A dimension `n` algebra contains `2^n` basis blades.
         """
-        def size() do
-          @size
+        def blade_count() do
+          @blade_count
         end
 
         @doc """
         Returns the dimension of the algebra.
 
-        This is the number of basis vectors defined by the signature.
+        This is the number of basis vectors defined by the metric.
         """
         def dimension do
-          tuple_size(@signature)
+          tuple_size(@metric)
         end
 
         @doc """
-        Returns the metric signature of the algebra.
+        Returns the metric of the algebra.
 
         Example:
 
@@ -73,8 +80,8 @@ defmodule Galixir.Generator.Header do
         represents a projective geometric algebra with three Euclidean basis
         vectors and one null basis vector.
         """
-        def signature do
-          @signature
+        def metric do
+          @metric
         end
 
         @doc """
@@ -88,7 +95,7 @@ defmodule Galixir.Generator.Header do
         ## Example
 
             iex> table() |> Map.has_key?({#{unquote(elem(bases, 0))}, #{unquote(elem(bases, 0))}})
-            #{unquote(elem(signature, 0) != 0)}
+            #{unquote(elem(metric, 0) != 0)}
         """
         def table do
           @table
@@ -97,7 +104,7 @@ defmodule Galixir.Generator.Header do
         @doc """
         Returns the mapping between blade names and storage indices.
 
-        Blade coefficients are stored in a fixed-size tuple. This map translates
+        Blade coefficients are stored in a fixed-blade_count tuple. This map translates
         canonical blade names into their corresponding tuple index.
 
         ## Example

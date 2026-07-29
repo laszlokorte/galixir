@@ -5,16 +5,16 @@ defmodule Galixir.Generator.InnerProduct do
   alias Galixir.GeneratorBehaviour
   @behaviour GeneratorBehaviour
   @impl GeneratorBehaviour
-  def generate_implementation(%Galixir.Meta{signature: sig, bases: bases}) do
+  def generate_implementation(%Galixir.Meta{metric: metric, bases: bases}) do
     [
-      inner_product_impl(sig, bases, :inner),
-      inner_product_impl(sig, bases, :left),
-      inner_product_impl(sig, bases, :right)
+      inner_product_impl(metric, bases, :inner),
+      inner_product_impl(metric, bases, :left),
+      inner_product_impl(metric, bases, :right)
     ]
   end
 
-  def inner_product_impl(signature, bases, mode \\ :inner) do
-    dimension = tuple_size(signature)
+  def inner_product_impl(metric, bases, mode \\ :inner) do
+    dimension = tuple_size(metric)
     blade_count = Bitwise.bsl(1, dimension)
 
     lhs = vars(:lhs, blade_count)
@@ -46,7 +46,7 @@ defmodule Galixir.Generator.InnerProduct do
       for a <- 0..(blade_count - 1),
           b <- 0..(blade_count - 1) do
         {coef, result} =
-          Galixir.Blade.multiply(a, b, signature)
+          Galixir.Blade.multiply(a, b, metric)
 
         ga = blade_grade(a)
         gb = blade_grade(b)

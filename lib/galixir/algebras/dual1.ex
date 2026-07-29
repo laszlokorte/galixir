@@ -6,7 +6,7 @@ defmodule Galixir.Algebras.Dual1 do
 
       D = R[ε] / (ε²)
 
-  using the signature:
+  using the metric:
 
       {0}
 
@@ -29,8 +29,8 @@ defmodule Galixir.Algebras.Dual1 do
   """
 
   use Galixir.GeometricAlgebra,
-    signature: {0},
-    bases: {1}
+    metric: {0},
+    bases: {"1"}
 
   @doc """
   Returns the zero dual number:
@@ -57,7 +57,7 @@ defmodule Galixir.Algebras.Dual1 do
 
       ε² = 0
   """
-  def epsilon do
+  def eps do
     new(e1: 1)
   end
 

@@ -15,7 +15,7 @@ defmodule Example.PGA3 do
   # e3 squares to 1
   # e0 squares to 0
   use Galixir.GeometricAlgebra,
-    signature: {1, 1, 1, 0},
+    metric: {1, 1, 1, 0},
     bases: {1, 2, 3, 0}
 
   # ... additional custom functions ...

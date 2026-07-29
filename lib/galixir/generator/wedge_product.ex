@@ -3,13 +3,13 @@ defmodule Galixir.Generator.WedgeProduct do
   alias Galixir.GeneratorBehaviour
   @behaviour GeneratorBehaviour
   @impl GeneratorBehaviour
-  def generate_implementation(%Galixir.Meta{dimensions: dimensions, signature: sig, bases: bases}) do
+  def generate_implementation(%Galixir.Meta{dimensions: dimensions, metric: metric, bases: bases}) do
     [
-      wedge_product_impl(dimensions, sig, bases)
+      wedge_product_impl(dimensions, metric, bases)
     ]
   end
 
-  def wedge_product_impl(dimension, signature, bases) do
+  def wedge_product_impl(dimension, metric, bases) do
     blade_count = Bitwise.bsl(1, dimension)
 
     lhs = vars(:lhs, blade_count)
@@ -23,7 +23,7 @@ defmodule Galixir.Generator.WedgeProduct do
           Galixir.Blade.multiply(
             a,
             b,
-            signature
+            metric
           )
 
         ca = Enum.at(lhs, a)
@@ -54,7 +54,7 @@ defmodule Galixir.Generator.WedgeProduct do
       end
 
     doc =
-      if tuple_size(signature) > 1 do
+      if tuple_size(metric) > 1 do
         first_basis = "e#{elem(bases, 0)}"
         second_basis = "e#{elem(bases, 1)}"
         bibasis = "e#{elem(bases, 0)}#{elem(bases, 1)}"

@@ -6,7 +6,7 @@ defmodule Galixir.Algebras.Vector2 do
 
       Cl(2,0)
 
-  with signature:
+  with metric:
 
       {1,1}
 
@@ -34,8 +34,8 @@ defmodule Galixir.Algebras.Vector2 do
   """
 
   use Galixir.GeometricAlgebra,
-    signature: {1, 1},
-    bases: {1, 2}
+    metric: {1, 1},
+    bases: {"1", "2"}
 
   @doc """
   Returns the zero vector.

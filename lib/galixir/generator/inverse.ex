@@ -2,15 +2,15 @@ defmodule Galixir.Generator.Inverse do
   alias Galixir.GeneratorBehaviour
   @behaviour GeneratorBehaviour
   @impl GeneratorBehaviour
-  def generate_implementation(%Galixir.Meta{signature: sig, bases: bases}) do
+  def generate_implementation(%Galixir.Meta{metric: metric, bases: bases}) do
     [
-      inverse_impl(sig, bases)
+      inverse_impl(metric, bases)
     ]
   end
 
-  def inverse_impl(signature, bases) do
+  def inverse_impl(metric, bases) do
     first_blade = "e#{elem(bases, 0)}"
-    metric = elem(signature, 0)
+    metric = elem(metric, 0)
 
     doc =
       if metric != 0 do

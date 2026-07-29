@@ -6,7 +6,7 @@ defmodule Galixir.Algebras.Complex1 do
 
       Cl(0,1)
 
-  with signature:
+  with metric:
 
       {-1}
 
@@ -35,8 +35,8 @@ defmodule Galixir.Algebras.Complex1 do
   """
 
   use Galixir.GeometricAlgebra,
-    signature: {-1},
-    bases: {1}
+    metric: {-1},
+    bases: {"1"}
 
   @doc """
   Returns the zero complex number:

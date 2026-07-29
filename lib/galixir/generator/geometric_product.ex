@@ -1,13 +1,15 @@
 defmodule Galixir.Generator.GeometricProduct do
   import Galixir.Generator.Utils, only: [sum: 1]
+  alias Galixir.Table
   alias Galixir.GeneratorBehaviour
   @behaviour GeneratorBehaviour
   @impl GeneratorBehaviour
-  def generate_implementation(%Galixir.Meta{table: t, size: size, bases: b, signature: sig}) do
-    geometric_product_impl(t, size, b, sig)
+  def generate_implementation(%Galixir.Meta{table: t, bases: b, metric: metric}) do
+    blade_count = Table.blade_count(metric)
+    geometric_product_impl(t, blade_count, b, metric)
   end
 
-  def geometric_product_impl(table, size, bases, signature) do
+  def geometric_product_impl(table, blade_count, bases, metric) do
     lhs = Macro.var(:lhs, nil)
 
     rhs = Macro.var(:rhs, nil)
@@ -42,7 +44,7 @@ defmodule Galixir.Generator.GeometricProduct do
       end
 
     result =
-      for index <- 0..(size - 1) do
+      for index <- 0..(blade_count - 1) do
         terms
         |> Enum.filter(fn {r, _} -> r == index end)
         |> Enum.map(fn {_, t} -> t end)
@@ -53,7 +55,7 @@ defmodule Galixir.Generator.GeometricProduct do
       {:{}, [], result}
 
     first_blade = "e#{elem(bases, 0)}"
-    first_matric = elem(signature, 0)
+    first_matric = elem(metric, 0)
 
     [
       quote do
@@ -64,7 +66,7 @@ defmodule Galixir.Generator.GeometricProduct do
         geometric algebra. It combines the outer product and metric-dependent
         inner product into a single associative operation.
 
-        The result depends on the algebra's metric signature.
+        The result depends on the algebra's metric.
 
         ## Examples
 

@@ -45,7 +45,7 @@ defmodule Galixir.Blade do
   end
 
   @doc """
-  Multiplies two basis blades using the given metric signature.
+  Multiplies two basis blades using the given metric.
 
   Returns a tuple containing:
 
@@ -66,9 +66,9 @@ defmodule Galixir.Blade do
       iex> Galixir.Blade.multiply(0b001, 0b001, {1, 1, 1})
       {1, 0}
 
-  ## Signature
+  ## Metric
 
-  The signature defines the square of each basis vector:
+  The metric defines the square of each basis vector:
 
       {1, -1, 0}
 
@@ -79,12 +79,12 @@ defmodule Galixir.Blade do
       e3² = 0
 
   """
-  def multiply(a, b, signature) do
+  def multiply(a, b, metric) do
     sign =
       swap_sign(a, b)
 
     metric =
-      metric_factor(Bitwise.band(a, b), signature)
+      metric_factor(Bitwise.band(a, b), metric)
 
     {
       sign * metric,
@@ -155,7 +155,7 @@ defmodule Galixir.Blade do
   Returns the basis vector indices contained in a blade mask.
 
   Each set bit in the mask corresponds to a basis vector. Indices are zero-based
-  and follow the ordering used by the algebra signature.
+  and follow the ordering used by the algebra metric.
 
   ## Examples
 
@@ -211,11 +211,11 @@ defmodule Galixir.Blade do
   defp popcount(0, acc), do: acc
   defp popcount(n, acc), do: popcount(Bitwise.bsr(n, 1), acc + Bitwise.band(n, 1))
 
-  defp metric_factor(common, signature) do
+  defp metric_factor(common, metric) do
     common
     |> bit_positions()
     |> Enum.reduce(1, fn i, acc ->
-      acc * elem(signature, i)
+      acc * elem(metric, i)
     end)
   end
 

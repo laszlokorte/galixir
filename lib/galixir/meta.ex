@@ -4,11 +4,11 @@ defmodule Galixir.Meta do
   defstruct [
     :module,
     :dimensions,
-    :size,
-    :signature,
+    :metric,
     :bases,
     :table,
     :blade_indices,
-    :blade_aliases
+    :blade_aliases,
+    :epsilon
   ]
 end

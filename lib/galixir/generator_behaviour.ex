@@ -7,7 +7,7 @@ defmodule Galixir.GeneratorBehaviour do
 
   Each generator receives a `Galixir.Meta` structure containing the information
   required to generate code for a specific algebra, such as its dimension,
-  signature, basis blades, and precomputed lookup tables.
+  metric, basis blades, and precomputed lookup tables.
 
   Implementations must return a list of quoted expressions (`Macro.t()`) that can
   be inserted into the target module using `unquote_splicing/1`.

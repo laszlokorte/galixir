@@ -10,7 +10,7 @@ defmodule Galixir.Algebras.PGA2 do
 
       Cl(2,0,1)
 
-  with signature:
+  with metric:
 
       {1,1,0} # e1*e1 = 1, e2*e2 = 1, e0*e0 = 0
 
@@ -53,11 +53,9 @@ defmodule Galixir.Algebras.PGA2 do
 
   """
 
-  @epsilon 1.0e-10
-
   use Galixir.GeometricAlgebra,
-    signature: {1, 1, 0},
-    bases: {1, 2, 0}
+    metric: {1, 1, 0},
+    bases: {"1", "2", "0"}
 
   @doc """
   Returns the zero multivector.
@@ -150,7 +148,7 @@ defmodule Galixir.Algebras.PGA2 do
   """
   def finite_point?(p) do
     grade?(p, 2) and
-      abs(coefficient(p, :e12)) >= @epsilon
+      abs(coefficient(p, :e12)) >= epsilon()
   end
 
   @doc """
@@ -172,7 +170,7 @@ defmodule Galixir.Algebras.PGA2 do
   """
   def ideal_point?(p) do
     grade?(p, 2) and
-      abs(coefficient(p, :e12)) < @epsilon
+      abs(coefficient(p, :e12)) < epsilon()
   end
 
   @doc """
@@ -194,7 +192,7 @@ defmodule Galixir.Algebras.PGA2 do
   def point_coordinates(p) do
     w = coefficient(p, :e12)
 
-    if abs(w) < @epsilon do
+    if abs(w) < epsilon() do
       raise ArgumentError, "cannot extract Cartesian coordinates from a non-finite point"
     end
 

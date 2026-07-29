@@ -2,7 +2,7 @@ defmodule Galixir.Algebras.CGA2 do
   @moduledoc """
   Two-dimensional Conformal Geometric Algebra (CGA).
 
-  This module implements CGA for the Euclidean plane using the signature:
+  This module implements CGA for the Euclidean plane using the metric:
 
       {1, 1, 1, -1}
 
@@ -10,7 +10,7 @@ defmodule Galixir.Algebras.CGA2 do
 
       e1, e2, ep, em
 
-  where `ep` and `em` are the positive and negative signature basis
+  where `ep` and `em` are the positive and negative basis
   vectors used to construct the null vectors `e_inf` and `e_o`.
 
   The conformal basis is defined as:
@@ -35,10 +35,8 @@ defmodule Galixir.Algebras.CGA2 do
       {2.0, 3.0}
   """
   use Galixir.GeometricAlgebra,
-    signature: {1, 1, 1, -1},
-    bases: {1, 2, :p, :m}
-
-  @eps 1.0e-10
+    metric: {1, 1, 1, -1},
+    bases: {"1", "2", "p", "m"}
 
   @doc """
   Returns the zero multivector.
@@ -172,7 +170,7 @@ defmodule Galixir.Algebras.CGA2 do
   def point_coordinates(p) do
     w = -scalar_product(p, e_inf())
 
-    if abs(w) < @eps do
+    if abs(w) < epsilon() do
       raise ArgumentError, "cannot extract coordinates from point at infinity"
     end
 
@@ -494,7 +492,7 @@ defmodule Galixir.Algebras.CGA2 do
   Computes the scalar product of two multivectors.
 
   This is the scalar part of the geometric product.
-  It uses the CGA metric defined by the module signature.
+  It uses the CGA metric defined by the module metric options.
 
   iex> scalar_product(new(e1: 1), new(e1: 1))
   1.0
@@ -545,7 +543,7 @@ defmodule Galixir.Algebras.CGA2 do
   def normalize_point(p) do
     w = scalar_product(p, e_o())
 
-    if abs(w) < @eps do
+    if abs(w) < epsilon() do
       raise ArgumentError, "cannot normalize point with zero weight, given #{inspect(p)}"
     end
 
@@ -568,7 +566,7 @@ defmodule Galixir.Algebras.CGA2 do
   def point?(p) do
     grade?(p, 1) and
       null?(p) and
-      abs(scalar_product(p, e_o())) > @eps
+      abs(scalar_product(p, e_o())) > epsilon()
   end
 
   @doc """
@@ -584,7 +582,7 @@ defmodule Galixir.Algebras.CGA2 do
       ...> |> coefficient(:e2)
       0.0
   """
-  def cleanup(m, eps \\ @eps) do
+  def cleanup(m, eps \\ epsilon()) do
     %__MODULE__{data: data} = m
 
     data =
@@ -607,7 +605,7 @@ defmodule Galixir.Algebras.CGA2 do
       |> Enum.map(&abs/1)
       |> Enum.sum()
 
-    n2 < @eps * max(scale * scale, 1.0)
+    n2 < epsilon() * max(scale * scale, 1.0)
   end
 
   @doc """
@@ -657,7 +655,7 @@ defmodule Galixir.Algebras.CGA2 do
   """
   def line?(l) do
     grade?(l, 3) and
-      norm(wedge(l, e_inf())) < @eps
+      norm(wedge(l, e_inf())) < epsilon()
   end
 
   @doc """
@@ -707,7 +705,7 @@ defmodule Galixir.Algebras.CGA2 do
 
     w = em - ep
 
-    if norm(wedge(c, e_inf())) < @eps do
+    if norm(wedge(c, e_inf())) < epsilon() do
       {:line, line_parameters(c)}
     else
       x = e1 / w
@@ -780,7 +778,7 @@ defmodule Galixir.Algebras.CGA2 do
     nix = wedge(o, e_inf())
     nix2 = scalar_part(inner(nix, nix))
 
-    if abs(nix2) < @eps do
+    if abs(nix2) < epsilon() do
       :invalid
     else
       pos =
@@ -793,7 +791,7 @@ defmodule Galixir.Algebras.CGA2 do
         scalar_part(inner(o, o)) /
           scalar_part(inner(nix, nix))
 
-      if abs(r2) < @eps do
+      if abs(r2) < epsilon() do
         tangent =
           o
           |> point_pair_center()

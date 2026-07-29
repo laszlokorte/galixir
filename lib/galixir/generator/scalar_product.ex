@@ -4,13 +4,13 @@ defmodule Galixir.Generator.ScalarProduct do
   alias Galixir.GeneratorBehaviour
   @behaviour GeneratorBehaviour
   @impl GeneratorBehaviour
-  def generate_implementation(%Galixir.Meta{dimensions: dimensions, signature: sig, bases: bases}) do
+  def generate_implementation(%Galixir.Meta{dimensions: dimensions, metric: metric, bases: bases}) do
     [
-      scalar_product_impl(dimensions, sig, bases)
+      scalar_product_impl(dimensions, metric, bases)
     ]
   end
 
-  def scalar_product_impl(dimension, signature, bases) do
+  def scalar_product_impl(dimension, metric, bases) do
     blade_count = Bitwise.bsl(1, dimension)
 
     raw_terms =
@@ -20,7 +20,7 @@ defmodule Galixir.Generator.ScalarProduct do
           Galixir.Blade.multiply(
             a,
             b,
-            signature
+            metric
           )
 
         if coef != 0 and result == 0 do
@@ -77,7 +77,7 @@ defmodule Galixir.Generator.ScalarProduct do
         end
       end
 
-    first_sig = elem(signature, 0)
+    first_sig = elem(metric, 0)
 
     first_basis = "e#{elem(bases, 0)}"
 
@@ -89,7 +89,7 @@ defmodule Galixir.Generator.ScalarProduct do
 
           <a b>₀
 
-      The result depends on the metric signature of the algebra. In particular,
+      The result depends on the metric of the algebra. In particular,
       basis vectors with negative or null squares affect the result.
 
       ## Examples

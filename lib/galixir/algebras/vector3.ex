@@ -6,7 +6,7 @@ defmodule Galixir.Algebras.Vector3 do
 
       Cl(3,0)
 
-  with signature:
+  with metric:
 
       {1,1,1}
 
@@ -36,8 +36,8 @@ defmodule Galixir.Algebras.Vector3 do
   """
 
   use Galixir.GeometricAlgebra,
-    signature: {1, 1, 1},
-    bases: {1, 2, 3}
+    metric: {1, 1, 1},
+    bases: {"1", "2", "3"}
 
   @doc """
   Returns the zero multivector.

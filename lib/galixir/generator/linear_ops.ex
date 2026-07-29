@@ -1,22 +1,25 @@
 defmodule Galixir.Generator.LinearOps do
   import Galixir.Generator.Utils, only: [vars: 2, tuple_ast: 1]
+  alias Galixir.Table
   alias Galixir.GeneratorBehaviour
   @behaviour GeneratorBehaviour
   @impl GeneratorBehaviour
-  def generate_implementation(%Galixir.Meta{size: size}) do
+  def generate_implementation(%Galixir.Meta{metric: metric}) do
+    blade_count = Table.blade_count(metric)
+
     [
-      add(size),
-      sub(size),
-      scale(size)
+      add(blade_count),
+      sub(blade_count),
+      scale(blade_count)
     ]
   end
 
-  defp add(size) do
-    a = vars(:a, size)
-    b = vars(:b, size)
+  defp add(blade_count) do
+    a = vars(:a, blade_count)
+    b = vars(:b, blade_count)
 
     result =
-      for i <- 0..(size - 1) do
+      for i <- 0..(blade_count - 1) do
         quote do
           unquote(Enum.at(a, i)) + unquote(Enum.at(b, i))
         end
@@ -42,12 +45,12 @@ defmodule Galixir.Generator.LinearOps do
     )
   end
 
-  defp sub(size) do
-    a = vars(:a, size)
-    b = vars(:b, size)
+  defp sub(blade_count) do
+    a = vars(:a, blade_count)
+    b = vars(:b, blade_count)
 
     result =
-      for i <- 0..(size - 1) do
+      for i <- 0..(blade_count - 1) do
         quote do
           unquote(Enum.at(a, i)) - unquote(Enum.at(b, i))
         end
@@ -73,12 +76,12 @@ defmodule Galixir.Generator.LinearOps do
     )
   end
 
-  defp scale(size) do
-    a = vars(:a, size)
+  defp scale(blade_count) do
+    a = vars(:a, blade_count)
     s = Macro.var(:s, nil)
 
     result =
-      for i <- 0..(size - 1) do
+      for i <- 0..(blade_count - 1) do
         quote do
           (unquote(s) * unquote(Enum.at(a, i))) |> then(&if(&1 == 0.0, do: 0.0, else: &1))
         end

@@ -6,19 +6,19 @@ defmodule Galixir.GeometricAlgebra do
   multivectors, including geometric products, outer products, inverses, duals,
   norms, grade extraction, and basis blade helpers.
 
-  The algebra is defined by a metric signature and a set of basis identifiers.
+  The algebra is defined by a metric and a set of basis identifiers.
 
   ## Usage
 
       defmodule PGA3 do
         use Galixir.GeometricAlgebra,
-          signature: {1, 1, 1, 0},
-          bases: {1, 2, 3, 0}
+          metric: {1, 1, 1, 0},
+          bases: {?1, ?2, ?3, ?0}
       end
 
-  ## Signature
+  ## Metric
 
-  The `:signature` option defines the metric of the algebra. Each element
+  The `:metric` option defines the metric of the algebra. Each element
   describes the square of the corresponding basis vector:
 
     * `1`  - Euclidean basis vector (`eᵢ² = 1`)
@@ -31,18 +31,18 @@ defmodule Galixir.GeometricAlgebra do
   ## Bases
 
   The optional `:bases` option defines the identifiers used for basis vectors.
-  The number of bases must match the dimension of the signature.
+  The number of bases must match the dimension of the metric.
 
   By default, basis identifiers are generated as consecutive integers starting
   from `1`. For example, a four-dimensional algebra without an explicit `:bases`
   option uses:
 
-    bases: {1, 2, 3, 4}
+    bases: {?1, ?2, ?3, ?4}
 
   For algebras with a special basis convention, such as projective geometric
   algebra (PGA), the identifiers can be customized:
 
-    bases: {1, 2, 3, 0}
+    bases: {?1, ?2, ?3, ?0}
 
   This allows the null basis vector to be represented as `e0`, producing basis
   blades such as:
@@ -55,7 +55,7 @@ defmodule Galixir.GeometricAlgebra do
     e230
 
   The identifiers are only used for naming basis blades; they do not affect the
-  metric. The metric is defined exclusively by the `:signature` option.
+  metric. The metric is defined exclusively by the `:metric` option.
 
   ## Generated API
 
@@ -83,60 +83,81 @@ defmodule Galixir.GeometricAlgebra do
   alias Galixir.Table
 
   @doc """
-  Generates a geometric algebra implementation from a metric signature.
+  Generates a geometric algebra implementation from a metric.
 
   This macro is intended to be used inside a module definition.
 
   ## Options
 
-    * `:signature` - required tuple describing the metric signature.
+    * `:metric` - required tuple describing the metric.
       Each element corresponds to the square of one basis vector.
 
     * `:bases` - optional tuple containing names for the basis vectors.
-      The number of bases must match the signature dimension.
+      The number of bases must match the metric dimension.
+
+    * `:epsilon` - optional epsilon value that is used for florating point comparisons
 
   ## Examples
 
       defmodule GA3 do
         use Galixir.GeometricAlgebra,
-          signature: {1, 1, 1}
+          metric: {1, 1, 1}
       end
 
       defmodule PGA3 do
         use Galixir.GeometricAlgebra,
-          signature: {1, 1, 1, 0},
-          bases: {:1, :2, :3, :0}
+          metric: {1, 1, 1, 0},
+          bases: {?:1, ?:2, ?:3, ?:0},
+          epsilon: 1.0e-8
       end
 
   """
   defmacro __using__(opts) do
     module = __CALLER__.module
 
-    signature =
+    metric =
       opts
-      |> Keyword.fetch!(:signature)
+      |> Keyword.fetch!(:metric)
       |> Code.eval_quoted([], __CALLER__)
       |> case do
-        {signature, _} -> signature
+        {metric, _} -> metric
       end
+
+    for m <- Tuple.to_list(metric), m not in [-1, 0, 1] do
+      raise ArgumentError,
+            "Each metric element must be -1, 0 or 1, given metric #{inspect(metric)}"
+    end
 
     bases =
       opts
       |> Keyword.get(:bases)
       |> then(&if(&1, do: Code.eval_quoted(&1, [], __CALLER__)))
       |> case do
-        nil -> List.to_tuple(for i <- 1..tuple_size(signature), do: i)
+        nil -> List.to_tuple(for i <- 1..tuple_size(metric), do: i)
         {b, _} -> b
       end
 
-    if tuple_size(bases) != tuple_size(signature) do
-      raise "number of bases (given #{inspect(bases)}) must be the same as the size of the signature (given #{inspect(signature)})"
+    epsilon =
+      opts
+      |> Keyword.get(:epsilon, 1.0e-10)
+
+    if not is_float(epsilon) or epsilon < 0.0 do
+      raise ArgumentError,
+            ":epsilon option is required to be a positive floating point number, given: #{inspect(epsilon)}"
     end
 
-    table = Table.build(signature)
+    for b <- Tuple.to_list(bases), not is_binary(b) or String.length(b) != 1 do
+      raise ArgumentError,
+            "Each basis name must be a string of length 1, given basis names #{inspect(bases)}"
+    end
 
-    dimension = tuple_size(signature)
-    size = Bitwise.bsl(1, dimension)
+    if tuple_size(bases) != tuple_size(metric) do
+      raise "number of bases (given #{inspect(bases)}) must be the same as the size of the metric (given #{inspect(metric)})"
+    end
+
+    table = Table.build(metric)
+
+    dimension = tuple_size(metric)
 
     blade_indices = Galixir.Generator.blade_indices(bases)
     blade_aliases = Galixir.Generator.blade_aliases(bases)
@@ -144,12 +165,12 @@ defmodule Galixir.GeometricAlgebra do
     meta = %Galixir.Meta{
       module: module,
       dimensions: dimension,
-      size: size,
-      signature: signature,
+      metric: metric,
       bases: bases,
       table: table,
       blade_indices: blade_indices,
-      blade_aliases: blade_aliases
+      blade_aliases: blade_aliases,
+      epsilon: epsilon
     }
 
     quote do

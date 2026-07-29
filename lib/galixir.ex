@@ -9,16 +9,16 @@ defmodule Galixir do
   construct and manipulate them.
 
   Galixir provides tools for defining geometric algebras with arbitrary
-  signatures and automatically generating the operations required to work
+  metrics and automatically generating the operations required to work
   with them.
 
   ## Geometric Algebras
 
-  A geometric algebra is defined by its metric signature. For example:
+  A geometric algebra is defined by its metric. For example:
 
      defmodule PGA3 do
        use Galixir.GeometricAlgebra,
-         signature: {1, 1, 1, 0},
+         metric: {1, 1, 1, 0},
          bases: {1, 2, 3, 0}
      end
 
