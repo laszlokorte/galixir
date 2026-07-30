@@ -1,4 +1,8 @@
 defmodule Galixir.Generator.Reverse do
+  @moduledoc """
+  Generates reversion operations for multivectors.
+  """
+
   import Galixir.Generator.Utils, only: [vars: 2, tuple_ast: 1, blade_grade: 1, reverse_sign: 1]
   alias Galixir.Table
   alias Galixir.GeneratorBehaviour

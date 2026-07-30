@@ -1,4 +1,8 @@
 defmodule Galixir.Generator.Grade do
+  @moduledoc """
+  Generates functions for extracting, enumerating, and testing multivector grades.
+  """
+
   import Galixir.Generator.Utils, only: [blade_grade: 1, tuple_ast: 1]
   alias Galixir.Chain
   alias Galixir.GeneratorBehaviour

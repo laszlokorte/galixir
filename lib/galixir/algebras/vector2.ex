@@ -1,36 +1,26 @@
 defmodule Galixir.Algebras.Vector2 do
   @moduledoc """
-  Two-dimensional Euclidean Geometric Algebra.
+  Two-dimensional Euclidean geometric algebra, `Cl(2, 0)`.
 
-  This module implements the geometric algebra:
-
-      Cl(2,0)
-
-  with metric:
-
-      {1,1}
-
-  and basis:
-
-      e1, e2
-
-  Vectors are represented as grade-1 multivectors:
+  This is a classic, non-projective vector algebra: grade-1 multivectors are
+  ordinary Cartesian vectors, not homogeneous points or directions. Its metric
+  is `{1, 1}` and its basis is `e1`, `e2`.
 
       v = x*e1 + y*e2
 
-  The bivector:
-
-      e12 = e1 ∧ e2
-
-  represents the oriented plane element and is the generator of rotations
-  in two dimensions.
+  The unit pseudoscalar `e12` is the oriented plane. It represents oriented
+  areas and generates rotations.
 
   ## Examples
 
-      iex> v = Galixir.Algebras.Vector2.vector(3, 4)
-      iex> Galixir.Algebras.Vector2.len(v)
+      iex> vector(3, 4) |> len()
       5.0
 
+      iex> rotate(rotor(:math.pi() / 2), vector(1, 0))
+      ...> |> coordinates()
+      ...> |> Tuple.to_list()
+      ...> |> Enum.map(&Float.round(&1, 12))
+      [0.0, 1.0]
   """
 
   use Galixir.GeometricAlgebra,
@@ -38,182 +28,230 @@ defmodule Galixir.Algebras.Vector2 do
     bases: {"1", "2"}
 
   @doc """
-  Returns the zero vector.
+  Returns the additive identity.
+
+  ## Examples
+
+      iex> zero()
+      new()
   """
-  def zero do
-    new()
-  end
+  def zero, do: new()
 
   @doc """
-  Returns the scalar identity element.
+  Returns the multiplicative scalar identity.
+
+  ## Examples
+
+      iex> one()
+      new(scalar: 1)
   """
-  def one do
-    new(scalar: 1)
-  end
+  def one, do: new(scalar: 1)
 
   @doc """
-  Returns the unit pseudoscalar.
+  Returns the unit pseudoscalar, the oriented plane `e12`.
 
-  The pseudoscalar represents the oriented plane:
+  ## Examples
 
-      I = e1 ∧ e2
+      iex> pseudoscalar()
+      new(e12: 1)
   """
-  def pseudoscalar do
-    new(e12: 1)
-  end
-
-  # ----------------
-  # Vectors
-  # ----------------
+  def pseudoscalar, do: new(e12: 1)
 
   @doc """
-  Creates a 2D vector.
+  Creates the Cartesian vector `x*e1 + y*e2`.
 
-  Creates:
+  ## Examples
 
-      x*e1 + y*e2
+      iex> vector(2, -3)
+      new(e1: 2, e2: -3)
   """
-  def vector(x, y) do
-    new(
-      e1: x,
-      e2: y
-    )
-  end
+  def vector(x, y), do: new(e1: x, e2: y)
 
   @doc """
-  Extracts Cartesian coordinates from a vector.
+  Extracts the Cartesian coordinates of a vector.
 
-  Returns:
+  ## Examples
 
-      {x, y}
+      iex> coordinates(vector(2, -3))
+      {2.0, -3.0}
   """
-  def coordinates(v) do
-    {
-      coefficient(v, :e1),
-      coefficient(v, :e2)
-    }
-  end
-
-  # ----------------
-  # Vector operations
-  # ----------------
+  def coordinates(v), do: {coefficient(v, :e1), coefficient(v, :e2)}
 
   @doc """
-  Computes the scalar_product product of two vectors.
+  Creates an oriented plane bivector `area*e12`.
 
-  Returns the scalar part of the geometric product.
+  ## Examples
+
+      iex> bivector(2)
+      new(e12: 2)
   """
-  def scalar_product(a, b) do
-    scalar_part(gp(a, b))
-  end
+  def bivector(area), do: new(e12: area)
+
+  @doc """
+  Checks whether a multivector is a vector (a pure grade-1 multivector).
+
+  ## Examples
+
+      iex> vector?(vector(1, 2))
+      true
+
+      iex> vector?(one())
+      false
+  """
+  def vector?(v), do: grade?(v, 1)
+
+  @doc """
+  Computes the Euclidean scalar product of two vectors.
+
+  ## Examples
+
+      iex> scalar_product(vector(1, 2), vector(3, 4))
+      11.0
+  """
+  def scalar_product(a, b), do: scalar_part(gp(a, b))
+
+  @doc """
+  Computes the squared Euclidean length of a vector.
+
+  ## Examples
+
+      iex> squared_length(vector(3, 4))
+      25.0
+  """
+  def squared_length(v), do: scalar_product(v, v)
 
   @doc """
   Computes the Euclidean length of a vector.
+
+  ## Examples
+
+      iex> len(vector(3, 4))
+      5.0
   """
-  def len(v) do
-    :math.sqrt(scalar_product(v, v))
+  def len(v), do: :math.sqrt(squared_length(v))
+
+  @doc """
+  Normalizes a non-zero vector to unit length.
+
+  Raises `ArgumentError` for the zero vector.
+
+  ## Examples
+
+      iex> normal(vector(3, 4)) |> coordinates() |> Tuple.to_list() |> Enum.map(&Float.round(&1, 12))
+      [0.6, 0.8]
+  """
+  def normal(v), do: normalize(v)
+
+  @doc """
+  Computes the signed two-dimensional cross product of two vectors.
+
+  The result is the `e12` coefficient of `a ∧ b`; its sign gives the
+  orientation from `a` to `b`.
+
+  ## Examples
+
+      iex> cross(vector(1, 0), vector(0, 1))
+      1.0
+  """
+  def cross(a, b), do: coefficient(wedge(a, b), :e12)
+
+  @doc """
+  Returns the signed angle from vector `a` to vector `b`, in radians.
+
+  Positive angles are counter-clockwise.
+
+  ## Examples
+
+      iex> angle(vector(1, 0), vector(0, 1))
+      :math.pi() / 2
+  """
+  def angle(a, b), do: :math.atan2(cross(a, b), scalar_product(a, b))
+
+  @doc """
+  Projects vector `v` onto a non-zero vector `onto`.
+
+  ## Examples
+
+      iex> project(vector(3, 4), vector(1, 0)) |> coordinates()
+      {3.0, 0.0}
+  """
+  def project(v, onto) do
+    scale(scalar_product(v, onto) / squared_length(onto), onto)
   end
 
   @doc """
-  Normalizes a vector to unit length.
+  Returns the component of `v` perpendicular to `onto`.
+
+  ## Examples
+
+      iex> reject(vector(3, 4), vector(1, 0)) |> coordinates()
+      {0.0, 4.0}
   """
-  def normal(v) do
-    scale(
-      1 / len(v),
-      v
-    )
-  end
+  def reject(v, onto), do: sub(v, project(v, onto))
 
   @doc """
-  Computes the signed 2D cross product.
+  Computes the Euclidean distance between two vectors interpreted as points.
 
-  In two dimensions the cross product is a scalar representing the
-  oriented area:
+  ## Examples
 
-      a × b = (a ∧ b) / e12
-
-  The sign indicates orientation.
+      iex> distance(vector(1, 2), vector(4, 6))
+      5.0
   """
-  def cross(a, b) do
-    coefficient(
-      gp(a, b),
-      :e12
-    )
-  end
-
-  # ----------------
-  # Rotations
-  # ----------------
+  def distance(a, b), do: len(sub(a, b))
 
   @doc """
-  Creates a rotation rotor.
+  Creates a rotor for a counter-clockwise rotation by `angle` radians.
 
-  The rotor represents a rotation by `angle` radians:
+      R = cos(angle / 2) - e12*sin(angle / 2)
 
-      R = cos(angle/2) + e12*sin(angle/2)
+  ## Examples
 
+      iex> rotor(:math.pi()) |> coefficient(:e12) |> Float.round(12)
+      -1.0
   """
   def rotor(angle) do
-    new(
-      scalar: :math.cos(angle / 2),
-      e12: :math.sin(angle / 2)
-    )
+    new(scalar: :math.cos(angle / 2), e12: -:math.sin(angle / 2))
   end
 
   @doc """
-  Rotates a vector using a rotor.
+  Rotates a vector or multivector with rotor `r`.
 
-  Applies the sandwich product:
+  Applies the sandwich product `R*v*reverse(R)`.
 
-      R v reverse(R)
+  ## Examples
+
+      iex> rotate(rotor(:math.pi() / 2), vector(1, 0)) |> coordinates() |> Tuple.to_list() |> Enum.map(&Float.round(&1, 12))
+      [0.0, 1.0]
   """
-  def rotate(r, v) do
-    gp(
-      gp(r, v),
-      reverse(r)
-    )
-  end
-
-  # ----------------
-  # Reflection
-  # ----------------
+  def rotate(r, v), do: gp(gp(r, v), reverse(r))
 
   @doc """
-  Reflects a vector about a line with normal `n`.
+  Reflects `v` in the line whose normal is non-zero vector `n`.
 
-  Uses the reflection formula:
+  ## Examples
 
-      v' = -n v n⁻¹
+      iex> reflect(vector(1, 2), vector(0, 1)) |> coordinates()
+      {1.0, -2.0}
   """
-  def reflect(v, n) do
-    negate(
-      gp(
-        gp(n, v),
-        inverse(n)
-      )
-    )
-  end
-
-  # ----------------
-  # Helpers
-  # ----------------
+  def reflect(v, n), do: negate(gp(gp(n, v), inverse(n)))
 
   @doc """
-  Negates a multivector.
+  Returns the vector perpendicular to `v` after a counter-clockwise quarter turn.
+
+  ## Examples
+
+      iex> perpendicular(vector(2, 3)) |> coordinates() |> Tuple.to_list() |> Enum.map(&Float.round(&1, 12))
+      [-3.0, 2.0]
   """
-  def negate(x) do
-    scale(-1, x)
-  end
+  def perpendicular(v), do: rotate(rotor(:math.pi() / 2), v)
 
   @doc """
-  Computes the signed angle from vector `a` to vector `b`.
+  Negates every component of a multivector.
 
-  Returns the angle in radians.
+  ## Examples
+
+      iex> negate(vector(1, -2))
+      new(e1: -1, e2: 2)
   """
-  def angle(a, b) do
-    :math.atan2(
-      cross(a, b),
-      scalar_product(a, b)
-    )
-  end
+  def negate(x), do: scale(-1, x)
 end

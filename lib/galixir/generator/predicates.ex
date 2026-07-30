@@ -1,4 +1,8 @@
 defmodule Galixir.Generator.Predicates do
+  @moduledoc """
+  Generates predicates and guards for multivector properties.
+  """
+
   alias Galixir.Chain
   import Galixir.Generator.Utils, only: [tuple_ast: 1]
   alias Galixir.GeneratorBehaviour

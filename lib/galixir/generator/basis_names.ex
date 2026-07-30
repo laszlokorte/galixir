@@ -1,4 +1,8 @@
 defmodule Galixir.Generator.BasisNames do
+  @moduledoc """
+  Generates functions that map basis-blade masks to their canonical names.
+  """
+
   @behaviour Galixir.GeneratorBehaviour
   @impl Galixir.GeneratorBehaviour
   def generate_implementation(%Galixir.Meta{bases: b}) do

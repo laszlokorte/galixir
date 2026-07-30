@@ -1,4 +1,8 @@
 defmodule Galixir.Generator.WedgeProduct do
+  @moduledoc """
+  Generates outer (wedge) product functions for multivectors.
+  """
+
   import Galixir.Generator.Utils, only: [vars: 2, sum: 1, tuple_ast: 1]
   alias Galixir.GeneratorBehaviour
   @behaviour GeneratorBehaviour

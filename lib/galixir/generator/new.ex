@@ -1,4 +1,8 @@
 defmodule Galixir.Generator.New do
+  @moduledoc """
+  Generates constructors for multivectors.
+  """
+
   alias Galixir.GeneratorBehaviour
   @behaviour GeneratorBehaviour
   @impl GeneratorBehaviour

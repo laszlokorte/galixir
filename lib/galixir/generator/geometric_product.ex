@@ -1,4 +1,8 @@
 defmodule Galixir.Generator.GeometricProduct do
+  @moduledoc """
+  Generates metric-aware geometric product functions for multivectors.
+  """
+
   import Galixir.Generator.Utils, only: [sum: 1]
   alias Galixir.Table
   alias Galixir.GeneratorBehaviour

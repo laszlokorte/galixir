@@ -82,7 +82,9 @@ end
 
 Some of the concrete algebras are not fully implemented yet. `PGA2`, `PGA3` and `CGA2` are pretty complete and provide many manually implemented helper functions and doctests on top of the macro generated core.
 
-Others, like `Complex1` and `Vector2`, are merely prototypes generated via `use Galixir.GeometricAlgebra` macro and serve mostly as test cases for the macro itself.
+`Vector2` and `Vector3` provide classic Euclidean, non-projective vector
+algebra helpers on top of the generated core. `Complex1` remains a small
+example algebra generated via `use Galixir.GeometricAlgebra`.
 
 Contributions are welcome.
 

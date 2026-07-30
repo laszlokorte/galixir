@@ -1,4 +1,8 @@
 defmodule Galixir.Generator.LinearOps do
+  @moduledoc """
+  Generates component-wise addition, subtraction, and scaling operations.
+  """
+
   import Galixir.Generator.Utils, only: [vars: 2, tuple_ast: 1]
   alias Galixir.Table
   alias Galixir.GeneratorBehaviour

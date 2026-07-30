@@ -1,4 +1,8 @@
 defmodule Galixir.Generator.InnerProduct do
+  @moduledoc """
+  Generates inner, left-contraction, and right-contraction product functions.
+  """
+
   import Galixir.Generator.Utils,
     only: [vars: 2, sum: 1, blade_grade: 1, tuple_ast: 1]
 

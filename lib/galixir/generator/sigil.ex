@@ -1,4 +1,8 @@
 defmodule Galixir.Generator.Sigil do
+  @moduledoc """
+  Generates the `~G` sigil for constructing multivectors from strings.
+  """
+
   alias Galixir.GeneratorBehaviour
 
   @behaviour GeneratorBehaviour

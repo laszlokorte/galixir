@@ -1,4 +1,8 @@
 defmodule Galixir.Chain do
+  @moduledoc """
+  Builds quoted boolean expressions from lists of quoted conditions.
+  """
+
   def or_chain([]), do: quote(do: false)
 
   def or_chain([first | rest]) do

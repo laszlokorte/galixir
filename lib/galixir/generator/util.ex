@@ -1,4 +1,8 @@
 defmodule Galixir.Generator.Utils do
+  @moduledoc """
+  Provides shared AST and documentation helpers for algebra generators.
+  """
+
   def keyword_ast(key, value) do
     Macro.escape([{key, value}])
   end

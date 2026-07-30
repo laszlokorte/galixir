@@ -1,4 +1,8 @@
 defmodule Galixir.Generator.Dual do
+  @moduledoc """
+  Generates dual and undual operations for multivectors.
+  """
+
   alias Galixir.Generator.Utils
   import Utils, only: [vars: 2, sum: 1]
 

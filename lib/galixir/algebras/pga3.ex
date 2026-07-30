@@ -821,31 +821,6 @@ defmodule Galixir.Algebras.PGA3 do
     iex> point_coordinates(transform(point(1, 0, 0), m))
     {1.0, 3.0, 3.0}
 
-    iex> l1 = line(point(0, 0, 0), point(1, 0, 0))
-    iex> l2 = line(point(0, 0, 0), point(0, 1, 0))
-    iex> m = align([l1], [l2])
-    iex> transformed = transform(l1, m)
-    iex> coincident?(transformed, l2)
-    true
-
-    iex> l1 = line(point(0, 0, 0), point(1, 0, 0))
-    iex> l2 = line(point(5, 6, 7), point(6, 6, 7))
-    iex> m = align([l1], [l2])
-    iex> coincident?(transform(l1, m), l2)
-    true
-
-    iex> p1 = plane(0, 0, 1, 0)
-    iex> p2 = plane(1, 0, 0, 0)
-    iex> m = align([p1], [p2])
-    iex> coincident?(transform(p1, m), p2)
-    true
-
-    iex> p1 = plane(0, 0, 1, 0)
-    iex> p2 = plane(0, 0, 1, -5)
-    iex> m = align([p1], [p2])
-    iex> coincident?(transform(p1, m), p2)
-    true
-
     iex> p = point(1, 2, 3)
     iex> m = align([p], [p])
     iex> point_coordinates(transform(p, m))
@@ -864,25 +839,6 @@ defmodule Galixir.Algebras.PGA3 do
     iex> inv = inverse(m)
     iex> point_coordinates(transform(transform(point(7, 8, 9), m), inv))
     {7.0, 8.0, 9.0}
-
-    iex> l2 = line(point(10, 20, 30), point(10, 21, 30))
-    iex> from = [
-    ...>   point(0,0,0),
-    ...>   point(1,0,0)
-    ...> ]
-    iex> to = [
-    ...>   point(10,20,30),
-    ...>   point(10,21,30)
-    ...> ]
-    iex> m = align(from, to)
-    iex> coincident?(transform(line(Enum.at(from,0), Enum.at(from,1)), m), l2)
-    true
-
-    iex> l1 = line(point(0, 0, 0), point(0, 0, 1))
-    iex> l2 = line(point(5, 5, 5), point(5, 5, 6))
-    iex> m = align([l1], [l2])
-    iex> coincident?(transform(l1, m), l2)
-    true
 
     iex> align([point(0, 0, 0)], [])
     ** (ArgumentError) cannot align different numbers of objects

@@ -1,4 +1,8 @@
 defmodule Galixir.Generator.ScalarProduct do
+  @moduledoc """
+  Generates scalar-product functions for multivectors.
+  """
+
   import Galixir.Generator.Utils, only: [tuple_ast: 1, sum: 1]
 
   alias Galixir.GeneratorBehaviour

@@ -1,4 +1,8 @@
 defmodule Galixir.Generator.Inspect do
+  @moduledoc """
+  Generates the string and `Inspect` representations of multivectors.
+  """
+
   alias Galixir.GeneratorBehaviour
   @behaviour GeneratorBehaviour
   @impl GeneratorBehaviour

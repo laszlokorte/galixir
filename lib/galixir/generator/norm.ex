@@ -1,4 +1,8 @@
 defmodule Galixir.Generator.Norm do
+  @moduledoc """
+  Generates multivector norm, normalization, and canonicalization functions.
+  """
+
   alias Galixir.GeneratorBehaviour
   @behaviour GeneratorBehaviour
   @impl GeneratorBehaviour

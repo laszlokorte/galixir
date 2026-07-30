@@ -1,4 +1,8 @@
 defmodule Galixir.Generator.Inverse do
+  @moduledoc """
+  Generates inverse operations based on multivector reversion.
+  """
+
   alias Galixir.GeneratorBehaviour
   @behaviour GeneratorBehaviour
   @impl GeneratorBehaviour
