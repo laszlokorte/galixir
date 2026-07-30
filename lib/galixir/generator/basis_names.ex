@@ -47,8 +47,7 @@ defmodule Galixir.Generator.BasisNames do
             |> Enum.reverse()
             |> Enum.with_index()
             |> Enum.filter(fn {bit, _} -> bit == 1 end)
-            |> Enum.map(fn {_, i} -> elem(bases, i) end)
-            |> Enum.join()
+            |> Enum.map_join(fn {_, i} -> elem(bases, i) end)
 
           "e" <> blade
         end
