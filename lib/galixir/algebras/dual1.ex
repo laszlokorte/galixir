@@ -235,7 +235,7 @@ defmodule Galixir.Algebras.Dual1 do
     a = real(x)
     b = infinitesimal(x)
 
-    s = :math.sqrt(a)
+    s = a ** 0.5
 
     dual(
       s,

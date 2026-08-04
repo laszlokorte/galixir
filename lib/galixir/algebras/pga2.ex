@@ -572,7 +572,7 @@ defmodule Galixir.Algebras.PGA2 do
     dx = ax - bx
     dy = ay - by
 
-    :math.sqrt(dx * dx + dy * dy)
+    (dx * dx + dy * dy) ** 0.5
   end
 
   @doc """

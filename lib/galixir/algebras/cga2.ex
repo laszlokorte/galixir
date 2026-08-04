@@ -714,11 +714,9 @@ defmodule Galixir.Algebras.CGA2 do
       k = (em + ep) / (2 * w)
 
       r =
-        :math.sqrt(
-          x * x +
-            y * y -
-            2 * k
-        )
+        (x * x +
+           y * y -
+           2 * k) ** 0.5
 
       {:circle, {{clean_zero(x), clean_zero(y)}, r}}
     end
@@ -749,9 +747,9 @@ defmodule Galixir.Algebras.CGA2 do
       true
       iex> (y1 < 0) != (y2 < 0)
       true
-      iex> abs(abs(y1) - :math.sqrt(0.75)) < 1.0e-10
+      iex> abs(abs(y1) - 0.75 ** 0.5) < 1.0e-10
       true
-      iex> abs(abs(y2) - :math.sqrt(0.75)) < 1.0e-10
+      iex> abs(abs(y2) - 0.75 ** 0.5) < 1.0e-10
       true
 
       iex> split(meet(circle(point(0,0),1), circle(point(0,0),1)))
@@ -798,7 +796,7 @@ defmodule Galixir.Algebras.CGA2 do
 
         {:tangent, tangent}
       else
-        r = :math.sqrt(abs(r2))
+        r = abs(r2) ** 0.5
 
         offset =
           wedge(e_inf(), e_o())

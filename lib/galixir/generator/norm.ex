@@ -45,7 +45,7 @@ defmodule Galixir.Generator.Norm do
           3.0
       """
       def norm(%__MODULE__{} = a) do
-        :math.sqrt(abs(squared_norm(a)))
+        abs(squared_norm(a)) ** 0.5
       end
 
       @doc """
@@ -70,7 +70,7 @@ defmodule Galixir.Generator.Norm do
           raise ArgumentError, "cannot normalize given null multivector (#{inspect(a)})"
         end
 
-        scale(1 / :math.sqrt(abs(n2)), a)
+        scale(1 / abs(n2) ** 0.5, a)
       end
 
       def canonicalize(%__MODULE__{} = a) do

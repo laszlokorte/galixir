@@ -128,7 +128,7 @@ defmodule Galixir.Algebras.Vector2 do
       iex> len(vector(3, 4))
       5.0
   """
-  def len(v), do: :math.sqrt(squared_length(v))
+  def len(v), do: squared_length(v) ** 0.5
 
   @doc """
   Normalizes a non-zero vector to unit length.

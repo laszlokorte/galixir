@@ -619,7 +619,7 @@ defmodule Galixir.Algebras.PGA3 do
       gp(line, reverse(line))
       |> scalar_part()
       |> abs()
-      |> :math.sqrt()
+      |> then(&(&1 ** 0.5))
 
     if n < epsilon() do
       raise ArgumentError, "cannot normalize null line"
@@ -738,7 +738,7 @@ defmodule Galixir.Algebras.PGA3 do
     dy = ay - by
     dz = az - bz
 
-    :math.sqrt(dx * dx + dy * dy + dz * dz)
+    (dx * dx + dy * dy + dz * dz) ** 0.5
   end
 
   @doc """

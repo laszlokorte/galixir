@@ -202,7 +202,7 @@ defmodule Galixir.Algebras.Hyper1 do
     b = hyper_part(z)
 
     r =
-      :math.sqrt(abs(a * a - b * b))
+      abs(a * a - b * b) ** 0.5
 
     hyper(
       :math.log(r),
