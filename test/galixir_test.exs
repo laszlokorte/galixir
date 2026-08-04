@@ -199,22 +199,22 @@ defmodule GalixirTest do
     a = PGA2.new({0, 1, 0, 0, 1, 0, 0, 0})
     b = PGA2.new({0, 0, 1, 1, 0, 0, 0, 0})
 
-    assert inspect(PGA2.add(a, b) |> PGA2.gp(a)) == "1.0 - e2 - e12 + e20 + e120"
+    assert inspect(PGA2.add(a, b) |> PGA2.gp(a)) == "~G[1.0 - e2 - e12 + e20 + e120]"
   end
 
   test "inspect scalars" do
     a = PGA2.new(scalar: 1)
     b = PGA2.new(scalar: 2)
 
-    assert inspect(PGA2.add(a, b)) == "3.0"
-    assert inspect(PGA2.gp(a, b)) == "2.0"
+    assert inspect(PGA2.add(a, b)) == "~G[3.0]"
+    assert inspect(PGA2.gp(a, b)) == "~G[2.0]"
   end
 
   test "named new" do
     a = PGA2.new(e1: 1, e0: 1)
     b = PGA2.new(e2: 1, e12: 1)
 
-    assert inspect(PGA2.add(a, b) |> PGA2.gp(a)) == "1.0 - e2 - e12 + e20 + e120"
+    assert inspect(PGA2.add(a, b) |> PGA2.gp(a)) == "~G[1.0 - e2 - e12 + e20 + e120]"
 
     assert PGA2.new({1, 2, 3, 4, 5, 6, 7, 8}) ==
              PGA2.new(scalar: 1, e1: 2, e2: 3, e12: 4, e0: 5, e10: 6, e20: 7, e120: 8)
