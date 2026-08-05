@@ -1,4 +1,4 @@
-![Header](./guides/header.png)
+<img src="./guides/galixir.svg" width="100%" alt="Galixir Header">
 
 # Galixir
 
