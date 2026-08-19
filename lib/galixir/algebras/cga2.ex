@@ -339,7 +339,7 @@ defmodule Galixir.Algebras.CGA2 do
 
       iex> c1 = circle(point(1, 2), 1)
       iex> c2 = circle(point(3, 2), 1)
-      iex> {:tangent, p} = split(meet(c1, c2))
+      iex> {:tangent, p} = split(meet(c1, c2) )
       iex> p |> point_coordinates()
       {2.0, 2.0}
 
@@ -355,7 +355,7 @@ defmodule Galixir.Algebras.CGA2 do
       ...>     circle(point(0,0),1),
       ...>     circle(point(5,0),1)
       ...>   )
-      iex> match?({:point_pair, :imag, _}, classify(pp))
+      iex> match?({:point_pair, _, _}, classify(pp))
       true
 
   """
@@ -745,13 +745,13 @@ defmodule Galixir.Algebras.CGA2 do
 
       iex> l = line(point(-2, 0), point(2, 0))
       iex> c = circle(point(0, 0), 1)
-      iex> {:real, p1, p2} = split(meet(c, l))
+      iex> {p1, p2} = split(meet(c, l))
       iex> Enum.sort([point_coordinates(p1), point_coordinates(p2)])
       [{-1.0, 0.0}, {1.0, 0.0}]
 
       iex> c1 = circle(point(-0.5, 0), 1)
       iex> c2 = circle(point(0.5, 0), 1)
-      iex> {:real, p1, p2} = split(meet(c1, c2))
+      iex> {p1, p2} = split(meet(c1, c2))
       iex> [{x1, y1}, {x2, y2}] = Enum.sort([point_coordinates(p1), point_coordinates(p2)])
       iex> abs(x1) < 1.0e-10 and abs(x2) < 1.0e-10
       true
@@ -767,7 +767,7 @@ defmodule Galixir.Algebras.CGA2 do
 
       iex> c1 = circle(point(0,0),1)
       iex> c2 = circle(point(5,0),1)
-      iex> {:imag, _, _} = split(meet(c1,c2))
+      iex> {_, _} = split(meet(c1,c2))
 
       iex> l = line(point(-1,1), point(1,1))
       iex> c = circle(point(0,0),1)
@@ -776,52 +776,42 @@ defmodule Galixir.Algebras.CGA2 do
       {0.0,1.0}
 
        iex> pp = join(point(0.0,0.0), point(1,0))
-       iex> {:real, a, b} = split(pp)
+       iex> {a, b} = split(pp)
        iex> point_coordinates(a)
-       {0.0, 0.0}
-       iex> point_coordinates(b)
        {1.0, 0.0}
+       iex> point_coordinates(b)
+       {0.0, 0.0}
   """
-  def split(o) do
-    nix = wedge(o, e_inf())
-    nix2 = scalar_part(inner(nix, nix))
 
-    if abs(nix2) < epsilon() do
-      :invalid
-    else
-      pos =
-        o
-        |> gp(e_inf())
-        |> gp(o)
-        |> scale(-1.0 / (2 * nix2))
+  def split(b) do
+    scalar_product(b, b)
+    |> case do
+      bb when bb == 0.0 ->
+        wedge(b, e_inf())
+        |> inverse()
+        |> case do
+          :invalid ->
+            :invalid
 
-      r2 =
-        scalar_part(inner(o, o)) /
-          scalar_part(inner(nix, nix))
+          inv ->
+            pos = gp(b, inv)
+            w = scalar_product(pos, sub(e_inf(), one()))
 
-      if abs(r2) < epsilon() do
-        tangent =
-          o
-          |> point_pair_center()
+            {:tangent, scale(pos, 1.0 / w)}
+        end
 
-        {:tangent, tangent}
-      else
-        r = abs(r2) ** 0.5
+      bb ->
+        b = if(bb < 0, do: gp(b, pseudoscalar()), else: b)
 
-        offset =
-          wedge(e_inf(), e_o())
-          |> inner(nix)
-          |> normalize()
-          |> scale(r)
+        b_bar = b |> scale(1 / scalar_product(b, b) ** 0.5)
+        p = new(scalar: 1) |> add(b_bar)
+        p_tilde = new(scalar: 1) |> sub(b_bar)
 
-        kind = if r2 >= 0, do: :real, else: :imag
+        v = inner(b, new(em: 1))
+        p1 = gp(p, v)
+        p2 = gp(p_tilde, v)
 
-        {
-          kind,
-          lift_point(sub(pos, offset)),
-          lift_point(add(pos, offset))
-        }
-      end
+        {p1, p2}
     end
   end
 
@@ -848,17 +838,6 @@ defmodule Galixir.Algebras.CGA2 do
     y = scalar_product(p, new(e2: 1))
 
     point(x, y)
-  end
-
-  defp point_pair_center(o) do
-    # For a tangent point pair, the point pair degenerates to a single
-    # conformal point multiplied by e_inf. Extract the finite point by
-    # dividing by the remaining projective weight.
-    nix = wedge(o, e_inf())
-    pos = gp(o, inverse(nix))
-    w = scalar_product(pos, sub(e_inf(), one()))
-
-    scale(pos, 1.0 / w)
   end
 
   @doc """
@@ -899,8 +878,8 @@ defmodule Galixir.Algebras.CGA2 do
       ...>     circle(point(0, 0), 2),
       ...>     line(point(-3, 0), point(3, 0))
       ...>   )
-      iex> {:point_pair, :real, points} = classify(pp)
-      iex> Enum.sort(Tuple.to_list(points))
+      iex> {:point_pair, p1, p2} = classify(pp)
+      iex> Enum.sort([p1, p2])
       [{-2.0, 0.0}, {2.0, 0.0}]
 
       iex> pp =
@@ -908,7 +887,7 @@ defmodule Galixir.Algebras.CGA2 do
       ...>     circle(point(0, 0), 1),
       ...>     line(point(-2, 0), point(2, 0))
       ...>   )
-      iex> match?({:point_pair, :real, _}, classify(pp))
+      iex> match?({:point_pair, _, _}, classify(pp))
       true
 
       iex> pp =
@@ -917,7 +896,7 @@ defmodule Galixir.Algebras.CGA2 do
       ...>     circle(point(3, 2), 1)
       ...>   )
       iex> classify(pp)
-      {:point_pair, :tangent, {2.0, 2.0}}
+      {:point_pair, {2.0, 2.0}}
 
       iex> pp =
       ...>   meet(
@@ -925,12 +904,12 @@ defmodule Galixir.Algebras.CGA2 do
       ...>     circle(point(1, -3), 1)
       ...>   )
       iex> classify(pp)
-      {:point_pair, :tangent, {1.0, -2.0}}
+      {:point_pair, {1.0, -2.0}}
 
       iex> classify(new(e1: 1))
       {:unknown, new(e1: 1)}
 
-      iex> {:point_pair, :real, _} =  classify(join(point(0,0), point(1,0)))
+      iex> {:point_pair, _, _} =  classify(join(point(0,0), point(1,0)))
 
   """
   def classify(x) do
@@ -951,17 +930,17 @@ defmodule Galixir.Algebras.CGA2 do
         split(x)
         |> case do
           {:tangent, p} ->
-            {:point_pair, :tangent, point_coordinates(p)}
-
-          {kind, p1, p2} ->
             {
               :point_pair,
-              kind,
-              {point_coordinates(p1), point_coordinates(p2)}
+              point_coordinates(p)
             }
 
-          :invalid ->
-            {:unknown, x}
+          {p1, p2} ->
+            {
+              :point_pair,
+              point_coordinates(p1),
+              point_coordinates(p2)
+            }
         end
 
       true ->

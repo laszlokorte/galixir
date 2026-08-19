@@ -32,8 +32,12 @@ defmodule Galixir.Generator.Inverse do
 
 
               ## Examples
-
                   iex> inverse(
+                  ...>   new(#{unquote(first_blade)}: 2)
+                  ...> )|> inspect
+                  new(#{unquote(first_blade)}: #{unquote(2 / metric / 4)}) |> inspect
+
+                  iex> inverse!(
                   ...>   new(#{unquote(first_blade)}: 2)
                   ...> )|> inspect
                   new(#{unquote(first_blade)}: #{unquote(2 / metric / 4)}) |> inspect
@@ -54,9 +58,12 @@ defmodule Galixir.Generator.Inverse do
 
               ## Examples
 
-                  iex> assert_raise ArgumentError, fn ->
-                  ...>   inverse(new(#{unquote(first_blade)}: 1))
-                  ...> end
+                iex> assert_raise ArgumentError, fn ->
+                ...>   inverse!(new(#{unquote(first_blade)}: 1))
+                ...> end
+
+                iex> inverse(new(#{unquote(first_blade)}: 1))
+                ...> :invalid
           """
         end
       end
@@ -64,26 +71,30 @@ defmodule Galixir.Generator.Inverse do
     quote do
       unquote(doc)
 
+      def inverse!(%__MODULE__{} = a) do
+        inverse(a)
+        |> case do
+          :invalid ->
+            raise ArgumentError,
+                  "multivector (#{inspect(a)}) is not invertible"
+
+          res ->
+            res
+        end
+      end
+
       def inverse(%__MODULE__{} = a) do
         rev = reverse(a)
 
-        product = gp(a, rev)
-
-        unless scalar?(product) do
-          raise ArgumentError,
-                "given multivector (#{inspect(a)}) is not invertible by reverse formula"
+        with product <- gp(a, rev),
+             true <- scalar?(product) == true,
+             denom <- scalar_part(product),
+             true <- denom != 0.0 do
+          scale(1 / denom, rev)
+        else
+          _ ->
+            :invalid
         end
-
-        denominator =
-          product.data
-          |> elem(0)
-
-        if denominator == 0 do
-          raise ArgumentError,
-                "multivector (#{inspect(a)}) is not invertible"
-        end
-
-        scale(1 / denominator, rev)
       end
 
       def blade_inverse(b) do

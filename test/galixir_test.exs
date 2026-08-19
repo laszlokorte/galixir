@@ -417,16 +417,20 @@ defmodule GalixirTest do
     e3 = PGA2.new(e0: 1)
 
     assert_raise ArgumentError, fn ->
-      PGA2.inverse(e3)
+      PGA2.inverse!(e3)
     end
+
+    assert :invalid == PGA2.inverse(e3)
   end
 
   test "inverse rejects null pseudoscalar" do
     i = PGA2.new(e120: 1)
 
     assert_raise ArgumentError, fn ->
-      PGA2.inverse(i)
+      PGA2.inverse!(i)
     end
+
+    assert :invalid == PGA2.inverse(i)
   end
 
   test "inverse property" do
