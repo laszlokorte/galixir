@@ -194,7 +194,10 @@ defmodule Galixir.Algebras.CGA2 do
       true
 
       iex> circle_parameters(circle(1, 2, 3))
-      {:circle, {{1.0, 2.0}, 3.0}}
+      {:circle, {:real, {1.0, 2.0}, 3.0}}
+
+      iex> circle_parameters(circle(1, 2, -3))
+      {:circle, {:imag, {1.0, 2.0}, 3.0}}
 
       iex> c = circle(point(1, 2), 3)
       iex> contains?(c, point(4, 2))
@@ -206,7 +209,7 @@ defmodule Galixir.Algebras.CGA2 do
     sub(
       p,
       scale(
-        0.5 * r * r,
+        0.5 * r * abs(r),
         e_inf()
       )
     )
@@ -233,7 +236,7 @@ defmodule Galixir.Algebras.CGA2 do
     iex> circle?(c)
     true
     iex> circle_parameters(c)
-    {:circle, {{0.0, 0.0}, 1.0}}
+    {:circle, {:real, {0.0, 0.0}, 1.0}}
 
     iex> c =
     ...>   line_or_circle_from_points(
@@ -406,7 +409,7 @@ defmodule Galixir.Algebras.CGA2 do
       ...>     point(-1,0)
       ...>   )
       iex> circle_parameters(c)
-      {:circle, {{0.0, 0.0}, 1.0}}
+      {:circle, {:real, {0.0, 0.0}, 1.0}}
   """
   def join(a, b) do
     wedge(a, b)
@@ -692,7 +695,10 @@ defmodule Galixir.Algebras.CGA2 do
   ## Examples
 
       iex> circle_parameters(circle(point(1, 2), 3))
-      {:circle, {{1.0, 2.0}, 3.0}}
+      {:circle, {:real, {1.0, 2.0}, 3.0}}
+
+      iex> circle_parameters(circle(point(1, 2), -3.0))
+      {:circle, {:imag, {1.0, 2.0}, 3.0}}
   """
   def circle_parameters(c) do
     v = gp(c, inverse(pseudoscalar()))
@@ -713,12 +719,16 @@ defmodule Galixir.Algebras.CGA2 do
 
       k = (em + ep) / (2 * w)
 
-      r =
-        (x * x +
-           y * y -
-           2 * k) ** 0.5
+      b =
+        x * x +
+          y * y -
+          2 * k
 
-      {:circle, {{clean_zero(x), clean_zero(y)}, r}}
+      r =
+        abs(b) ** 0.5
+
+      type = if(b < 0.0, do: :imag, else: :real)
+      {:circle, {type, {clean_zero(x), clean_zero(y)}, r}}
     end
   end
 
@@ -879,10 +889,10 @@ defmodule Galixir.Algebras.CGA2 do
       true
 
       iex> classify(circle(point(0, 0), 2))
-      {:circle, {{0.0, 0.0}, 2.0}}
+      {:circle, {:real, {0.0, 0.0}, 2.0}}
 
       iex> classify(circle(point(3, -2), 5))
-      {:circle, {{3.0, -2.0}, 5.0}}
+      {:circle, {:real, {3.0, -2.0}, 5.0}}
 
       iex> pp =
       ...>   meet(

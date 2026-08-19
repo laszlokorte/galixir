@@ -33,10 +33,10 @@ defmodule Galixir.Generator.Inspect do
           "~G[0.0]"
 
           iex> inspect(new(), custom_options: [all_blades: true])
-          "#{unquote(blade_indices |> Enum.sort_by(fn {_, i} -> i end) |> Enum.map(fn
+          "#{unquote(blade_indices |> Enum.sort_by(fn {_, i} -> i end) |> Enum.map_join(" + ", fn
         {:scalar, _} -> "0.0"
         {b, _} -> "0.0#{b}"
-      end) |> Enum.join(" + ") |> then(&"~G[#{&1}]"))}"
+      end) |> then(&"~G[#{&1}]"))}"
 
           iex> inspect(new(scalar: -2))
           "~G[-2.0]"
@@ -72,7 +72,7 @@ defmodule Galixir.Generator.Inspect do
         format_document(value, opts)
       end
 
-      defp format_document(value, opts = %Inspect.Opts{custom_options: custom_opts}) do
+      defp format_document(value, %Inspect.Opts{custom_options: custom_opts} = opts) do
         value.data
         |> Tuple.to_list()
         |> Enum.with_index()
@@ -114,7 +114,7 @@ defmodule Galixir.Generator.Inspect do
              coef,
              blade,
              value,
-             opts = %Inspect.Opts{custom_options: custom_opts},
+             %Inspect.Opts{custom_options: custom_opts} = opts,
              first?
            ) do
         import Inspect.Algebra
