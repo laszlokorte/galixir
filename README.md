@@ -30,16 +30,15 @@ Then the `PGA3` module can be used to to calculations inside of the generated al
 defmodule Example do
   import Galixir.Algebras.PGA3
 
-  def align(ps, qs) do
+ def align(ps, qs) do
     # https://observablehq.com/@enkimute/glu-lookat-in-3d-pga
-    initial_m = one = new(scalar: 1)
+    initial_m = identity = one()
     initial_q = dual(new(scalar: 1))
 
     Enum.zip_reduce(ps, qs, {initial_m, initial_q}, fn p, q, {m, prev_q} ->
-      p = prev_q |> join(transform(m, p)) |> normalize() |> inverse()
-      new_q = prev_q |> join(q)
-      new_m = normalize(new_q) |> gp(p) |> add(one) |> normalize() |> gp(m)
-
+      p = prev_q |> join(transform(p, m)) |> normalize()
+      new_q = prev_q |> join(q) |> normalize() |> blade_inverse()
+      new_m = new_q |> gp(p) |> add(identity) |> gp(m)
       {new_m, new_q}
     end)
     |> elem(0)

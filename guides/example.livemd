@@ -2,7 +2,7 @@
 
 ```elixir
 Mix.install([
-  {:galixir, "~> 0.27.0"},
+  {:galixir, "~> 0.28.0"},
   {:kino, "~> 0.19.0"}
 ])
 ```
@@ -26,30 +26,29 @@ defmodule Utils do
   import PGA3
 
   def align(ps, qs) do
-     # https://observablehq.com/@enkimute/glu-lookat-in-3d-pga
-     initial_m = one = new(scalar: 1)
-     initial_q = dual(new(scalar: 1))
+    # https://observablehq.com/@enkimute/glu-lookat-in-3d-pga
+    initial_m = identity = one()
+    initial_q = dual(new(scalar: 1))
 
-     Enum.zip_reduce(ps, qs, {initial_m, initial_q}, fn p, q, {m, prev_q} ->
-       p = prev_q |> join(transform(p, m)) |> normalize() |> inverse()
-       new_q = prev_q |> join(q)
-       new_m = normalize(new_q) |> gp(p) |> add(one) |> normalize() |> gp(m)
+    Enum.zip_reduce(ps, qs, {initial_m, initial_q}, fn p, q, {m, prev_q} ->
+      p = prev_q |> join(transform(p, m)) |> normalize()
+      new_q = prev_q |> join(q) |> normalize() |> blade_inverse()
+      new_m = new_q |> gp(p) |> add(identity) |> gp(m)
+      {new_m, new_q}
+    end)
+    |> elem(0)
+  end
 
-       {new_m, new_q}
-     end)
-     |> elem(0)
-   end
-
-   def look_at(
-         position \\ point(0, 10, 0),
-         target \\ point(0, 0, 0),
-         pole \\ ideal_point(0, 0, 1)
-       ) do
-     align(
-       [position, target, pole],
-       [point(0, 0, 0), point(0, 0, 1), point(0, 1, 0)]
-     )
-   end
+  def look_at(
+      position \\ point(0, 10, 0),
+      target \\ point(0, 0, 0),
+      pole \\ ideal_point(0, 0, 1)
+  ) do
+    align(
+      [position, target, pole],
+      [point(0, 0, 0), point(0, 0, 1), point(0, 1, 0)]
+    )
+  end
 end
 ```
 
@@ -68,7 +67,7 @@ defmodule Scene do
 
   def to_svg(%__MODULE__{points: points, edges: edges, faces: faces, labels: labels}, camera) do
     project = fn cam, p ->
-      camera_point = PGA3.transform(p, cam)
+      camera_point = p |> PGA3.transform(cam)
       {x, y, z} = PGA3.point_coordinates(camera_point)
       screen_x = x * 100 / z
       screen_y = -y * 100 / z
