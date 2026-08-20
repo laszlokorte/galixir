@@ -2,7 +2,7 @@
 
 ```elixir
 Mix.install([
-  {:galixir, "~> 0.28.0"},
+  {:galixir, "~> 0.30.0"},
   {:kino, "~> 0.19.0"}
 ])
 ```
@@ -23,7 +23,7 @@ PGA3.dual(PGA3.new(scalar: 1)) |> IO.inspect()
 
 ```elixir
 defmodule Utils do
-  import PGA3
+  import PGA3, except: [align: 2]
 
   def align(ps, qs) do
     # https://observablehq.com/@enkimute/glu-lookat-in-3d-pga
