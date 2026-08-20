@@ -737,8 +737,7 @@ defmodule Galixir.Algebras.CGA2 do
 
   Returns
 
-  * `{:real, p1, p2}` for two real points,
-  * `{:imag, p1, p2}` for an imaginary point pair, or
+  * `{p1, p2}` for two points,
   * `:invalid` if the bivector is not a valid point pair.
 
   ## Examples
@@ -848,7 +847,8 @@ defmodule Galixir.Algebras.CGA2 do
     * `{:point, {x, y}}`
     * `{:line, {a, b, c}}`
     * `{:circle, {{x, y}, radius}}`
-    * `{:point_pair, kind, {p1, p2}}`
+    * `{:point_pair, p1, p2}`
+    * `{:point_pair, p}`
     * `{:unknown, multivector}`
 
   ## Examples
@@ -905,6 +905,9 @@ defmodule Galixir.Algebras.CGA2 do
       ...>   )
       iex> classify(pp)
       {:point_pair, {1.0, -2.0}}
+
+      iex> classify(meet(circle(point(0,0),1), circle(point(0,0),1)))
+      {:unknown, ~G[0.0]}
 
       iex> classify(new(e1: 1))
       {:unknown, new(e1: 1)}
