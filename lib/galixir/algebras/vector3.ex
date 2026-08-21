@@ -125,7 +125,7 @@ defmodule Galixir.Algebras.Vector3 do
       iex> normal(vector(2, 0, 0)) |> coordinates()
       {1.0, 0.0, 0.0}
   """
-  def normal(v), do: normalize(v)
+  def normal(v), do: normalize!(v)
 
   @doc """
   Computes the vector cross product of two vectors.
@@ -274,7 +274,7 @@ defmodule Galixir.Algebras.Vector3 do
       iex> reflect(vector(1, 2, 3), vector(0, 0, 1)) |> coordinates()
       {1.0, 2.0, -3.0}
   """
-  def reflect(v, n), do: negate(gp(gp(n, v), inverse(n)))
+  def reflect(v, n), do: negate(gp(gp(n, v), inverse!(n)))
 
   @doc """
   Negates every component of a multivector.

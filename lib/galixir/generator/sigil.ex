@@ -102,6 +102,10 @@ defmodule Galixir.Generator.Sigil do
         end
       end
 
+      defp parse_number(<<"ε", rest::binary>>) do
+        {@epsilon, rest}
+      end
+
       defp parse_number(binary) do
         {digits, rest} = take_number(binary, "")
 
@@ -200,6 +204,12 @@ defmodule Galixir.Generator.Sigil do
 
             iex> ~G"3"
             new(scalar: 3)
+
+            iex> ~G[ε + εe#{a}]
+            new(scalar: epsilon(), e#{a}: epsilon())
+
+            iex> ~G[-ε - εe#{a}]
+            new(scalar: -epsilon(), e#{a}: -epsilon())
         """
 
       [a | _] ->

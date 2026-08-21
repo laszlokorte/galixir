@@ -72,7 +72,7 @@ defmodule Galixir.Generator.Dual do
         -1.0
       end
 
-    [
+    funs = [
       Utils.generate_unary_function(
         :dual,
         a,
@@ -125,5 +125,9 @@ defmodule Galixir.Generator.Dual do
         ]
       )
     ]
+
+    quote do
+      (unquote_splicing(funs))
+    end
   end
 end

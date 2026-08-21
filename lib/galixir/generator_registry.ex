@@ -17,6 +17,7 @@ defmodule Galixir.GeneratorRegistry do
   """
   @generators [
     Galixir.Generator.Header,
+    Galixir.Generator.Predicates,
     Galixir.Generator.BasisNames,
     Galixir.Generator.Canonical,
     Galixir.Generator.Cofficients,
@@ -29,11 +30,11 @@ defmodule Galixir.GeneratorRegistry do
     Galixir.Generator.LinearOps,
     Galixir.Generator.New,
     Galixir.Generator.Norm,
-    Galixir.Generator.Predicates,
     Galixir.Generator.Reverse,
     Galixir.Generator.ScalarProduct,
     Galixir.Generator.WedgeProduct,
-    Galixir.Generator.Sigil
+    Galixir.Generator.Sigil,
+    Galixir.Generator.Conversion
   ]
 
   def generators do

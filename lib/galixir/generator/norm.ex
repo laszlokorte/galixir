@@ -23,6 +23,8 @@ defmodule Galixir.Generator.Norm do
 
       The result may be negative for algebras with indefinite metrics.
 
+      This is also called the Spinor Magnitude.
+
       ## Example
 
           iex> a = new(scalar: 3)
@@ -60,31 +62,61 @@ defmodule Galixir.Generator.Norm do
       ## Example
 
           iex> a = new(scalar: 2)
-          iex> norm(normalize(a))
+          iex> norm(normalize!(a))
           1.0
+
+          iex> normalize!(new())
+          ** (ArgumentError) cannot normalize given null multivector ...
+
+          iex> normalize!(new(scalar: epsilon() / 2.0))
+          ** (ArgumentError) cannot normalize given null multivector ...
       """
+      def normalize!(%__MODULE__{} = a) do
+        normalize(a)
+        |> case do
+          {:ok, result} ->
+            result
+
+          :error ->
+            raise ArgumentError, "cannot normalize given null multivector (#{inspect(a)})"
+        end
+      end
+
       def normalize(%__MODULE__{} = a) do
         n2 = squared_norm(a)
 
-        if abs(n2) < 1.0e-12 do
-          raise ArgumentError, "cannot normalize given null multivector (#{inspect(a)})"
+        if above_epsilon?(n2) do
+          {:ok, scale(1 / abs(n2) ** 0.5, a)}
+        else
+          :error
         end
+      end
 
-        scale(1 / abs(n2) ** 0.5, a)
+      def canonicalize!(%__MODULE__{} = a) do
+        canonicalize(a)
+        |> case do
+          {:error, :no_blade} ->
+            raise ArgumentError, "can only canonicalize blades, given: (#{inspect(a)})"
+
+          {:error, :zero} ->
+            raise ArgumentError, "cannot canonicalize zero multivector, given: (#{inspect(a)})"
+
+          {:ok, r} ->
+            r
+        end
       end
 
       def canonicalize(%__MODULE__{} = a) do
-        unless blade?(a) do
-          raise ArgumentError, "can only canonicalize blades, given: (#{inspect(a)})"
+        case {blade?(a), max_abs_component(a)} do
+          {false, _} ->
+            {:error, :no_blade}
+
+          {_, m} when not is_above_epsilon(m) ->
+            {:error, :zero}
+
+          {_, max} ->
+            {:ok, scale(canonical_sign(a) / max, a)}
         end
-
-        max = max_abs_component(a)
-
-        if max == 0 do
-          raise ArgumentError, "cannot canonicalize zero multivector, given: (#{inspect(a)})"
-        end
-
-        scale(canonical_sign(a) / max, a)
       end
     end
   end

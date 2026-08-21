@@ -67,18 +67,28 @@ defmodule Galixir.Generator.Inspect do
 
           iex> inspect(new(#{unquote(first_blade)}: -2))
           "~G[-2.0#{unquote(first_blade)}]"
+
+          iex> inspect(~G[ε + εe1])
+          "~G[ε + εe1]"
+          iex> inspect(~G[-ε - εe1])
+          "~G[-ε - εe1]"
       """
       def format(value, opts) do
         format_document(value, opts)
       end
 
       defp format_document(value, %Inspect.Opts{custom_options: custom_opts} = opts) do
+        eps = Keyword.get(custom_opts, :epsilon, @epsilon)
+        skip_eps = Keyword.get(custom_opts, :skip_epsilon, false)
+        all_blades = Keyword.get(custom_opts, :all_blades, false)
+
+        hard_epsilon = if(all_blades, do: -1.0, else: if(skip_eps, do: eps, else: 0.0))
+
         value.data
         |> Tuple.to_list()
         |> Enum.with_index()
         |> Enum.filter(fn {coef, _blade} ->
-          Keyword.get(custom_opts, :all_blades, false) or
-            abs(coef) > Keyword.get(custom_opts, :epsilon, 1.0e-10)
+          abs(coef) > hard_epsilon
         end)
         |> format_terms(value, opts)
       end
@@ -121,6 +131,9 @@ defmodule Galixir.Generator.Inspect do
 
         name = value.__struct__.basis_name(blade)
         short_ones = Keyword.get(custom_opts, :short_ones, false)
+        eps = Keyword.get(custom_opts, :epsilon, @epsilon)
+
+        doc = concat([collapse_abs_epsilon(coef, eps, opts), string(name)])
 
         cond do
           short_ones and coef == 1.0 and name != "" ->
@@ -131,17 +144,27 @@ defmodule Galixir.Generator.Inspect do
 
           coef >= 0.0 ->
             signed_term(
-              concat([to_doc(coef, opts), string(name)]),
+              doc,
               first?,
               "+"
             )
 
           true ->
             signed_term(
-              concat([to_doc(abs(coef), opts), string(name)]),
+              doc,
               first?,
               "-"
             )
+        end
+      end
+
+      defp collapse_abs_epsilon(value, eps, opts) do
+        import Inspect.Algebra
+
+        abs(value)
+        |> case do
+          abs when abs > 0.0 and abs <= eps -> "ε"
+          abs -> to_doc(abs, opts)
         end
       end
 

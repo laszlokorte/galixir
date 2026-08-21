@@ -385,7 +385,7 @@ defmodule GalixirTest do
   test "inverse of bivector" do
     e12 = PGA2.new(e12: 1)
 
-    assert PGA2.gp(e12, PGA2.inverse(e12)) ==
+    assert PGA2.gp(e12, PGA2.inverse!(e12)) ==
              PGA2.new(scalar: 1)
   end
 
@@ -393,17 +393,17 @@ defmodule GalixirTest do
     e1 = PGA2.new(e1: 1)
     e2 = PGA2.new(e2: 1)
 
-    assert PGA2.gp(e1, PGA2.inverse(e1)) ==
+    assert PGA2.gp(e1, PGA2.inverse!(e1)) ==
              PGA2.new(scalar: 1)
 
-    assert PGA2.gp(e2, PGA2.inverse(e2)) ==
+    assert PGA2.gp(e2, PGA2.inverse!(e2)) ==
              PGA2.new(scalar: 1)
   end
 
   test "inverse of scalar" do
     a = PGA2.new(scalar: 5)
 
-    assert PGA2.inverse(a) ==
+    assert PGA2.inverse!(a) ==
              PGA2.new(scalar: 0.2)
   end
 
@@ -420,7 +420,7 @@ defmodule GalixirTest do
       PGA2.inverse!(e3)
     end
 
-    assert :invalid == PGA2.inverse(e3)
+    assert :error == PGA2.inverse(e3)
   end
 
   test "inverse rejects null pseudoscalar" do
@@ -430,7 +430,7 @@ defmodule GalixirTest do
       PGA2.inverse!(i)
     end
 
-    assert :invalid == PGA2.inverse(i)
+    assert :error == PGA2.inverse(i)
   end
 
   test "inverse property" do
@@ -440,7 +440,7 @@ defmodule GalixirTest do
           PGA2.new(e12: 1),
           PGA2.new(scalar: 7)
         ] do
-      assert PGA2.gp(a, PGA2.inverse(a)) ==
+      assert PGA2.gp(a, PGA2.inverse!(a)) ==
                PGA2.new(scalar: 1)
     end
   end
@@ -448,7 +448,7 @@ defmodule GalixirTest do
   test "inverse property right multiplication" do
     a = PGA2.new(e12: 1)
 
-    assert PGA2.gp(PGA2.inverse(a), a) ==
+    assert PGA2.gp(PGA2.inverse!(a), a) ==
              PGA2.new(scalar: 1)
   end
 
@@ -655,19 +655,19 @@ defmodule GalixirTest do
   end
 
   test "normalize" do
-    assert PGA2.canonicalize(PGA2.new(e1: 5)) ==
+    assert PGA2.canonicalize!(PGA2.new(e1: 5)) ==
              PGA2.new(e1: 1)
 
-    assert PGA2.canonicalize(PGA2.new(e12: -3)) ==
+    assert PGA2.canonicalize!(PGA2.new(e12: -3)) ==
              PGA2.new(e12: 1)
 
-    assert PGA2.canonicalize(PGA2.new(scalar: 7)) ==
+    assert PGA2.canonicalize!(PGA2.new(scalar: 7)) ==
              PGA2.new(scalar: 1)
   end
 
   test "cannot normalize zero" do
     assert_raise ArgumentError, fn ->
-      PGA2.normalize(PGA2.new())
+      PGA2.normalize!(PGA2.new())
     end
   end
 
@@ -682,15 +682,15 @@ defmodule GalixirTest do
   end
 
   test "canonical normalize" do
-    assert PGA2.canonicalize(PGA2.new(e1: -5)) ==
+    assert PGA2.canonicalize!(PGA2.new(e1: -5)) ==
              PGA2.new(e1: 1)
 
-    assert PGA2.canonicalize(PGA2.new(e12: -5)) ==
+    assert PGA2.canonicalize!(PGA2.new(e12: -5)) ==
              PGA2.new(e12: 1)
   end
 
   test "canonicalize vector" do
-    assert PGA2.canonicalize(PGA2.new(e1: -5, e2: 10)) ==
+    assert PGA2.canonicalize!(PGA2.new(e1: -5, e2: 10)) ==
              PGA2.new(e1: 0.5, e2: -1)
   end
 
@@ -826,8 +826,8 @@ defmodule GalixirTest do
     scaled =
       PGA3.scale(5, p)
 
-    assert PGA3.normalize(p) ==
-             PGA3.normalize(scaled)
+    assert PGA3.normalize!(p) ==
+             PGA3.normalize!(scaled)
   end
 
   test "scaled lines represent the same line" do
@@ -836,8 +836,8 @@ defmodule GalixirTest do
 
     line = PGA3.line(a, b)
 
-    assert PGA3.canonicalize(line) ==
-             PGA3.canonicalize(PGA3.scale(-3, line))
+    assert PGA3.canonicalize!(line) ==
+             PGA3.canonicalize!(PGA3.scale(-3, line))
   end
 
   test "join of points creates a line" do

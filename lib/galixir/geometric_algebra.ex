@@ -152,7 +152,8 @@ defmodule Galixir.GeometricAlgebra do
     end
 
     if tuple_size(bases) != tuple_size(metric) do
-      raise "number of bases (given #{inspect(bases)}) must be the same as the size of the metric (given #{inspect(metric)})"
+      raise ArgumentError,
+            "number of bases (given #{inspect(bases)}) must be the same as the size of the metric (given #{inspect(metric)})"
     end
 
     table = Table.build(metric)
@@ -173,68 +174,62 @@ defmodule Galixir.GeometricAlgebra do
       epsilon: epsilon
     }
 
-    quote do
-      defstruct [:data]
+    ast =
+      quote do
+        defstruct [:data]
 
-      unquote_splicing(
-        for g <- Galixir.GeneratorRegistry.generators() do
-          g.generate_implementation(meta)
+        unquote_splicing(
+          for g <- Galixir.GeneratorRegistry.generators(),
+              part <- g.generate_implementation(meta) do
+            part
+          end
+        )
+
+        def commutator(a, b) do
+          scale(
+            0.5,
+            sub(gp(a, b), gp(b, a))
+          )
         end
-      )
 
-      def commutator(a, b) do
-        scale(
-          0.5,
-          sub(gp(a, b), gp(b, a))
-        )
+        @doc """
+        Computes the outer product of a list of multivectors.
+
+        The vectors are combined from left to right using the wedge product.
+
+        The result is a blade representing the subspace spanned by all input
+        multivectors.
+        """
+        def wedge_all(vectors) do
+          Enum.reduce(vectors, new(), fn v, acc ->
+            wedge(acc, v)
+          end)
+        end
+
+        @doc """
+        Computes the rotor that maps one frame to another.
+
+        The function constructs blades from the source and target frames and computes
+        the transformation rotor:
+
+        `R = normalize(1 + T * S⁻¹)`
+
+        where `S` is the source frame blade and `T` is the target frame blade.
+
+        The resulting rotor can be applied to multivectors to rotate the source frame
+        into the target frame.
+
+        """
+        def rotor_between_frames(source, target) do
+          source_blade = wedge_all(source)
+          target_blade = wedge_all(target)
+
+          gp(target_blade, inverse!(source_blade))
+          |> add(new(scalar: 1))
+          |> normalize!()
+        end
       end
 
-      @doc """
-      Computes the outer product of a list of multivectors.
-
-      The vectors are combined from left to right using the wedge product.
-
-      The result is a blade representing the subspace spanned by all input
-      multivectors.
-      """
-
-      def wedge_all(vectors) do
-        Enum.reduce(vectors, new(), fn v, acc ->
-          wedge(acc, v)
-        end)
-      end
-
-      @doc """
-      Computes the rotor that maps one frame to another.
-
-      The function constructs blades from the source and target frames and computes
-      the transformation rotor:
-
-      `R = normalize(1 + T * S⁻¹)`
-
-      where `S` is the source frame blade and `T` is the target frame blade.
-
-      The resulting rotor can be applied to multivectors to rotate the source frame
-      into the target frame.
-
-      """
-      def rotor_between_frames(source, target) do
-        source_blade = wedge_all(source)
-        target_blade = wedge_all(target)
-
-        x =
-          gp(
-            target_blade,
-            blade_inverse(source_blade)
-          )
-
-        normalize(
-          add(
-            new(scalar: 1),
-            x
-          )
-        )
-      end
-    end
+    ast
   end
 end

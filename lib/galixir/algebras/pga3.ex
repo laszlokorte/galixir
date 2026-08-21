@@ -131,7 +131,7 @@ defmodule Galixir.Algebras.PGA3 do
   """
   def ideal_point?(p) do
     grade?(p, 3) and
-      abs(coefficient(canonicalize(p), :e123)) < epsilon()
+      not above_epsilon?(coefficient(canonicalize!(p), :e123))
   end
 
   @doc """
@@ -149,7 +149,7 @@ defmodule Galixir.Algebras.PGA3 do
   """
   def finite_point?(p) do
     grade?(p, 3) and
-      abs(coefficient(canonicalize(p), :e123)) >= epsilon()
+      above_epsilon?(coefficient(canonicalize!(p), :e123))
   end
 
   @doc """
@@ -247,7 +247,7 @@ defmodule Galixir.Algebras.PGA3 do
     false
   """
   def plane_from_normal_point(n, p) do
-    n = normalize(n)
+    n = normalize!(n)
     {x, y, z} = point_coordinates(p)
 
     a = coefficient(n, :e1)
@@ -287,7 +287,7 @@ defmodule Galixir.Algebras.PGA3 do
     new(e3: 1.0)
   """
   def normalized_plane_normal(p) do
-    normalize(plane_normal(p))
+    normalize!(plane_normal(p))
   end
 
   # ----------------
@@ -416,7 +416,7 @@ defmodule Galixir.Algebras.PGA3 do
   """
   def coincident?(a, b) do
     grade(a) == grade(b) and
-      zero?(sub(canonicalize(a), canonicalize(b)))
+      zero?(sub(canonicalize!(a), canonicalize!(b)))
   end
 
   @doc """
@@ -491,7 +491,7 @@ defmodule Galixir.Algebras.PGA3 do
     new(e3: 1.0)
   """
   def normalized_direction_vector(line) do
-    normalize(direction_vector(line))
+    normalize!(direction_vector(line))
   end
 
   # ----------------
@@ -523,22 +523,22 @@ defmodule Galixir.Algebras.PGA3 do
 
   ## Examples
 
-    iex> point_coordinates(transform(origin(), translator(1, 2, 3)))
-    {1.0, 2.0, 3.0}
+      iex> point_coordinates(transform(origin(), translator(1, 2, 3)))
+      {1.0, 2.0, 3.0}
 
-    iex> point_coordinates(transform(point(1, 2, 3), translator(-1, -2, -3)))
-    {0.0, 0.0, 0.0}
+      iex> point_coordinates(transform(point(1, 2, 3), translator(-1, -2, -3)))
+      {0.0, 0.0, 0.0}
 
-    iex> p = point(4, 5, 6)
-    iex> point_coordinates(transform(p, translator(1, 2, 3)))
-    {5.0, 7.0, 9.0}
+      iex> p = point(4, 5, 6)
+      iex> point_coordinates(transform(p, translator(1, 2, 3)))
+      {5.0, 7.0, 9.0}
 
-    iex> point_coordinates(transform(origin(), translator(vector(1, 2, 3))))
-    {1.0, 2.0, 3.0}
+      iex> point_coordinates(transform(origin(), translator(vector(1, 2, 3))))
+      {1.0, 2.0, 3.0}
 
-    iex> v = vector(-3, 4, 5)
-    iex> point_coordinates(transform(origin(), translator(v)))
-    {-3.0, 4.0, 5.0}
+      iex> v = vector(-3, 4, 5)
+      iex> point_coordinates(transform(origin(), translator(v)))
+      {-3.0, 4.0, 5.0}
   """
   def translator(x, y, z) do
     new(
@@ -586,7 +586,7 @@ defmodule Galixir.Algebras.PGA3 do
     iex> r = rotor(axis, :math.pi() / 3)
     iex> point(2, 3, 4)
     ...> |> transform(r)
-    ...> |> transform(inverse(r))
+    ...> |> transform(inverse!(r))
     ...> |> point_coordinates()
     {2.0, 3.0, 4.0}
 
@@ -601,7 +601,7 @@ defmodule Galixir.Algebras.PGA3 do
         line_axis
       )
     )
-    |> normalize()
+    |> normalize!()
   end
 
   @doc """
@@ -621,7 +621,7 @@ defmodule Galixir.Algebras.PGA3 do
       |> abs()
       |> then(&(&1 ** 0.5))
 
-    if n < epsilon() do
+    if not above_epsilon?(n) do
       raise ArgumentError, "cannot normalize null line"
     end
 
@@ -647,7 +647,7 @@ defmodule Galixir.Algebras.PGA3 do
     iex> m = translator(3, 4, 5)
     iex> point(1, 2, 3)
     ...> |> transform(m)
-    ...> |> transform(inverse(m))
+    ...> |> transform(inverse!(m))
     ...> |> point_coordinates()
     {1.0, 2.0, 3.0}
 
@@ -692,7 +692,7 @@ defmodule Galixir.Algebras.PGA3 do
   def point_coordinates(p) do
     w = coefficient(p, :e123)
 
-    if abs(w) < epsilon() do
+    if not above_epsilon?(w) do
       raise ArgumentError,
             "cannot extract Cartesian coordinates from a non-finite point"
     end
@@ -784,64 +784,64 @@ defmodule Galixir.Algebras.PGA3 do
 
   ## Examples
 
-    iex> align([], []) == one()
-    true
+      iex> align([], []) == one()
+      true
 
-    iex> m = align([point(0,0,0)], [point(1,2,3)])
-    iex> point(0, 0, 0)
-    ...> |> transform(m)
-    ...> |> point_coordinates()
-    {1.0, 2.0, 3.0}
+      iex> m = align([point(0,0,0)], [point(1,2,3)])
+      iex> point(0, 0, 0)
+      ...> |> transform(m)
+      ...> |> point_coordinates()
+      {1.0, 2.0, 3.0}
 
-    iex> from = [
-    ...>   point(0, 0, 0),
-    ...>   point(1, 0, 0)
-    ...> ]
-    iex> to = [
-    ...>   point(0, 0, 0),
-    ...>   point(0, 1, 0)
-    ...> ]
-    iex> m = align(from, to)
-    iex> point(1, 0, 0)
-    ...> |> transform(m)
-    ...> |> point_coordinates()
-    {0.0, 1.0, 0.0}
+      iex> from = [
+      ...>   point(0, 0, 0),
+      ...>   point(1, 0, 0)
+      ...> ]
+      iex> to = [
+      ...>   point(0, 0, 0),
+      ...>   point(0, 1, 0)
+      ...> ]
+      iex> m = align(from, to)
+      iex> point(1, 0, 0)
+      ...> |> transform(m)
+      ...> |> point_coordinates()
+      {0.0, 1.0, 0.0}
 
-    iex> from = [
-    ...>   point(0, 0, 0),
-    ...>   point(1, 0, 0),
-    ...>   point(0, 1, 0)
-    ...> ]
-    iex> to = [
-    ...>   point(1, 2, 3),
-    ...>   point(1, 3, 3),
-    ...>   point(0, 2, 3)
-    ...> ]
-    iex> m = align(from, to)
-    iex> point_coordinates(transform(point(1, 0, 0), m))
-    {1.0, 3.0, 3.0}
+      iex> from = [
+      ...>   point(0, 0, 0),
+      ...>   point(1, 0, 0),
+      ...>   point(0, 1, 0)
+      ...> ]
+      iex> to = [
+      ...>   point(1, 2, 3),
+      ...>   point(1, 3, 3),
+      ...>   point(0, 2, 3)
+      ...> ]
+      iex> m = align(from, to)
+      iex> point_coordinates(transform(point(1, 0, 0), m))
+      {1.0, 3.0, 3.0}
 
-    iex> p = point(1, 2, 3)
-    iex> m = align([p], [p])
-    iex> point_coordinates(transform(p, m))
-    {1.0, 2.0, 3.0}
+      iex> p = point(1, 2, 3)
+      iex> m = align([p], [p])
+      iex> point_coordinates(transform(p, m))
+      {1.0, 2.0, 3.0}
 
 
-    iex> from = [
-    ...>   point(0, 0, 0),
-    ...>   point(1, 0, 0)
-    ...> ]
-    iex> to = [
-    ...>   point(3, 4, 5),
-    ...>   point(3, 5, 5)
-    ...> ]
-    iex> m = align(from, to)
-    iex> inv = inverse(m)
-    iex> point_coordinates(transform(transform(point(7, 8, 9), m), inv))
-    {7.0, 8.0, 9.0}
+      iex> from = [
+      ...>   point(0, 0, 0),
+      ...>   point(1, 0, 0)
+      ...> ]
+      iex> to = [
+      ...>   point(3, 4, 5),
+      ...>   point(3, 5, 5)
+      ...> ]
+      iex> m = align(from, to)
+      iex> inv = inverse!(m)
+      iex> point_coordinates(transform(transform(point(7, 8, 9), m), inv))
+      {7.0, 8.0, 9.0}
 
-    iex> align([point(0, 0, 0)], [])
-    ** (ArgumentError) cannot align different numbers of objects
+      iex> align([point(0, 0, 0)], [])
+      ** (ArgumentError) cannot align different numbers of objects
   """
   def align([], []), do: one()
 
@@ -855,8 +855,8 @@ defmodule Galixir.Algebras.PGA3 do
     initial_q = dual(new(scalar: 1))
 
     Enum.zip_reduce(ps, qs, {initial_m, initial_q}, fn p, q, {m, prev_q} ->
-      p = prev_q |> join(transform(p, m)) |> normalize()
-      new_q = prev_q |> join(q) |> normalize() |> blade_inverse()
+      p = prev_q |> join(transform(p, m)) |> normalize!()
+      new_q = prev_q |> join(q) |> normalize!() |> inverse!()
       new_m = new_q |> gp(p) |> add(identity) |> gp(m)
       {new_m, new_q}
     end)
@@ -869,7 +869,7 @@ defmodule Galixir.Algebras.PGA3 do
   ## Examples
 
     iex> t = translator(10,0,0)
-    iex> motor_exp(motor_log(t)) |> normalize() == normalize(t)
+    iex> motor_exp(motor_log(t)) |> normalize!() == normalize!(t)
     true
   """
   def motor_log(mot) do
@@ -882,7 +882,7 @@ defmodule Galixir.Algebras.PGA3 do
   ## Examples
 
     iex> b = motor_log(translator(5,0,0))
-    iex> motor_exp(b) |> normalize() == normalize(translator(5,0,0))
+    iex> motor_exp(b) |> normalize!() == normalize!(translator(5,0,0))
     true
   """
   def motor_exp(bv) do
@@ -890,7 +890,7 @@ defmodule Galixir.Algebras.PGA3 do
     bv4 = grade(bv2, 4)
     numerator = add(add(new(scalar: 1), bv), scale(bv4, 0.5))
     denominator = 1 - coefficient(bv2, :scalar)
-    scale(numerator, 1 / denominator) |> normalize()
+    scale(numerator, 1 / denominator) |> normalize!()
   end
 
   @doc """

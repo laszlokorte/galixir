@@ -14,11 +14,29 @@ defmodule Galixir.Generator.Predicates do
         blade_indices: bi
       }) do
     [
+      scalar_zero_check(),
       scalar_check_impl(dimensions, bases),
       zero_check_impl(dimensions, bases),
       blade_check_impl(bases),
       blade_guard_impl(bi)
     ]
+  end
+
+  def scalar_zero_check do
+    quote do
+      @doc """
+      A guard that checks if a floating point number is below the epsilon threshold.
+
+      Can be used in function guards:
+
+          def foo(x) when is_near_zero(x), do: x
+      """
+      defguard is_above_epsilon(num, eps \\ @epsilon) when abs(num) > abs(eps)
+
+      def above_epsilon?(num, eps \\ @epsilon)
+      def above_epsilon?(num, eps) when is_above_epsilon(num, eps), do: true
+      def above_epsilon?(num, eps), do: false
+    end
   end
 
   def scalar_check_impl(dimension, bases) do
@@ -60,7 +78,7 @@ defmodule Galixir.Generator.Predicates do
       def scalar?(unquote(tuple_ast(a)), eps \\ 1.0e-12) do
         unquote(
           Enum.map(1..(blade_count - 1), &Enum.at(a, &1))
-          |> Enum.map(&quote(do: abs(unquote(&1)) < eps))
+          |> Enum.map(&quote(do: not is_above_epsilon(unquote(&1), eps)))
           |> Chain.and_chain()
         )
       end

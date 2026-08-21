@@ -36,8 +36,8 @@ defmodule Example do
     initial_q = dual(new(scalar: 1))
 
     Enum.zip_reduce(ps, qs, {initial_m, initial_q}, fn p, q, {m, prev_q} ->
-      p = prev_q |> join(transform(p, m)) |> normalize()
-      new_q = prev_q |> join(q) |> normalize() |> blade_inverse()
+      p = prev_q |> join(transform(p, m)) |> normalize!()
+      new_q = prev_q |> join(q) |> normalize!() |> inverse!()
       new_m = new_q |> gp(p) |> add(identity) |> gp(m)
       {new_m, new_q}
     end)

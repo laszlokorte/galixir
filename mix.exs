@@ -4,13 +4,14 @@ defmodule Galixir.MixProject do
   def project do
     [
       app: :galixir,
-      version: "0.30.0",
+      version: "0.31.0",
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
       source_url: "https://github.com/laszlokorte/galixir",
       deps: deps(),
       description: description(),
-      package: package()
+      package: package(),
+      docs: docs()
     ]
   end
 
@@ -29,6 +30,26 @@ defmodule Galixir.MixProject do
   def application do
     [
       extra_applications: [:logger]
+    ]
+  end
+
+  def docs do
+    [
+      groups_for_modules: [
+        Algebras: [
+          ~r/^Galixir\.Algebras/
+        ],
+        Generators: [
+          Galixir.GeometricAlgebra,
+          Galixir.Blade,
+          Galixir.Chain,
+          Galixir.GeneratorBehaviour,
+          Galixir.GeneratorRegistry,
+          Galixir.Meta,
+          Galixir.Table,
+          ~r/^Galixir\.Generator/
+        ]
+      ]
     ]
   end
 

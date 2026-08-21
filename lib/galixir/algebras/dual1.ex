@@ -135,7 +135,7 @@ defmodule Galixir.Algebras.Dual1 do
     b = infinitesimal(x)
 
     if a == 0 do
-      raise "dual number with zero real part has no inverse"
+      raise ArgumentError, "dual number with zero real part has no inverse"
     end
 
     dual(

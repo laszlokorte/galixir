@@ -140,7 +140,7 @@ defmodule Galixir.Algebras.Vector2 do
       iex> normal(vector(3, 4)) |> coordinates() |> Tuple.to_list() |> Enum.map(&Float.round(&1, 12))
       [0.6, 0.8]
   """
-  def normal(v), do: normalize(v)
+  def normal(v), do: normalize!(v)
 
   @doc """
   Computes the signed two-dimensional cross product of two vectors.
@@ -233,7 +233,7 @@ defmodule Galixir.Algebras.Vector2 do
       iex> reflect(vector(1, 2), vector(0, 1)) |> coordinates()
       {1.0, -2.0}
   """
-  def reflect(v, n), do: negate(gp(gp(n, v), inverse(n)))
+  def reflect(v, n), do: negate(gp(gp(n, v), inverse!(n)))
 
   @doc """
   Returns the vector perpendicular to `v` after a counter-clockwise quarter turn.

@@ -40,25 +40,30 @@ defmodule Galixir.Generator.BasisNames do
     dimensions = tuple_size(bases)
     size = Bitwise.bsl(1, dimensions)
 
-    for mask <- 0..(size - 1) do
-      name =
-        if mask == 0 do
-          ""
-        else
-          blade =
-            mask
-            |> Integer.digits(2)
-            |> Enum.reverse()
-            |> Enum.with_index()
-            |> Enum.filter(fn {bit, _} -> bit == 1 end)
-            |> Enum.map_join(fn {_, i} -> elem(bases, i) end)
+    defs =
+      for mask <- 0..(size - 1) do
+        name =
+          if mask == 0 do
+            ""
+          else
+            blade =
+              mask
+              |> Integer.digits(2)
+              |> Enum.reverse()
+              |> Enum.with_index()
+              |> Enum.filter(fn {bit, _} -> bit == 1 end)
+              |> Enum.map_join(fn {_, i} -> elem(bases, i) end)
 
-          "e" <> blade
+            "e" <> blade
+          end
+
+        quote do
+          def basis_name(unquote(mask)), do: unquote(name)
         end
-
-      quote do
-        def basis_name(unquote(mask)), do: unquote(name)
       end
+
+    quote do
+      (unquote_splicing(defs))
     end
   end
 end

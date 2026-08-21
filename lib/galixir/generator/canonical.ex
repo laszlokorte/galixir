@@ -37,7 +37,7 @@ defmodule Galixir.Generator.Canonical do
 
   For a multivector:
 
-      3.0 + 2.0e1 - 5.0e12
+      `3.0 + 2.0e1 - 5.0e12`
 
   the maximum absolute component is:
 

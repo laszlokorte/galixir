@@ -28,14 +28,13 @@ defmodule Galixir.Generator.Cofficients do
       blade alias. Aliases are automatically converted to the canonical blade
       and the appropriate sign is applied.
 
-         ## Examples
+      ## Examples
 
-        iex> coefficient(
-        ...>   new(#{unquote(blade)}: 3),
-        ...>   :#{unquote(blade)}
-        ...> )
-        3.0
-
+          iex> coefficient(
+          ...>  new(#{unquote(blade)}: 3),
+          ...>  :#{unquote(blade)}
+          ...> )
+          3.0
       """
       def coefficient(%__MODULE__{data: data}, blade) do
         {canonical, sign} =

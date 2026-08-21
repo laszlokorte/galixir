@@ -158,7 +158,7 @@ defmodule Galixir.Algebras.Hyper1 do
     n = norm_squared(z)
 
     if n == 0 do
-      raise "hyperbolic number has no inverse (zero divisor)"
+      raise ArgumentError, "hyperbolic number has no inverse (zero divisor)"
     end
 
     scale(
@@ -194,8 +194,7 @@ defmodule Galixir.Algebras.Hyper1 do
 
   Returns:
 
-      log(z) =
-        log(|z|) + atanh(b/a)j
+      log(z) = log(|z|) + atanh(b/a)j
   """
   def log(z) do
     a = real(z)

@@ -190,7 +190,7 @@ defmodule Galixir.Algebras.CGA3 do
   def point_coordinates(p) do
     w = -scalar_product(p, e_inf())
 
-    if abs(w) < epsilon() do
+    if not above_epsilon?(w) do
       raise ArgumentError, "cannot extract coordinates from point at infinity"
     end
 
@@ -355,7 +355,7 @@ defmodule Galixir.Algebras.CGA3 do
   """
   def contains?(object, point) do
     if grade?(object, 1) do
-      abs(scalar_product(object, point)) < epsilon()
+      not above_epsilon?(scalar_product(object, point))
     else
       zero?(wedge(object, point))
     end
@@ -386,7 +386,7 @@ defmodule Galixir.Algebras.CGA3 do
         )
       )
 
-    normalize(t)
+    normalize!(t)
   end
 
   @doc """
@@ -418,7 +418,7 @@ defmodule Galixir.Algebras.CGA3 do
       true
   """
   def rotor(bivector, angle) do
-    bivector = normalize(bivector)
+    bivector = normalize!(bivector)
 
     add(
       new(scalar: :math.cos(angle / 2)),
@@ -492,7 +492,7 @@ defmodule Galixir.Algebras.CGA3 do
   def normalize_point(p) do
     w = -scalar_product(p, e_inf())
 
-    if abs(w) < epsilon() do
+    if not above_epsilon?(w) do
       raise ArgumentError, "cannot normalize point with zero weight, given #{inspect(p)}"
     end
 
@@ -513,7 +513,7 @@ defmodule Galixir.Algebras.CGA3 do
       false
   """
   def point?(p) do
-    grade?(p, 1) and null?(p) and abs(scalar_product(p, e_inf())) > epsilon()
+    grade?(p, 1) and null?(p) and above_epsilon?(scalar_product(p, e_inf()))
   end
 
   @doc """
@@ -536,7 +536,7 @@ defmodule Galixir.Algebras.CGA3 do
     data =
       data
       |> Tuple.to_list()
-      |> Enum.map(fn coefficient -> if abs(coefficient) < eps, do: 0.0, else: coefficient end)
+      |> Enum.map(&if above_epsilon?(&1, eps), do: &1, else: 0.0)
       |> List.to_tuple()
 
     %__MODULE__{data: data}

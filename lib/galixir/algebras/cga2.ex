@@ -170,7 +170,7 @@ defmodule Galixir.Algebras.CGA2 do
   def point_coordinates(p) do
     w = -scalar_product(p, e_inf())
 
-    if abs(w) < epsilon() do
+    if not above_epsilon?(w) do
       raise ArgumentError, "cannot extract coordinates from point at infinity"
     end
 
@@ -213,7 +213,7 @@ defmodule Galixir.Algebras.CGA2 do
         e_inf()
       )
     )
-    |> gp(inverse(pseudoscalar()))
+    |> gp(inverse!(pseudoscalar()))
   end
 
   @doc """
@@ -441,7 +441,7 @@ defmodule Galixir.Algebras.CGA2 do
         )
       )
 
-    normalize(t)
+    normalize!(t)
   end
 
   @doc """
@@ -468,7 +468,7 @@ defmodule Galixir.Algebras.CGA2 do
         new(e12: 1)
       )
     )
-    |> normalize()
+    |> normalize!()
   end
 
   @doc """
@@ -546,7 +546,7 @@ defmodule Galixir.Algebras.CGA2 do
   def normalize_point(p) do
     w = scalar_product(p, e_o())
 
-    if abs(w) < epsilon() do
+    if not above_epsilon?(w) do
       raise ArgumentError, "cannot normalize point with zero weight, given #{inspect(p)}"
     end
 
@@ -569,7 +569,7 @@ defmodule Galixir.Algebras.CGA2 do
   def point?(p) do
     grade?(p, 1) and
       null?(p) and
-      abs(scalar_product(p, e_o())) > epsilon()
+      above_epsilon?(scalar_product(p, e_o()))
   end
 
   @doc """
@@ -608,7 +608,7 @@ defmodule Galixir.Algebras.CGA2 do
       |> Enum.map(&abs/1)
       |> Enum.sum()
 
-    n2 < epsilon() * max(scale * scale, 1.0)
+    not above_epsilon?(n2, @epsilon * max(scale * scale, 1.0))
   end
 
   @doc """
@@ -658,7 +658,7 @@ defmodule Galixir.Algebras.CGA2 do
   """
   def line?(l) do
     grade?(l, 3) and
-      norm(wedge(l, e_inf())) < epsilon()
+      not above_epsilon?(norm(wedge(l, e_inf())))
   end
 
   @doc """
@@ -701,7 +701,7 @@ defmodule Galixir.Algebras.CGA2 do
       {:circle, {:imag, {1.0, 2.0}, 3.0}}
   """
   def circle_parameters(c) do
-    v = gp(c, inverse(pseudoscalar()))
+    v = gp(c, inverse!(pseudoscalar()))
 
     e1 = coefficient(v, :e1)
     e2 = coefficient(v, :e2)
@@ -711,7 +711,7 @@ defmodule Galixir.Algebras.CGA2 do
 
     w = em - ep
 
-    if norm(wedge(c, e_inf())) < epsilon() do
+    if not above_epsilon?(norm(wedge(c, e_inf()))) do
       {:line, line_parameters(c)}
     else
       x = e1 / w
@@ -738,7 +738,7 @@ defmodule Galixir.Algebras.CGA2 do
   Returns
 
   * `{p1, p2}` for two points,
-  * `:invalid` if the bivector is not a valid point pair.
+  * `:error` if the bivector is not a valid point pair.
 
   ## Examples
 
@@ -762,7 +762,7 @@ defmodule Galixir.Algebras.CGA2 do
       true
 
       iex> split(meet(circle(point(0,0),1), circle(point(0,0),1)))
-      :invalid
+      :error
 
       iex> c1 = circle(point(0,0),1)
       iex> c2 = circle(point(5,0),1)
@@ -789,10 +789,10 @@ defmodule Galixir.Algebras.CGA2 do
         wedge(b, e_inf())
         |> inverse()
         |> case do
-          :invalid ->
-            :invalid
+          :error ->
+            :error
 
-          inv ->
+          {:ok, inv} ->
             pos = gp(b, inv)
             w = scalar_product(pos, sub(e_inf(), one()))
 

@@ -148,7 +148,7 @@ defmodule Galixir.Algebras.PGA2 do
   """
   def finite_point?(p) do
     grade?(p, 2) and
-      abs(coefficient(p, :e12)) >= epsilon()
+      above_epsilon?(coefficient(p, :e12))
   end
 
   @doc """
@@ -170,29 +170,28 @@ defmodule Galixir.Algebras.PGA2 do
   """
   def ideal_point?(p) do
     grade?(p, 2) and
-      abs(coefficient(p, :e12)) < epsilon()
+      not above_epsilon?(coefficient(p, :e12))
   end
 
   @doc """
   Extracts Cartesian coordinates from a finite point.
 
-  Returns:
+  Returns: `{x, y}`
 
-      {x, y}
   # Examples
 
-  iex> point_coordinates(origin())
-  {0.0, 0.0}
+      iex> point_coordinates(origin())
+      {0.0, 0.0}
 
 
-  iex> point_coordinates(point(2, 3))
-  {2.0, 3.0}
+      iex> point_coordinates(point(2, 3))
+      {2.0, 3.0}
 
   """
   def point_coordinates(p) do
     w = coefficient(p, :e12)
 
-    if abs(w) < epsilon() do
+    if not above_epsilon?(w) do
       raise ArgumentError, "cannot extract Cartesian coordinates from a non-finite point"
     end
 
@@ -233,7 +232,7 @@ defmodule Galixir.Algebras.PGA2 do
 
   The line is represented up to scale.
 
-  iex> normalize(line(1,2,3)) == normalize(line(2,4,6))
+  iex> normalize!(line(1,2,3)) == normalize!(line(2,4,6))
   true
 
   """
@@ -280,14 +279,14 @@ defmodule Galixir.Algebras.PGA2 do
   Returns the normalized line normal vector.
   """
   def normalized_line_normal(l) do
-    normalize(line_normal(l))
+    normalize!(line_normal(l))
   end
 
   @doc """
   Creates a line from a normal vector and a point.
   """
   def line_from_normal_point(n, p) do
-    n = normalize(n)
+    n = normalize!(n)
     {x, y} = point_coordinates(p)
 
     a = coefficient(n, :e1)
@@ -455,7 +454,7 @@ defmodule Galixir.Algebras.PGA2 do
   Returns the normalized direction vector of a line.
   """
   def normalized_direction_vector(line) do
-    normalize(direction_vector(line))
+    normalize!(direction_vector(line))
   end
 
   # ----------------
@@ -485,7 +484,7 @@ defmodule Galixir.Algebras.PGA2 do
       {1.0, 2.0}
 
       iex> m = translator(3,4)
-      iex> point_coordinates(transform(transform(point(5,6), m), inverse(m)))
+      iex> point_coordinates(transform(transform(point(5,6), m), inverse!(m)))
       {5.0,6.0}
   """
   def translator(x, y) do
@@ -537,7 +536,7 @@ defmodule Galixir.Algebras.PGA2 do
       scalar: :math.cos(angle / 2),
       e12: -:math.sin(angle / 2)
     )
-    |> normalize()
+    |> normalize!()
   end
 
   @doc """
@@ -548,7 +547,7 @@ defmodule Galixir.Algebras.PGA2 do
       M X M⁻¹
   """
   def transform(object, motor) do
-    gp(gp(motor, object), inverse(motor))
+    gp(gp(motor, object), inverse!(motor))
   end
 
   # ----------------
