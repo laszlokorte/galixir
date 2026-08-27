@@ -508,18 +508,6 @@ defmodule Galixir.Algebras.CGA2 do
   end
 
   @doc """
-  Returns the CGA pseudoscalar:
-
-      e1 ∧ e2 ∧ ep ∧ em
-
-      iex> grades(pseudoscalar())
-      [4]
-  """
-  def pseudoscalar do
-    new(e12pm: 1)
-  end
-
-  @doc """
   Normalizes a conformal point so that its conformal weight is -1.
 
   The weight is defined as:
@@ -971,7 +959,7 @@ defmodule Galixir.Algebras.CGA2 do
       {0.0, 1.0, 0.0}
   """
   def line_parameters(l) do
-    l = dual(l)
+    l = hodge_dual(l)
 
     {
       coefficient(l, :e1),

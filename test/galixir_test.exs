@@ -547,35 +547,35 @@ defmodule GalixirTest do
   end
 
   test "dual of basis blades" do
-    assert PGA2.dual(PGA2.new(scalar: 1)) ==
+    assert PGA2.hodge_dual(PGA2.new(scalar: 1)) ==
              PGA2.new(e120: 1)
 
-    assert PGA2.dual(PGA2.new(e1: 1)) ==
+    assert PGA2.hodge_dual(PGA2.new(e1: 1)) ==
              PGA2.new(e20: 1)
 
-    assert PGA2.dual(PGA2.new(e2: 1)) ==
+    assert PGA2.hodge_dual(PGA2.new(e2: 1)) ==
              PGA2.new(e01: 1)
 
-    assert PGA2.dual(PGA2.new(e0: 1)) ==
+    assert PGA2.hodge_dual(PGA2.new(e0: 1)) ==
              PGA2.new(e12: 1)
 
-    assert PGA2.dual(PGA2.new(e12: 1)) ==
+    assert PGA2.hodge_dual(PGA2.new(e12: 1)) ==
              PGA2.new(e0: 1)
 
-    assert PGA2.dual(PGA2.new(e10: 1)) ==
+    assert PGA2.hodge_dual(PGA2.new(e10: 1)) ==
              PGA2.new(e2: -1)
 
-    assert PGA2.dual(PGA2.new(e20: 1)) ==
+    assert PGA2.hodge_dual(PGA2.new(e20: 1)) ==
              PGA2.new(e1: 1)
 
-    assert PGA2.dual(PGA2.new(e120: 1)) ==
+    assert PGA2.hodge_dual(PGA2.new(e120: 1)) ==
              PGA2.new(scalar: 1)
   end
 
   test "dual is linear" do
     a = PGA2.new(e1: 2, e12: 3)
 
-    assert PGA2.dual(a) ==
+    assert PGA2.hodge_dual(a) ==
              PGA2.add(
                PGA2.new(e20: 2),
                PGA2.new(e0: 3)
@@ -583,7 +583,7 @@ defmodule GalixirTest do
   end
 
   test "dual preserves zero" do
-    assert PGA2.dual(PGA2.new()) ==
+    assert PGA2.hodge_dual(PGA2.new()) ==
              PGA2.new()
   end
 
@@ -600,7 +600,7 @@ defmodule GalixirTest do
     ]
 
     for blade <- blades do
-      double = PGA2.dual(PGA2.dual(blade))
+      double = PGA2.hodge_dual(PGA2.hodge_dual(blade))
 
       assert double == blade or
                double == PGA2.scale(-1, blade)
@@ -611,8 +611,8 @@ defmodule GalixirTest do
     a = PGA2.new(e1: 2, e12: 3)
     b = PGA2.new(e2: -1, e20: 4)
 
-    assert PGA2.dual(PGA2.add(a, b)) ==
-             PGA2.add(PGA2.dual(a), PGA2.dual(b))
+    assert PGA2.hodge_dual(PGA2.add(a, b)) ==
+             PGA2.add(PGA2.hodge_dual(a), PGA2.hodge_dual(b))
   end
 
   test "wedge basis blades" do
@@ -886,7 +886,7 @@ defmodule GalixirTest do
   end
 
   test "debug join via undual" do
-    ps = PGA3.dual(PGA3.new(scalar: 1))
+    ps = PGA3.hodge_dual(PGA3.new(scalar: 1))
 
     assert PGA3.join(ps, PGA3.point(1, 2, 3)) == PGA3.point(1, 2, 3)
     assert PGA3.join(PGA3.point(1, 2, 3), ps) == PGA3.point(1, 2, 3)
@@ -984,19 +984,19 @@ defmodule GalixirTest do
   end
 
   test "duals squared" do
-    assert PGA3.dual(PGA3.dual(PGA3.new(e0: 1))) == PGA3.new(e0: -1)
-    assert PGA3.dual(PGA3.dual(PGA3.new(e1: 1))) == PGA3.new(e1: -1)
-    assert PGA3.dual(PGA3.dual(PGA3.new(e2: 1))) == PGA3.new(e2: -1)
-    assert PGA3.dual(PGA3.dual(PGA3.new(e3: 1))) == PGA3.new(e3: -1)
+    assert PGA3.hodge_dual(PGA3.hodge_dual(PGA3.new(e0: 1))) == PGA3.new(e0: -1)
+    assert PGA3.hodge_dual(PGA3.hodge_dual(PGA3.new(e1: 1))) == PGA3.new(e1: -1)
+    assert PGA3.hodge_dual(PGA3.hodge_dual(PGA3.new(e2: 1))) == PGA3.new(e2: -1)
+    assert PGA3.hodge_dual(PGA3.hodge_dual(PGA3.new(e3: 1))) == PGA3.new(e3: -1)
 
-    assert PGA3.dual(PGA3.dual(PGA3.new(e01: 1))) == PGA3.new(e01: 1)
-    assert PGA3.dual(PGA3.dual(PGA3.new(e12: 1))) == PGA3.new(e12: 1)
-    assert PGA3.dual(PGA3.dual(PGA3.new(e23: 1))) == PGA3.new(e23: 1)
-    assert PGA3.dual(PGA3.dual(PGA3.new(e13: 1))) == PGA3.new(e13: 1)
+    assert PGA3.hodge_dual(PGA3.hodge_dual(PGA3.new(e01: 1))) == PGA3.new(e01: 1)
+    assert PGA3.hodge_dual(PGA3.hodge_dual(PGA3.new(e12: 1))) == PGA3.new(e12: 1)
+    assert PGA3.hodge_dual(PGA3.hodge_dual(PGA3.new(e23: 1))) == PGA3.new(e23: 1)
+    assert PGA3.hodge_dual(PGA3.hodge_dual(PGA3.new(e13: 1))) == PGA3.new(e13: 1)
 
-    assert PGA3.dual(PGA3.new(e12: 1)) == PGA3.new(e30: 1)
-    assert PGA3.dual(PGA3.new(e23: 1)) == PGA3.new(e10: 1)
-    assert PGA3.dual(PGA3.new(e13: 1)) == PGA3.new(e20: -1)
+    assert PGA3.hodge_dual(PGA3.new(e12: 1)) == PGA3.new(e30: 1)
+    assert PGA3.hodge_dual(PGA3.new(e23: 1)) == PGA3.new(e10: 1)
+    assert PGA3.hodge_dual(PGA3.new(e13: 1)) == PGA3.new(e20: -1)
   end
 
   test "scalar? tolerates floating point noise" do

@@ -463,20 +463,6 @@ defmodule Galixir.Algebras.CGA3 do
   end
 
   @doc """
-  Returns the CGA3 pseudoscalar:
-
-      e1 ∧ e2 ∧ e3 ∧ ep ∧ em
-
-  ## Examples
-
-      iex> grades(pseudoscalar())
-      [5]
-  """
-  def pseudoscalar do
-    new(e123pm: 1)
-  end
-
-  @doc """
   Normalizes a conformal point to have conformal weight one.
 
   Finite conformal points satisfy `-p · e_inf = 1` after normalization.

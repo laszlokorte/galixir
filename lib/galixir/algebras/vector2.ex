@@ -48,16 +48,6 @@ defmodule Galixir.Algebras.Vector2 do
   def one, do: new(scalar: 1)
 
   @doc """
-  Returns the unit pseudoscalar, the oriented plane `e12`.
-
-  ## Examples
-
-      iex> pseudoscalar()
-      new(e12: 1)
-  """
-  def pseudoscalar, do: new(e12: 1)
-
-  @doc """
   Creates the Cartesian vector `x*e1 + y*e2`.
 
   ## Examples

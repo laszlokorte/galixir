@@ -43,16 +43,6 @@ defmodule Galixir.Algebras.Vector3 do
   def one, do: new(scalar: 1)
 
   @doc """
-  Returns the unit pseudoscalar, the oriented volume element `e123`.
-
-  ## Examples
-
-      iex> pseudoscalar()
-      new(e123: 1)
-  """
-  def pseudoscalar, do: new(e123: 1)
-
-  @doc """
   Creates the Cartesian vector `x*e1 + y*e2 + z*e3`.
 
   ## Examples
@@ -250,7 +240,7 @@ defmodule Galixir.Algebras.Vector3 do
       [0.0, 1.0, 0.0]
   """
   def rotor(axis, angle) do
-    plane = axis |> normal() |> dual()
+    plane = axis |> normal() |> hodge_dual()
     add(new(scalar: :math.cos(angle / 2)), scale(-:math.sin(angle / 2), plane))
   end
 

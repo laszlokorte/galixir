@@ -11,6 +11,8 @@ defmodule GeneratedDocsTest do
   doctest Galixir.Algebras.Vector2, import: true
   doctest Galixir.Algebras.Vector3, import: true
 
+  doctest Galixir.Meta, import: true
+
   # handle IEEE-754 negative zero
   def clean_zero(x) when x == +0.0, do: 0.0
   def clean_zero(x) when x == -0.0, do: 0.0

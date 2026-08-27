@@ -314,7 +314,7 @@ defmodule Galixir.Algebras.PGA3 do
     2
   """
   def join(a, b) do
-    undual(wedge(dual(a), dual(b)))
+    hodge_undual(wedge(hodge_dual(a), hodge_dual(b)))
   end
 
   @doc """
@@ -852,7 +852,7 @@ defmodule Galixir.Algebras.PGA3 do
   def align(ps, qs) do
     # https://observablehq.com/@enkimute/glu-lookat-in-3d-pga
     initial_m = identity = one()
-    initial_q = dual(new(scalar: 1))
+    initial_q = hodge_dual(new(scalar: 1))
 
     Enum.zip_reduce(ps, qs, {initial_m, initial_q}, fn p, q, {m, prev_q} ->
       p = prev_q |> join(transform(p, m)) |> normalize!()

@@ -1,6 +1,9 @@
-defmodule Galixir.Generator.Dual do
+defmodule Galixir.Generator.HodgeDual do
   @moduledoc """
-  Generates dual and undual operations for multivectors.
+  Generates `hodge_dual/1` and `hodge_undual/1` operations for multivectors.
+
+  Unlike the pseudoscalar dual, the Hodge dual is defined independently
+  of the metric and therefore also works for degenerate algebras.
   """
 
   alias Galixir.Generator.Utils
@@ -8,13 +11,13 @@ defmodule Galixir.Generator.Dual do
 
   @behaviour Galixir.GeneratorBehaviour
   @impl Galixir.GeneratorBehaviour
-  def generate_implementation(%Galixir.Meta{bases: b, dimensions: d}) do
+  def generate_implementation(%Galixir.Meta{bases: b, dimensions: d} = meta) do
     [
-      dual_impl(d, b)
+      hodge_dual_impl(d, b, Galixir.Meta.degenerate?(meta))
     ]
   end
 
-  def dual_impl(dimension, bases) do
+  def hodge_dual_impl(dimension, bases, degenerate?) do
     blade_count = Bitwise.bsl(1, dimension)
     full_mask = blade_count - 1
 
@@ -74,22 +77,35 @@ defmodule Galixir.Generator.Dual do
 
     funs = [
       Utils.generate_unary_function(
-        :dual,
+        :hodge_dual,
         a,
         result,
         """
-        Computes the dual of a multivector.
+        Computes the Hodge dual of a multivector.
 
-        The dual maps each basis blade to its complementary blade with the
-        appropriate orientation sign. The complement is determined by the full
-        pseudoscalar of the algebra.
+        The Hodge dual maps each basis blade to its complementary blade with
+        the appropriate orientation sign. The complementary blade is determined
+        by the pseudoscalar of the algebra.
 
-        The operation is linear and applies independently to every coefficient.
+        The operation is linear and is applied independently to each basis
+        blade and its coefficient.
+
+        Unlike the pseudoscalar dual, the Hodge dual does not require the
+        pseudoscalar to be invertible and is therefore also defined for
+        degenerate algebras.
+
+        The operations are inverses:
+
+            hodge_undual(hodge_dual(a)) == a
+            hodge_dual(hodge_undual(a)) == a
+
+        See `hodge_undual/1` for the inverse operation.
+        #{if(not degenerate?, do: "See `dual/1` for the pseudoscalar-based dual.", else: "")}
         """,
         [
           {
             quote do
-              dual(new(unquote(Utils.keyword_ast(first_blade, 1))))
+              hodge_dual(new(unquote(Utils.keyword_ast(first_blade, 1))))
               |> inspect
             end,
             quote do
@@ -99,24 +115,35 @@ defmodule Galixir.Generator.Dual do
         ]
       ),
       Utils.generate_unary_function(
-        :undual,
+        :hodge_undual,
         a,
         undual_result,
         """
-        Computes the inverse dual operation.
+        Computes the inverse Hodge dual of a multivector.
 
-        `undual/1` reverses the blade complement operation performed by
-        `dual/1`.
+        `hodge_undual/1` reverses the blade-complement operation performed by
+        `hodge_dual/1`, mapping each basis blade back to its complementary blade
+        with the appropriate orientation sign.
 
-        For non-degenerate Euclidean algebras this corresponds to applying the
-        dual operation twice with the appropriate pseudoscalar factor. In
-        degenerate algebras the result depends on the implemented dual
-        convention.
+        The operation is linear and is applied independently to each basis blade
+        and its coefficient.
+
+        Unlike the pseudoscalar dual, the Hodge dual and its inverse are defined
+        for degenerate algebras as well.
+
+        The operations are inverses:
+
+            hodge_undual(hodge_dual(a)) == a
+            hodge_dual(hodge_undual(a)) == a
+
+
+        See `hodge_dual/1` for the inverse operation.
+        #{if(not degenerate?, do: "See `dual/1` for the pseudoscalar-based dual.", else: "")}
         """,
         [
           {
             quote do
-              undual(dual(new(unquote(Utils.keyword_ast(first_blade, 2)))))
+              hodge_undual(hodge_dual(new(unquote(Utils.keyword_ast(first_blade, 2)))))
             end,
             quote do
               new(unquote(Utils.keyword_ast(first_blade, 2)))

@@ -327,7 +327,7 @@ defmodule Galixir.Algebras.PGA2 do
       true
   """
   def join(a, b) do
-    undual(wedge(dual(a), dual(b)))
+    hodge_undual(wedge(hodge_dual(a), hodge_dual(b)))
   end
 
   @doc """

@@ -28,15 +28,19 @@ defmodule Galixir.Generator.Header do
   @behaviour GeneratorBehaviour
 
   @impl GeneratorBehaviour
-  def generate_implementation(%Meta{
-        metric: metric,
-        table: table,
-        blade_indices: blade_indices,
-        blade_aliases: blade_aliases,
-        bases: bases,
-        epsilon: epsilon
-      }) do
+  def generate_implementation(
+        %Meta{
+          metric: metric,
+          table: table,
+          blade_indices: blade_indices,
+          blade_aliases: blade_aliases,
+          bases: bases,
+          epsilon: epsilon
+        } = meta
+      ) do
     blade_count = Galixir.Table.blade_count(metric)
+    degenerate = Meta.degenerate?(meta)
+    pseudoscalar_name = Meta.pseudoscalar_name(meta)
 
     [
       quote do
@@ -47,6 +51,21 @@ defmodule Galixir.Generator.Header do
         @blade_indices unquote(Macro.escape(blade_indices))
         @blade_aliases unquote(Macro.escape(blade_aliases))
         @epsilon unquote(epsilon)
+        @degenerate unquote(degenerate)
+
+        def degenerate?, do: @degenerate
+
+        @doc """
+        Returns the pseudoscalar:
+
+        #{unquote(Tuple.to_list(bases) |> Enum.map(&"e#{&1}") |> Enum.join(" ∧ "))}
+
+           iex> grades(pseudoscalar())
+           [#{unquote(tuple_size(bases))}]
+        """
+        def pseudoscalar() do
+          new([{unquote(pseudoscalar_name), 1.0}])
+        end
 
         def epsilon() do
           @epsilon
