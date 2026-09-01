@@ -58,20 +58,6 @@ defmodule Galixir.Algebras.PGA2 do
     bases: {"1", "2", "0"}
 
   @doc """
-  Returns the zero multivector.
-  """
-  def zero do
-    new()
-  end
-
-  @doc """
-  Returns the scalar identity element.
-  """
-  def one do
-    new(scalar: 1)
-  end
-
-  @doc """
   Returns the Euclidean origin point.
   """
   def origin do
@@ -135,15 +121,15 @@ defmodule Galixir.Algebras.PGA2 do
 
   # Examples
 
-  iex> finite_point?(point(1,2))
-  true
+      iex> finite_point?(point(1,2))
+      true
 
 
-  iex> finite_point?(ideal_point(1,2))
-  false
+      iex> finite_point?(ideal_point(1,2))
+      false
 
-  iex> finite_point?(vector(1,2))
-  false
+      iex> finite_point?(vector(1,2))
+      false
 
   """
   def finite_point?(p) do
@@ -232,8 +218,8 @@ defmodule Galixir.Algebras.PGA2 do
 
   The line is represented up to scale.
 
-  iex> normalize!(line(1,2,3)) == normalize!(line(2,4,6))
-  true
+      iex> normalize!(line(1,2,3)) == normalize!(line(2,4,6))
+      true
 
   """
   def line(a, b, c) do
@@ -557,11 +543,11 @@ defmodule Galixir.Algebras.PGA2 do
   @doc """
   Computes Euclidean distance between two finite points.
 
-  iex> distance(point(1,2), point(1,2))
-  0.0
+      iex> distance(point(1,2), point(1,2))
+      0.0
 
-  iex> distance(point(-1,-1), point(2,3))
-  5.0
+      iex> distance(point(-1,-1), point(2,3))
+      5.0
 
   """
   def distance(a, b) do

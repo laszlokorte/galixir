@@ -16,7 +16,7 @@ Galixir.Algebras.PGA3.origin() |> IO.inspect()
 PGA3.point(1, 2, 3) |> PGA3.point_coordinates() |> IO.inspect()
 PGA3.origin() |> PGA3.point_coordinates() |> IO.inspect()
 
-PGA3.dual(PGA3.new(scalar: 1)) |> IO.inspect()
+PGA3.dual(PGA3.one()) |> IO.inspect()
 ```
 
 ## 3d Rendering
@@ -28,7 +28,7 @@ defmodule Utils do
   def align(ps, qs) do
     # https://observablehq.com/@enkimute/glu-lookat-in-3d-pga
     initial_m = identity = one()
-    initial_q = dual(new(scalar: 1))
+    initial_q = dual(one())
 
     Enum.zip_reduce(ps, qs, {initial_m, initial_q}, fn p, q, {m, prev_q} ->
       p = prev_q |> join(transform(p, m)) |> normalize!()

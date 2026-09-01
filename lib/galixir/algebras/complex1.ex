@@ -39,24 +39,6 @@ defmodule Galixir.Algebras.Complex1 do
     bases: {"1"}
 
   @doc """
-  Returns the zero complex number:
-
-      0 + 0i
-  """
-  def zero do
-    new()
-  end
-
-  @doc """
-  Returns the multiplicative identity:
-
-      1 + 0i
-  """
-  def one do
-    new(scalar: 1)
-  end
-
-  @doc """
   Returns the imaginary unit.
 
   In this algebra:

@@ -33,7 +33,7 @@ defmodule Example do
  def align(ps, qs) do
     # https://observablehq.com/@enkimute/glu-lookat-in-3d-pga
     initial_m = identity = one()
-    initial_q = dual(new(scalar: 1))
+    initial_q = dual(one())
 
     Enum.zip_reduce(ps, qs, {initial_m, initial_q}, fn p, q, {m, prev_q} ->
       p = prev_q |> join(transform(p, m)) |> normalize!()

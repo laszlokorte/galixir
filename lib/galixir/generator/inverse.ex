@@ -20,47 +20,47 @@ defmodule Galixir.Generator.Inverse do
       if metric != 0 do
         quote do
           @doc """
-            Computes the inverse of a multivector.
+          Computes the inverse of a multivector.
 
-            The inverse is computed using the reverse:
+          The inverse is computed using the reverse:
 
-            inverse!(a) = reverse(a) / scalar_part(a * reverse(a))
+          inverse!(a) = reverse(a) / scalar_part(a * reverse(a))
 
-            This formula is valid when `a * reverse(a)` is a non-zero scalar.
+          This formula is valid when `a * reverse(a)` is a non-zero scalar.
 
-            Raises `ArgumentError` if the multivector is not invertible by this formula.
+          Raises `ArgumentError` if the multivector is not invertible by this formula.
 
-              ## Examples
+          ## Examples
 
-                  iex> inverse!(
-                  ...>   new(#{unquote(first_blade)}: 2)
-                  ...> )
-                  new(#{unquote(first_blade)}: #{unquote(2 / metric / 4)})
+              iex> inverse!(
+              ...>   new(#{unquote(first_blade)}: 2)
+              ...> )
+              new(#{unquote(first_blade)}: #{unquote(2 / metric / 4)})
 
-                  iex> inverse!(
-                  ...>   new(#{unquote(first_blade)}: 2)
-                  ...> )
-                  new(#{unquote(first_blade)}: #{unquote(2 / metric / 4)})
+              iex> inverse!(
+              ...>   new(#{unquote(first_blade)}: 2)
+              ...> )
+              new(#{unquote(first_blade)}: #{unquote(2 / metric / 4)})
 
-                  iex> assert_raise ArgumentError, fn ->
-                  ...>   inverse!(new(scalar: 0))
-                  ...> end
+              iex> assert_raise ArgumentError, fn ->
+              ...>   inverse!(new(scalar: 0))
+              ...> end
           """
         end
       else
         quote do
           @doc """
-            Computes the inverse of a multivector.
+          Computes the inverse of a multivector.
 
-            The inverse is computed using the reverse:
+          The inverse is computed using the reverse:
 
-            inverse!(a) = reverse(a) / scalar_part(a * reverse(a))
+          inverse!(a) = reverse(a) / scalar_part(a * reverse(a))
 
-            This formula is valid when `a * reverse(a)` is a non-zero scalar.
+          This formula is valid when `a * reverse(a)` is a non-zero scalar.
 
-            Raises `ArgumentError` if the multivector is not invertible by this formula.
+          Raises `ArgumentError` if the multivector is not invertible by this formula.
 
-            ## Examples
+          ## Examples
 
               iex> inverse!(
               ...>   new(scalar: 2)
@@ -79,47 +79,48 @@ defmodule Galixir.Generator.Inverse do
       if metric != 0 do
         quote do
           @doc """
-            Computes the inverse of a multivector.
+          Computes the inverse of a multivector.
 
-            The inverse is computed using the reverse:
+          The inverse is computed using the reverse:
 
-            inverse(a) = reverse(a) / scalar_part(a * reverse(a))
+          `inverse(a) = reverse(a) / scalar_part(a * reverse(a))`
 
-            This formula is valid when `a * reverse(a)` is a non-zero scalar.
+          This formula is valid when `a * reverse(a)` is a non-zero scalar.
 
-            Returns either {:ok, result} if inverse can be compute or :error otherwise
+          Returns either `{:ok, result}` if inverse can be compute or :error otherwise
 
-              ## Examples
-                  iex> inverse(
-                  ...>   new(#{unquote(first_blade)}: 2)
-                  ...> )
-                  {:ok, new(#{unquote(first_blade)}: #{unquote(2 / metric / 4)}) }
+          ## Examples
 
-                  iex> inverse(
-                  ...>   new(#{unquote(first_blade)}: 2)
-                  ...> )
-                  {:ok, new(#{unquote(first_blade)}: #{unquote(2 / metric / 4)})}
+              iex> inverse(
+              ...>   new(#{unquote(first_blade)}: 2)
+              ...> )
+              {:ok, new(#{unquote(first_blade)}: #{unquote(2 / metric / 4)}) }
 
-                  iex> inverse(
-                  ...>   new(scalar: 0.0)
-                  ...> )
-                  :error
+              iex> inverse(
+              ...>   new(#{unquote(first_blade)}: 2)
+              ...> )
+              {:ok, new(#{unquote(first_blade)}: #{unquote(2 / metric / 4)})}
+
+              iex> inverse(
+              ...>   new(scalar: 0.0)
+              ...> )
+              :error
           """
         end
       else
         quote do
           @doc """
-            Computes the inverse of a multivector.
+          Computes the inverse of a multivector.
 
-            The inverse is computed using the reverse:
+          The inverse is computed using the reverse:
 
-            inverse!(a) = reverse(a) / scalar_part(a * reverse(a))
+          `inverse!(a) = reverse(a) / scalar_part(a * reverse(a))`
 
-            This formula is valid when `a * reverse(a)` is a non-zero scalar.
+          This formula is valid when `a * reverse(a)` is a non-zero scalar.
 
-            Returns either {:ok, result} if inverse can be compute or :error otherwise
+          Returns either `{:ok, result}` if inverse can be compute or `:error` otherwise
 
-            ## Examples
+          ## Examples
 
               iex> inverse(
               ...>   new(scalar: 2)
@@ -148,7 +149,6 @@ defmodule Galixir.Generator.Inverse do
       end
 
       unquote(doc)
-
       def inverse(%__MODULE__{} = a) do
         with rev <- reverse(a),
              product <- gp(a, rev),

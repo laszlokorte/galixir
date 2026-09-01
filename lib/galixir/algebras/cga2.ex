@@ -4,23 +4,23 @@ defmodule Galixir.Algebras.CGA2 do
 
   This module implements CGA for the Euclidean plane using the metric:
 
-      {1, 1, 1, -1}
+      `{1, 1, 1, -1}`
 
   with basis vectors:
 
-      e1, e2, ep, em
+      `e1, e2, ep, em`
 
   where `ep` and `em` are the positive and negative basis
   vectors used to construct the null vectors `e_inf` and `e_o`.
 
   The conformal basis is defined as:
 
-      e_inf = e_m + e_p
-      e_o = (e_m - e_p) / 2
+      `e_inf = e_m + e_p`
+      `e_o = (e_m - e_p) / 2`
 
   Points are embedded using the standard conformal embedding:
 
-      P(x,y) = e_o + x*e1 + y*e2 + 1/2(x²+y²)e_inf
+      `P(x,y) = e_o + x*e1 + y*e2 + 1/2(x²+y²)e_inf`
 
   Objects are represented as multivectors and can be combined using the
   operations provided by `Galixir.GeometricAlgebra`.
@@ -39,38 +39,11 @@ defmodule Galixir.Algebras.CGA2 do
     bases: {"1", "2", "p", "m"}
 
   @doc """
-  Returns the zero multivector.
-
-  ## Examples
-
-      iex> zero()
-      ~G"0"
-  """
-  def zero do
-    new()
-  end
-
-  @doc """
-  Returns the scalar identity element.
-
-  This is the multiplicative identity.
-
-  ## Examples
-
-      iex> one()
-      ~G"1.0"
-
-  """
-  def one do
-    new(scalar: 1)
-  end
-
-  @doc """
   Returns the conformal infinity vector.
 
   The infinity vector represents the point at infinity in conformal space:
 
-      e_inf = e_m + e_p
+      `e_inf = e_m + e_p`
 
   ## Examples
 
@@ -86,7 +59,7 @@ defmodule Galixir.Algebras.CGA2 do
 
   The origin is defined as:
 
-      e_o = (e_m - e_p) / 2
+      `e_o = (e_m - e_p) / 2`
 
   ## Examples
 
@@ -108,7 +81,7 @@ defmodule Galixir.Algebras.CGA2 do
 
   The vector is represented only by its Euclidean components:
 
-      x*e1 + y*e2
+      `x * e1 + y * e2`
 
   It is not a conformal point. Use `point/2` to embed a point.
 
@@ -132,7 +105,7 @@ defmodule Galixir.Algebras.CGA2 do
 
   Uses the standard CGA point representation:
 
-      P = e_o + x*e1 + y*e2 + 1/2(x²+y²)e_inf
+      `P = e_o + x * e1 + y * e2 + 1/2*(x²+y²)*e_inf`
 
   ## Examples
 
@@ -158,14 +131,14 @@ defmodule Galixir.Algebras.CGA2 do
 
   Returns a tuple:
 
-      {x, y}
+      `{x, y}`
 
   ## Examples
+
       iex> point(2, 3)
       ...> |> scale(7)
       ...> |> point_coordinates()
       {2.0, 3.0}
-
   """
   def point_coordinates(p) do
     w = -scalar_product(p, e_inf())
@@ -221,40 +194,40 @@ defmodule Galixir.Algebras.CGA2 do
 
   The circle is represented by the outer product:
 
-      C = a ∧ b ∧ c
+      `C = a ∧ b ∧ c`
 
   For collinear points this degenerates to a line.
 
   ## Examples
 
-    iex> c =
-    ...>   line_or_circle_from_points(
-    ...>     point(1, 0),
-    ...>     point(0, 1),
-    ...>     point(-1, 0)
-    ...>   )
-    iex> circle?(c)
-    true
-    iex> circle_parameters(c)
-    {:circle, {:real, {0.0, 0.0}, 1.0}}
+      iex> c =
+      ...>   line_or_circle_from_points(
+      ...>     point(1, 0),
+      ...>     point(0, 1),
+      ...>     point(-1, 0)
+      ...>   )
+      iex> circle?(c)
+      true
+      iex> circle_parameters(c)
+      {:circle, {:real, {0.0, 0.0}, 1.0}}
 
-    iex> c =
-    ...>   line_or_circle_from_points(
-    ...>     point(0, 0),
-    ...>     point(1, 0),
-    ...>     point(0, 1)
-    ...>   )
-    iex> contains?(c, point(0, 0))
-    true
+      iex> c =
+      ...>   line_or_circle_from_points(
+      ...>     point(0, 0),
+      ...>     point(1, 0),
+      ...>     point(0, 1)
+      ...>   )
+      iex> contains?(c, point(0, 0))
+      true
 
-    iex> c =
-    ...>   line_or_circle_from_points(
-    ...>     point(0, 0),
-    ...>     point(1, 0),
-    ...>     point(2, 0)
-    ...>   )
-    iex> line?(c)
-    true
+      iex> c =
+      ...>   line_or_circle_from_points(
+      ...>     point(0, 0),
+      ...>     point(1, 0),
+      ...>     point(2, 0)
+      ...>   )
+      iex> line?(c)
+      true
   """
   def line_or_circle_from_points(a, b, c) do
     join(a, b, c)
@@ -272,7 +245,8 @@ defmodule Galixir.Algebras.CGA2 do
 
   The line is represented using the outer product:
 
-      L = a ∧ b ∧ e_inf
+      `L = a ∧ b ∧ e_inf`
+
   ## Examples
 
       iex> line?(line(point(0,0), point(1,0)))
@@ -313,11 +287,13 @@ defmodule Galixir.Algebras.CGA2 do
   Returns `true` when the incidence meet operation produces the zero
   multivector.
 
-  iex> l = line(point(0,0), point(1,0))
-  iex> contains?(l, point(2,0))
-  true
-  iex> contains?(l, point(0,1))
-  false
+  ## Examples
+
+      iex> l = line(point(0,0), point(1,0))
+      iex> contains?(l, point(2,0))
+      true
+      iex> contains?(l, point(0,1))
+      false
   """
   def contains?(object, point) do
     zero?(meet(object, point))
@@ -328,7 +304,7 @@ defmodule Galixir.Algebras.CGA2 do
 
   The meet is implemented using duality:
 
-    meet(a,b) = dual(dual(a) ∧ dual(b))
+    `meet(a,b) = dual(dual(a) ∧ dual(b))`
 
   ## Examples
 
@@ -349,7 +325,6 @@ defmodule Galixir.Algebras.CGA2 do
       iex> p |> point_coordinates()
       {1.0, -2.0}
 
-
       iex> pp =
       ...>   meet(
       ...>     circle(point(0,0),1),
@@ -357,7 +332,6 @@ defmodule Galixir.Algebras.CGA2 do
       ...>   )
       iex> match?({:point_pair, _, _}, classify(pp))
       true
-
   """
   def meet(a, b) do
     wedge(
@@ -401,7 +375,6 @@ defmodule Galixir.Algebras.CGA2 do
       iex> grades(c)
       [3]
 
-
       iex> c =
       ...>   join(
       ...>     point(1,0),
@@ -424,9 +397,11 @@ defmodule Galixir.Algebras.CGA2 do
 
   The returned motor can be applied with `transform/2`.
 
-  iex> p = point(1, 2) |> transform(translator(3, -1))
-  iex> point_coordinates(p)
-  {4.0, 1.0}
+  ## Examples
+
+      iex> p = point(1, 2) |> transform(translator(3, -1))
+      iex> point_coordinates(p)
+      {4.0, 1.0}
   """
   def translator(x, y) do
     t =
@@ -451,14 +426,16 @@ defmodule Galixir.Algebras.CGA2 do
 
   The rotor is normalized before being returned.
 
-  iex> {x, y} = point(1, 0)
-  ...> |> transform(rotor(:math.pi() / 2))
-  ...> |> cleanup()
-  ...> |> point_coordinates()
-  iex> abs(x) < 1.0e-10
-  true
-  iex> abs(y - 1.0) < 1.0e-10
-  true
+  ## Examples
+
+      iex> {x, y} = point(1, 0)
+      ...> |> transform(rotor(:math.pi() / 2))
+      ...> |> cleanup()
+      ...> |> point_coordinates()
+      iex> abs(x) < 1.0e-10
+      true
+      iex> abs(y - 1.0) < 1.0e-10
+      true
   """
   def rotor(angle) do
     add(
@@ -476,13 +453,14 @@ defmodule Galixir.Algebras.CGA2 do
 
   Performs the sandwich product:
 
-      M * X * reverse(M)
+      `M * X * reverse(M)`
+
   ## Examples
 
-    iex> point(1, 2)
-    ...> |> transform(translator(3, -1))
-    ...> |> point_coordinates()
-    {4.0, 1.0}
+      iex> point(1, 2)
+      ...> |> transform(translator(3, -1))
+      ...> |> point_coordinates()
+      {4.0, 1.0}
   """
   def transform(object, motor) do
     gp(
@@ -497,11 +475,13 @@ defmodule Galixir.Algebras.CGA2 do
   This is the scalar part of the geometric product.
   It uses the CGA metric defined by the module metric options.
 
-  iex> scalar_product(new(e1: 1), new(e1: 1))
-  1.0
+  ## Examples
 
-  iex> scalar_product(point(1,0), new(e1: 1))
-  1.0
+      iex> scalar_product(new(e1: 1), new(e1: 1))
+      1.0
+
+      iex> scalar_product(point(1,0), new(e1: 1))
+      1.0
   """
   def scalar_product(a, b) do
     scalar_part(gp(a, b))
@@ -512,11 +492,11 @@ defmodule Galixir.Algebras.CGA2 do
 
   The weight is defined as:
 
-    w = p · e_o
+    `w = p · e_o`
 
   and this module uses the convention that normalized points satisfy:
 
-    p · e_o = -1
+    `p · e_o = -1`
 
   Raises `ArgumentError` if the point has zero weight.
 
@@ -762,12 +742,12 @@ defmodule Galixir.Algebras.CGA2 do
       iex> point_coordinates(p)
       {0.0,1.0}
 
-       iex> pp = join(point(0.0,0.0), point(1,0))
-       iex> {a, b} = split(pp)
-       iex> point_coordinates(a)
-       {1.0, 0.0}
-       iex> point_coordinates(b)
-       {0.0, 0.0}
+      iex> pp = join(point(0.0,0.0), point(1,0))
+      iex> {a, b} = split(pp)
+      iex> point_coordinates(a)
+      {1.0, 0.0}
+      iex> point_coordinates(b)
+      {0.0, 0.0}
   """
 
   def split(b) do
@@ -791,8 +771,8 @@ defmodule Galixir.Algebras.CGA2 do
         b = if(bb < 0, do: gp(b, pseudoscalar()), else: b)
 
         b_bar = b |> scale(1 / scalar_product(b, b) ** 0.5)
-        p = new(scalar: 1) |> add(b_bar)
-        p_tilde = new(scalar: 1) |> sub(b_bar)
+        p = one() |> add(b_bar)
+        p_tilde = one() |> sub(b_bar)
 
         v = inner(b, new(em: 1))
         p1 = gp(p, v)
@@ -901,7 +881,6 @@ defmodule Galixir.Algebras.CGA2 do
       {:unknown, new(e1: 1)}
 
       iex> {:point_pair, _, _} =  classify(join(point(0,0), point(1,0)))
-
   """
   def classify(x) do
     cond do
@@ -944,7 +923,7 @@ defmodule Galixir.Algebras.CGA2 do
 
   The returned tuple `{a, b, c}` satisfies
 
-      ax + by + c = 0
+      `ax + by + c = 0`
 
   ## Examples
 

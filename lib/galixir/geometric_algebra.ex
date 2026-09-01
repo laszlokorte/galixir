@@ -13,7 +13,7 @@ defmodule Galixir.GeometricAlgebra do
       defmodule PGA3 do
         use Galixir.GeometricAlgebra,
           metric: {1, 1, 1, 0},
-          bases: {?1, ?2, ?3, ?0}
+          bases: {"1", "2", "3", "0"}
       end
 
   ## Metric
@@ -37,12 +37,12 @@ defmodule Galixir.GeometricAlgebra do
   from `1`. For example, a four-dimensional algebra without an explicit `:bases`
   option uses:
 
-    bases: {?1, ?2, ?3, ?4}
+    bases: {"1", "2", "3", "4"}
 
   For algebras with a special basis convention, such as projective geometric
   algebra (PGA), the identifiers can be customized:
 
-    bases: {?1, ?2, ?3, ?0}
+    bases: {"1", "2", "3", "0"}
 
   This allows the null basis vector to be represented as `e0`, producing basis
   blades such as:
@@ -107,7 +107,7 @@ defmodule Galixir.GeometricAlgebra do
       defmodule PGA3 do
         use Galixir.GeometricAlgebra,
           metric: {1, 1, 1, 0},
-          bases: {?:1, ?:2, ?:3, ?:0},
+          bases: {"1", "2", "3", "0"},
           epsilon: 1.0e-8
       end
 
@@ -185,6 +185,33 @@ defmodule Galixir.GeometricAlgebra do
           end
         )
 
+        @doc unquote("""
+             Computes the commutator product of two multivectors.
+
+             The commutator is defined as half the difference between the geometric
+             products in opposite orders:
+
+                 [a, b] = (a * b - b * a) / 2
+
+             This measures the non-commutativity of the geometric product.
+
+             ## Examples
+
+             #{if(dimension > 1,
+             do: """
+                 iex> commutator(new(e1: 1), new(e2: 1))
+                 new(e12: 1)
+
+                 iex> commutator(new(e2: 1), new(e1: 1))
+                 new(e12: -1)
+             """,
+             else: "")}
+                 iex> commutator(new(e1: 1), new(e1: 1))
+                 new()
+
+                 iex> commutator(new(e1: 1), new(scalar: 2))
+                 new()
+             """)
         def commutator(a, b) do
           scale(
             0.5,
@@ -192,34 +219,59 @@ defmodule Galixir.GeometricAlgebra do
           )
         end
 
-        @doc """
-        Computes the outer product of a list of multivectors.
+        @doc unquote("""
+             Computes the outer product of a list of multivectors.
 
-        The vectors are combined from left to right using the wedge product.
+             The vectors are combined from left to right using the wedge product.
 
-        The result is a blade representing the subspace spanned by all input
-        multivectors.
-        """
+             The result is a blade representing the subspace spanned by all input
+             multivectors.
+
+             ## Examples
+
+                 iex> wedge_all([])
+                 new(scalar: 1)
+
+                 iex> wedge_all([new(e1: 1)])
+                 new(e1: 1)
+
+                 iex> wedge_all([new(e1: 1), new(e1: 1)])
+                 new()
+
+             #{if(dimension > 2,
+             do: """
+                 iex> wedge_all([new(e#{elem(bases, 0)}: 1), new(e#{elem(bases, 1)}: 1)])
+                 new(e#{elem(bases, 0)}#{elem(bases, 1)}: 1)
+
+                 iex> wedge_all([new(e2: 1), new(e1: 1)])
+                 new(e#{elem(bases, 0)}#{elem(bases, 1)}: -1)
+             """,
+             else: "")}#{if(dimension > 3,
+             do: """
+                 iex> wedge_all([new(e#{elem(bases, 0)}: 1), new(e#{elem(bases, 1)}: 1), new(e#{elem(bases, 2)}: 1)])
+                 new(e#{elem(bases, 0)}#{elem(bases, 1)}#{elem(bases, 2)}: 1)
+             """,
+             else: "")}
+             """)
         def wedge_all(vectors) do
-          Enum.reduce(vectors, new(), fn v, acc ->
+          Enum.reduce(vectors, one(), fn v, acc ->
             wedge(acc, v)
           end)
         end
 
-        @doc """
-        Computes the rotor that maps one frame to another.
+        @doc unquote("""
+             Computes the rotor that maps one frame to another.
 
-        The function constructs blades from the source and target frames and computes
-        the transformation rotor:
+             The function constructs blades from the source and target frames and computes
+             the transformation rotor:
 
-        `R = normalize(1 + T * S⁻¹)`
+             `R = normalize(1 + T * S⁻¹)`
 
-        where `S` is the source frame blade and `T` is the target frame blade.
+             where `S` is the source frame blade and `T` is the target frame blade.
 
-        The resulting rotor can be applied to multivectors to rotate the source frame
-        into the target frame.
-
-        """
+             The resulting rotor can be applied to multivectors to rotate the source frame
+             into the target frame.
+             """)
         def rotor_between_frames(source, target) do
           source_blade = wedge_all(source)
           target_blade = wedge_all(target)

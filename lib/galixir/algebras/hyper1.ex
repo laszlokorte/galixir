@@ -47,24 +47,6 @@ defmodule Galixir.Algebras.Hyper1 do
     bases: {"1"}
 
   @doc """
-  Returns the zero hyperbolic number:
-
-      0 + 0j
-  """
-  def zero do
-    new()
-  end
-
-  @doc """
-  Returns the multiplicative identity:
-
-      1 + 0j
-  """
-  def one do
-    new(scalar: 1)
-  end
-
-  @doc """
   Returns the hyperbolic unit.
 
   The unit satisfies:

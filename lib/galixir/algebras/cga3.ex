@@ -4,29 +4,32 @@ defmodule Galixir.Algebras.CGA3 do
 
   This module implements CGA for Euclidean 3-space using the metric:
 
-      {1, 1, 1, 1, -1}
+      `{1, 1, 1, 1, -1}`
 
   with basis:
 
-      e1, e2, e3, ep, em
+      `e1, e2, e3, ep, em`
 
   The Euclidean basis vectors represent ordinary 3D coordinates.
   The additional conformal basis vectors are combined into the null vectors:
 
-      e_o   = (ep + em) / 2
-      e_inf = em - ep
+      * `e_o   = (ep + em) / 2`
+      * `e_inf = em - ep`
 
   Here `e_o` uses the letter `o` for *origin*; it is not the basis vector
   `e0` (e-subscript zero).
 
   Points are embedded into conformal space using:
 
+
+  ```
       P(x,y,z) =
         e_o
         + x*e1
         + y*e2
         + z*e3
         + 1/2(x²+y²+z²)e_inf
+  ```
 
   Lines, planes, and point-defined spheres use outer-product null-space
   (OPNS) representations. The center-and-radius form of `sphere/2` is an
@@ -42,32 +45,6 @@ defmodule Galixir.Algebras.CGA3 do
   use Galixir.GeometricAlgebra,
     metric: {1, 1, 1, 1, -1},
     bases: {"1", "2", "3", "p", "m"}
-
-  @doc """
-  Returns the zero multivector.
-
-  ## Examples
-
-      iex> zero()
-      ~G"0"
-  """
-  def zero do
-    new()
-  end
-
-  @doc """
-  Returns the scalar identity element.
-
-  This is the multiplicative identity.
-
-  ## Examples
-
-      iex> gp(one(), new(e1: 2))
-      new(e1: 2)
-  """
-  def one do
-    new(scalar: 1)
-  end
 
   @doc """
   Returns the conformal origin vector, `e_o` (e-subscript letter `o`).
@@ -228,7 +205,7 @@ defmodule Galixir.Algebras.CGA3 do
 
   The plane is represented by:
 
-      Π = a ∧ b ∧ c ∧ e_inf
+      `Π = a ∧ b ∧ c ∧ e_inf`
 
   ## Examples
 
@@ -299,7 +276,7 @@ defmodule Galixir.Algebras.CGA3 do
 
   The meet is implemented through duality:
 
-      meet(a,b) = dual(dual(a) ∧ dual(b))
+      `meet(a,b) = dual(dual(a) ∧ dual(b))`
 
   ## Examples
 
@@ -322,7 +299,7 @@ defmodule Galixir.Algebras.CGA3 do
 
   The join is the outer product:
 
-      join(a,b) = a ∧ b
+      `join(a,b) = a ∧ b`
 
   The operands must use compatible representations. In particular, joining
   conformal points creates an OPNS point pair, not a line; use `line/2` to
@@ -366,7 +343,7 @@ defmodule Galixir.Algebras.CGA3 do
 
   The motor translates objects by the Euclidean displacement:
 
-      {x,y,z}
+      `{x, y, z}`
 
   ## Examples
 

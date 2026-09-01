@@ -28,26 +28,6 @@ defmodule Galixir.Algebras.Vector2 do
     bases: {"1", "2"}
 
   @doc """
-  Returns the additive identity.
-
-  ## Examples
-
-      iex> zero()
-      new()
-  """
-  def zero, do: new()
-
-  @doc """
-  Returns the multiplicative scalar identity.
-
-  ## Examples
-
-      iex> one()
-      new(scalar: 1)
-  """
-  def one, do: new(scalar: 1)
-
-  @doc """
   Creates the Cartesian vector `x*e1 + y*e2`.
 
   ## Examples

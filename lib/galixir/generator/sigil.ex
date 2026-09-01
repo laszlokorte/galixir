@@ -37,6 +37,26 @@ defmodule Galixir.Generator.Sigil do
         end
       end
 
+      @doc """
+      Parses a string representation into a multivector.
+
+      The string may contain scalar coefficients and basis blades combined
+      using `+` and `-` operators.
+
+      Examples:
+
+          iex> parse("1 + e1")
+          new(scalar: 1, e1: 1)
+
+          iex> parse("foo")
+          ** (ArgumentError) expected number ...
+      """
+      def parse(string) do
+        string
+        |> parse_expression([])
+        |> new()
+      end
+
       defp parse_expression(binary, acc, sign \\ 1)
 
       defp parse_expression(<<>>, acc, _sign) do

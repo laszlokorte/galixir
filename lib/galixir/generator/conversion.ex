@@ -14,11 +14,11 @@ defmodule Galixir.Generator.Conversion do
 
       Raises if the given Multivector is not grade 0.
 
-      iex> ~G[3.0] |> to_scalar()
-      3.0
+          iex> ~G[3.0] |> to_scalar()
+          3.0
 
-      iex> ~G[3.0 + e1] |> to_scalar()
-      ** (ArgumentError) cannot convert multivector to scalar: only grade-0 multivectors can be converted to a scalar, got ...
+          iex> ~G[3.0 + e1] |> to_scalar()
+          ** (ArgumentError) cannot convert multivector to scalar: only grade-0 multivectors can be converted to a scalar, got ...
       """
       def to_scalar(mv) do
         if scalar?(mv) do

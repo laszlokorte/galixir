@@ -60,11 +60,38 @@ defmodule Galixir.Generator.Header do
 
         #{unquote(Tuple.to_list(bases) |> Enum.map(&"e#{&1}") |> Enum.join(" ∧ "))}
 
-           iex> grades(pseudoscalar())
-           [#{unquote(tuple_size(bases))}]
+            iex> grades(pseudoscalar())
+            [#{unquote(tuple_size(bases))}]
         """
         def pseudoscalar() do
           new([{unquote(pseudoscalar_name), 1.0}])
+        end
+
+        @doc """
+        Returns the scalar identity element.
+
+        This is the multiplicative identity.
+
+        ## Examples
+
+            iex> one()
+            ~G"1.0"
+
+        """
+        def one() do
+          new(scalar: 1)
+        end
+
+        @doc """
+        Returns the zero multivector.
+
+        ## Examples
+
+            iex> zero()
+            ~G"0"
+        """
+        def zero do
+          new()
         end
 
         def epsilon() do

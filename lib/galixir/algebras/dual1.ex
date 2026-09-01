@@ -33,41 +33,15 @@ defmodule Galixir.Algebras.Dual1 do
     bases: {"1"}
 
   @doc """
-  Returns the zero dual number:
-
-      0 + 0ε
-  """
-  def zero do
-    new()
-  end
-
-  @doc """
-  Returns the multiplicative identity:
-
-      1 + 0ε
-  """
-  def one do
-    new(scalar: 1)
-  end
-
-  @doc """
   Returns the infinitesimal unit.
 
-  The infinitesimal satisfies:
-
-      ε² = 0
+  The infinitesimal satisfies: `ε² = 0`
   """
   def eps do
     new(e1: 1)
   end
 
-  @doc """
-  Constructs a dual number.
 
-  Creates:
-
-      real + infinitesimal*ε
-  """
   def dual(real, infinitesimal) do
     new(
       scalar: real,
@@ -223,9 +197,7 @@ defmodule Galixir.Algebras.Dual1 do
   @doc """
   Computes the square root.
 
-  For:
-
-      x = a + bε
+  For: `x = a + bε`
 
   returns:
 
