@@ -64,7 +64,7 @@ defmodule Galixir.Generator.Utils do
         %__MODULE__{data: unquote(tuple_fun)(d)}
       end
 
-      def unquote(tuple_fun)(unquote(tuple_ast(args))) do
+      defp unquote(tuple_fun)(unquote(tuple_ast(args))) do
         unquote(tuple_ast(result))
       end
     end
@@ -82,10 +82,10 @@ defmodule Galixir.Generator.Utils do
         %__MODULE__{data: unquote(tuple_fun)(a, b)}
       end
 
-      def unquote(tuple_fun)(
-            unquote(tuple_ast(args_a)),
-            unquote(tuple_ast(args_b))
-          ) do
+      defp unquote(tuple_fun)(
+             unquote(tuple_ast(args_a)),
+             unquote(tuple_ast(args_b))
+           ) do
         unquote(tuple_ast(result))
       end
     end

@@ -49,45 +49,45 @@ defmodule GalixirTest do
   end
 
   test "PGA2 metric" do
-    zero = {0, 0, 0, 0, 0, 0, 0, 0}
+    zero = %PGA2{data: {0, 0, 0, 0, 0, 0, 0, 0}}
 
-    one = {1, 0, 0, 0, 0, 0, 0, 0}
+    one = %PGA2{data: {1, 0, 0, 0, 0, 0, 0, 0}}
 
-    e2 = {0, 0, 1, 0, 0, 0, 0, 0}
-    e3 = {0, 0, 0, 0, 1, 0, 0, 0}
+    e2 = %PGA2{data: {0, 0, 1, 0, 0, 0, 0, 0}}
+    e3 = %PGA2{data: {0, 0, 0, 0, 1, 0, 0, 0}}
 
-    e1 = {0, 1, 0, 0, 0, 0, 0, 0}
+    e1 = %PGA2{data: {0, 1, 0, 0, 0, 0, 0, 0}}
     assert PGA2.gp(e1, e1) == one
     assert PGA2.gp(e2, e2) == one
     assert PGA2.gp(e3, e3) == zero
   end
 
   test "basis vectors anticommute" do
-    e1 = {0, 1, 0, 0, 0, 0, 0, 0}
-    e2 = {0, 0, 1, 0, 0, 0, 0, 0}
+    e1 = %PGA2{data: {0, 1, 0, 0, 0, 0, 0, 0}}
+    e2 = %PGA2{data: {0, 0, 1, 0, 0, 0, 0, 0}}
 
     assert PGA2.gp(e1, e2) ==
-             {0, 0, 0, 1, 0, 0, 0, 0}
+             %PGA2{data: {0, 0, 0, 1, 0, 0, 0, 0}}
 
     assert PGA2.gp(e2, e1) ==
-             {0, 0, 0, -1, 0, 0, 0, 0}
+             %PGA2{data: {0, 0, 0, -1, 0, 0, 0, 0}}
   end
 
   test "multivector multiplication" do
     # 1 + e1
-    a = {1, 1, 0, 0, 0, 0, 0, 0}
+    a = %PGA2{data: {1, 1, 0, 0, 0, 0, 0, 0}}
     # 1 + e2
-    b = {1, 0, 1, 0, 0, 0, 0, 0}
+    b = %PGA2{data: {1, 0, 1, 0, 0, 0, 0, 0}}
 
     assert PGA2.gp(a, b) ==
-             {1, 1, 1, 1, 0, 0, 0, 0}
+             %PGA2{data: {1, 1, 1, 1, 0, 0, 0, 0}}
   end
 
   test "identity" do
-    one = {1, 0, 0, 0, 0, 0, 0, 0}
+    one = %PGA2{data: {1, 0, 0, 0, 0, 0, 0, 0}}
 
     for i <- 0..7 do
-      x = List.to_tuple(for j <- 0..7, do: if(i == j, do: 1, else: 0))
+      x = %PGA2{data: List.to_tuple(for j <- 0..7, do: if(i == j, do: 1, else: 0))}
 
       assert PGA2.gp(one, x) == x
       assert PGA2.gp(x, one) == x
@@ -97,7 +97,7 @@ defmodule GalixirTest do
   test "associativity" do
     blades =
       for i <- 0..7 do
-        List.to_tuple(for j <- 0..7, do: if(i == j, do: 1, else: 0))
+        %PGA2{data: List.to_tuple(for j <- 0..7, do: if(i == j, do: 1, else: 0))}
       end
 
     for a <- blades,
@@ -109,18 +109,18 @@ defmodule GalixirTest do
   end
 
   test "left distributivity" do
-    a = {1, 1, 0, 2, 0, 0, 0, 0}
-    b = {0, 1, 3, 0, 0, 0, 0, 0}
-    c = {2, 0, 1, 0, 0, 0, 0, 0}
+    a = %PGA2{data: {1, 1, 0, 2, 0, 0, 0, 0}}
+    b = %PGA2{data: {0, 1, 3, 0, 0, 0, 0, 0}}
+    c = %PGA2{data: {2, 0, 1, 0, 0, 0, 0, 0}}
 
     left =
       PGA2.gp(
-        tuple_add(a, b),
+        PGA2.add(a, b),
         c
       )
 
     right =
-      tuple_add(
+      PGA2.add(
         PGA2.gp(a, c),
         PGA2.gp(b, c)
       )
@@ -130,9 +130,9 @@ defmodule GalixirTest do
 
   test "random associativity" do
     for _ <- 1..100 do
-      a = random_mv()
-      b = random_mv()
-      c = random_mv()
+      a = %PGA2{data: random_mv()}
+      b = %PGA2{data: random_mv()}
+      c = %PGA2{data: random_mv()}
 
       assert PGA2.gp(PGA2.gp(a, b), c) ==
                PGA2.gp(a, PGA2.gp(b, c))
@@ -173,23 +173,23 @@ defmodule GalixirTest do
 
   test "geometric product linearity" do
     # 1 + e1
-    a = {1, 1, 0, 0, 0, 0, 0, 0}
+    a = %PGA2{data: {1, 1, 0, 0, 0, 0, 0, 0}}
     # 1 + e2
-    b = {1, 0, 1, 0, 0, 0, 0, 0}
+    b = %PGA2{data: {1, 0, 1, 0, 0, 0, 0, 0}}
     # e3
-    c = {0, 0, 0, 0, 1, 0, 0, 0}
+    c = %PGA2{data: {0, 0, 0, 0, 1, 0, 0, 0}}
 
     assert PGA2.gp(a, b) ==
-             {1, 1, 1, 1, 0, 0, 0, 0}
+             %PGA2{data: {1, 1, 1, 1, 0, 0, 0, 0}}
 
     assert PGA2.gp(c, a) ==
-             {0, 0, 0, 0, 1, -1, 0, 0}
+             %PGA2{data: {0, 0, 0, 0, 1, -1, 0, 0}}
   end
 
   test "gp distributes over addition" do
-    a = {1, 2, 3, 4, 5, 6, 7, 8}
-    b = {2, 3, 4, 5, 6, 7, 8, 9}
-    c = {9, 8, 7, 6, 5, 4, 3, 2}
+    a = %PGA2{data: {1, 2, 3, 4, 5, 6, 7, 8}}
+    b = %PGA2{data: {2, 3, 4, 5, 6, 7, 8, 9}}
+    c = %PGA2{data: {9, 8, 7, 6, 5, 4, 3, 2}}
 
     assert PGA2.gp(PGA2.add(a, b), c) ==
              PGA2.add(PGA2.gp(a, c), PGA2.gp(b, c))
@@ -1226,13 +1226,6 @@ defmodule GalixirTest do
 
     assert ~G"ep12" ==
              new(e12p: 1)
-  end
-
-  defp tuple_add(a, b) do
-    Tuple.to_list(a)
-    |> Enum.zip(Tuple.to_list(b))
-    |> Enum.map(fn {x, y} -> x + y end)
-    |> List.to_tuple()
   end
 
   defp random_mv do

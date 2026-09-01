@@ -149,6 +149,7 @@ defmodule Galixir.Generator.Inverse do
       end
 
       unquote(doc)
+
       def inverse(%__MODULE__{} = a) do
         with rev <- reverse(a),
              product <- gp(a, rev),

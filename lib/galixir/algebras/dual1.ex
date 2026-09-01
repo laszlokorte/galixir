@@ -41,7 +41,11 @@ defmodule Galixir.Algebras.Dual1 do
     new(e1: 1)
   end
 
+  @doc """
+  Constructs a dual number.
 
+  Creates: `real + infinitesimal * ε`
+  """
   def dual(real, infinitesimal) do
     new(
       scalar: real,

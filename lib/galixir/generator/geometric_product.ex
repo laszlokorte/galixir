@@ -82,11 +82,11 @@ defmodule Galixir.Generator.GeometricProduct do
 
         """
         def gp(%__MODULE__{data: lhs}, %__MODULE__{data: rhs}) do
-          %__MODULE__{data: gp(lhs, rhs)}
+          %__MODULE__{data: gp_tuple(lhs, rhs)}
         end
       end,
       quote do
-        def gp(unquote(lhs), unquote(rhs)) do
+        defp gp_tuple(unquote(lhs), unquote(rhs)) do
           unquote(result_tuple)
         end
       end
