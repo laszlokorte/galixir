@@ -1,6 +1,957 @@
 defmodule Galixir.Algebras.Kinds.CGA do
   defmacro __using__(_opts) do
     quote do
+      @moduledoc """
+      Two-dimensional Conformal Geometric Algebra (CGA).
+
+      This module implements CGA for the Euclidean plane using the metric:
+
+          {1, 1, 1, -1}
+
+      with basis vectors:
+
+          e1, e2, ep, em
+
+      where `ep` and `em` are the positive and negative basis
+      vectors used to construct the null vectors `e_inf` and `e_o`.
+
+      The conformal basis is defined as:
+
+          e_inf = e_m + e_p
+          e_o = (e_m - e_p) / 2
+
+      Points are embedded using the standard conformal embedding:
+
+          P(x, y) = e_o + x*e1 + y*e2 + 1/2(x²+y²)e_inf
+
+      Objects are represented as multivectors and can be combined using the
+      operations provided by `Galixir.GeometricAlgebra`.
+
+      The implementation uses the pseudoscalar to convert between OPNS
+      and IPNS representations.
+
+      ## Examples
+
+          iex> p = Galixir.Algebras.CGA2.point(2, 3)
+          iex> Galixir.Algebras.CGA2.point_coordinates(p)
+          {2.0, 3.0}
+      """
+      use Galixir.GeometricAlgebra,
+        metric: {1, 1, 1, -1},
+        bases: {"1", "2", "p", "m"}
+
+      @doc """
+      Returns the conformal infinity vector.
+
+      The infinity vector represents the point at infinity in conformal space:
+
+          `e_inf = e_m + e_p`
+
+      ## Examples
+
+          iex> scalar_product(e_inf(), e_inf())
+          0.0
+      """
+      def e_inf do
+        new(em: 1, ep: 1)
+      end
+
+      @doc """
+      Returns the conformal origin vector.
+
+      The origin is defined as:
+
+          `e_o = (e_m - e_p) / 2`
+
+      ## Examples
+
+          iex> scalar_product(e_o(), e_inf())
+          -1.0
+      """
+      def e_o do
+        scale(
+          0.5,
+          sub(
+            new(em: 1),
+            new(ep: 1)
+          )
+        )
+      end
+
+      @doc """
+      Creates a Euclidean vector embedded in CGA.
+
+      The vector is represented only by its Euclidean components:
+
+          `x * e1 + y * e2`
+
+      It is not a conformal point. Use `point/2` to embed a point.
+
+      ## Examples
+
+          iex> point?(vector(1, 2))
+          false
+
+          iex> point?(point(1, 2))
+          true
+      """
+      def vector(x, y) do
+        new(
+          e1: x,
+          e2: y
+        )
+      end
+
+      @doc """
+      Embeds a Euclidean point into conformal space.
+
+      Uses the standard CGA point representation:
+
+          `P = e_o + x * e1 + y * e2 + 1/2*(x²+y²)*e_inf`
+
+      ## Examples
+
+          iex> point_coordinates(point(1, 2))
+          {1.0, 2.0}
+
+      """
+      def point(x, y) do
+        add(
+          add(
+            e_o(),
+            vector(x, y)
+          ),
+          scale(
+            0.5 * (x * x + y * y),
+            e_inf()
+          )
+        )
+      end
+
+      @doc """
+      Extracts Euclidean coordinates from a conformal point.
+
+      Returns a tuple:
+
+          `{x, y}`
+
+      ## Examples
+
+          iex> point(2, 3)
+          ...> |> scale(7)
+          ...> |> point_coordinates()
+          {2.0, 3.0}
+      """
+      def point_coordinates(p) do
+        w = -scalar_product(p, e_inf())
+
+        if not above_epsilon?(w) do
+          raise ArgumentError, "cannot extract coordinates from point at infinity"
+        end
+
+        {
+          clean_zero(scalar_product(p, new(e1: 1)) / w),
+          clean_zero(scalar_product(p, new(e2: 1)) / w)
+        }
+      end
+
+      @doc """
+      Creates a circle from a center point and radius.
+
+      The returned multivector represents the conformal circle object.
+
+      ## Examples
+
+          iex> circle(1, 2, 3)
+          ~G"1.5e12p + 2.5e12m + 2.0e1pm - e2pm"
+
+          iex> circle?(circle(1, 2, 3))
+          true
+
+          iex> circle_parameters(circle(1, 2, 3))
+          {:circle, {:real, {1.0, 2.0}, 3.0}}
+
+          iex> circle_parameters(circle(1, 2, -3))
+          {:circle, {:imag, {1.0, 2.0}, 3.0}}
+
+          iex> c = circle(point(1, 2), 3)
+          iex> contains?(c, point(4, 2))
+          true
+          iex> contains?(c, point(5, 2))
+          false
+      """
+      def circle(p, r) do
+        sub(
+          p,
+          scale(
+            0.5 * r * abs(r),
+            e_inf()
+          )
+        )
+        |> gp(inverse!(pseudoscalar()))
+      end
+
+      @doc """
+      Creates an OPNS circle or degenerate line through three conformal points.
+
+      The circle is represented by the outer product:
+
+          `C = a ∧ b ∧ c`
+
+      For collinear points this degenerates to a line.
+
+      ## Examples
+
+          iex> c =
+          ...>   line_or_circle_from_points(
+          ...>     point(1, 0),
+          ...>     point(0, 1),
+          ...>     point(-1, 0)
+          ...>   )
+          iex> circle?(c)
+          true
+          iex> circle_parameters(c)
+          {:circle, {:real, {0.0, 0.0}, 1.0}}
+
+          iex> c =
+          ...>   line_or_circle_from_points(
+          ...>     point(0, 0),
+          ...>     point(1, 0),
+          ...>     point(0, 1)
+          ...>   )
+          iex> contains?(c, point(0, 0))
+          true
+
+          iex> c =
+          ...>   line_or_circle_from_points(
+          ...>     point(0, 0),
+          ...>     point(1, 0),
+          ...>     point(2, 0)
+          ...>   )
+          iex> line?(c)
+          true
+      """
+      def line_or_circle_from_points(a, b, c) do
+        join(a, b, c)
+      end
+
+      @doc """
+      Creates a circle from Euclidean coordinates and radius.
+      """
+      def circle(x, y, r) do
+        circle(point(x, y), r)
+      end
+
+      @doc """
+      Creates a conformal line through two points.
+
+      The line is represented using the outer product:
+
+          `L = a ∧ b ∧ e_inf`
+
+      ## Examples
+
+          iex> line?(line(point(0, 0), point(1, 0)))
+          true
+
+          iex> contains?(line(point(0, 0), point(1, 0)), point(0.5, 0))
+          true
+
+          iex> l = line(point(0, 0), point(1, 0))
+          iex> line?(l)
+          true
+
+          iex> contains?(line(point(0, 0), point(1, 0)), point(2, 0))
+          true
+
+          iex> contains?(line(point(0, 0), point(1, 0)), point(0, 1))
+          false
+
+          iex> l = line(point(2, -1), point(2, 3))
+          iex> contains?(l, point(2, 10))
+          true
+          iex> contains?(l, point(3, 0))
+          false
+      """
+      def line(a, b) do
+        wedge(
+          wedge(
+            a,
+            b
+          ),
+          e_inf()
+        )
+      end
+
+      @doc """
+      Tests whether a point lies on a conformal object.
+
+      Returns `true` when the incidence meet operation produces the zero
+      multivector.
+
+      ## Examples
+
+          iex> l = line(point(0, 0), point(1, 0))
+          iex> contains?(l, point(2, 0))
+          true
+          iex> contains?(l, point(0, 1))
+          false
+      """
+      def contains?(object, point) do
+        zero?(meet(object, point))
+      end
+
+      @doc """
+      Computes the meet (incidence) operation between two objects.
+
+      The meet is implemented using duality:
+
+        `meet(a, b) = dual(dual(a) ∧ dual(b))`
+
+      ## Examples
+
+          iex> l = line(point(-2, 0), point(2, 0))
+          iex> c = circle(point(0, 0), 1)
+          iex> bivector_candidate?(meet(c, l))
+          true
+
+          iex> c1 = circle(point(1, 2), 1)
+          iex> c2 = circle(point(3, 2), 1)
+          iex> {:tangent, p} = split(meet(c1, c2) )
+          iex> p |> point_coordinates()
+          {2.0, 2.0}
+
+          iex> c1 = circle(point(1, -1), 1)
+          iex> c2 = circle(point(1, -3), 1)
+          iex> {:tangent, p} = split(meet(c1, c2))
+          iex> p |> point_coordinates()
+          {1.0, -2.0}
+
+          iex> pp =
+          ...>   meet(
+          ...>     circle(point(0, 0), 1),
+          ...>     circle(point(5, 0), 1)
+          ...>   )
+          iex> match?({:point_pair, _, _}, classify(pp))
+          true
+      """
+      def meet(a, b) do
+        wedge(
+          gp(a, pseudoscalar()),
+          gp(b, pseudoscalar())
+        )
+        |> gp(pseudoscalar())
+      end
+
+      @doc """
+      Computes the outer product join of two CGA objects.
+
+      The join is the wedge product:
+
+        join(a, b) = a ∧ b
+
+      This operates on the actual multivector representations.
+      Objects represented in IPNS form should be converted to OPNS form
+      before using the join.
+
+      For OPNS objects, the result is the smallest blade containing both.
+
+      ## Examples
+
+          iex> l =
+          ...>   join(
+          ...>     point(0, 0),
+          ...>     point(1, 0)
+          ...>   )
+          iex> grades(l)
+          [2]
+
+          iex> c =
+          ...>   join(
+          ...>     join(
+          ...>       point(1, 0),
+          ...>       point(0, 1)
+          ...>     ),
+          ...>     point(-1, 0)
+          ...>   )
+          iex> grades(c)
+          [3]
+
+          iex> c =
+          ...>   join(
+          ...>     point(1, 0),
+          ...>     point(0, 1),
+          ...>     point(-1, 0)
+          ...>   )
+          iex> circle_parameters(c)
+          {:circle, {:real, {0.0, 0.0}, 1.0}}
+      """
+      def join(a, b) do
+        wedge(a, b)
+      end
+
+      def join(a, b, c) do
+        wedge(wedge(a, b), c)
+      end
+
+      @doc """
+      Creates a translator motor for translating by `(x, y)`.
+
+      The returned motor can be applied with `transform/2`.
+
+      ## Examples
+
+          iex> p = point(1, 2) |> transform(translator(3, -1))
+          iex> point_coordinates(p)
+          {4.0, 1.0}
+      """
+      def translator(x, y) do
+        t =
+          add(
+            one(),
+            scale(
+              -0.5,
+              gp(
+                vector(x, y),
+                e_inf()
+              )
+            )
+          )
+
+        normalize!(t)
+      end
+
+      @doc """
+      Creates a Euclidean rotation rotor.
+
+      Rotates by `angle` radians around the origin.
+
+      The rotor is normalized before being returned.
+
+      ## Examples
+
+          iex> {x, y} = point(1, 0)
+          ...> |> transform(rotor(:math.pi() / 2))
+          ...> |> cleanup()
+          ...> |> point_coordinates()
+          iex> abs(x) < 1.0e-10
+          true
+          iex> abs(y - 1.0) < 1.0e-10
+          true
+      """
+      def rotor(angle) do
+        add(
+          new(scalar: :math.cos(angle / 2)),
+          scale(
+            -:math.sin(angle / 2),
+            new(e12: 1)
+          )
+        )
+        |> normalize!()
+      end
+
+      @doc """
+      Applies a motor transformation to a CGA object.
+
+      Performs the sandwich product:
+
+          `M * X * reverse(M)`
+
+      ## Examples
+
+          iex> point(1, 2)
+          ...> |> transform(translator(3, -1))
+          ...> |> point_coordinates()
+          {4.0, 1.0}
+      """
+      def transform(object, motor) do
+        gp(
+          gp(motor, object),
+          reverse(motor)
+        )
+      end
+
+      @doc """
+      Computes the scalar product of two multivectors.
+
+      This is the scalar part of the geometric product.
+      It uses the CGA metric defined by the module metric options.
+
+      ## Examples
+
+          iex> scalar_product(new(e1: 1), new(e1: 1))
+          1.0
+
+          iex> scalar_product(point(1, 0), new(e1: 1))
+          1.0
+      """
+      def scalar_product(a, b) do
+        scalar_part(gp(a, b))
+      end
+
+      @doc """
+      Normalizes a conformal point so that its conformal weight is -1.
+
+      The weight is defined as:
+
+        `w = p · e_o`
+
+      and this module uses the convention that normalized points satisfy:
+
+        `p · e_o = -1`
+
+      Raises `ArgumentError` if the point has zero weight.
+
+      ## Examples
+
+          iex> p = point(2, 3) |> scale(5)
+          iex> normalized = normalize_point(p)
+          iex> scalar_product(normalized, e_o())
+          -1.0
+
+          iex> {x, y} = normalize_point(scale(point(8, 2), 100)) |> point_coordinates()
+          iex> abs(x - 8.0) < 1.0e-10 and abs(y - 2.0) < 1.0e-10
+          true
+      """
+      def normalize_point(p) do
+        w = scalar_product(p, e_o())
+
+        if not above_epsilon?(w) do
+          raise ArgumentError, "cannot normalize point with zero weight, given #{inspect(p)}"
+        end
+
+        scale(p, -1.0 / w)
+      end
+
+      @doc """
+      Returns whether a multivector is a finite conformal point.
+
+      A finite point is a grade-1 null vector with non-zero weight.
+
+      ## Examples
+
+          iex> point?(point(1, 2))
+          true
+
+          iex> point?(new(e1: 1, e2: 1))
+          false
+      """
+      def point?(p) do
+        grade?(p, 1) and
+          null?(p) and
+          above_epsilon?(scalar_product(p, e_o()))
+      end
+
+      @doc """
+      Removes coefficients whose absolute value is below `eps`.
+
+      This is useful for cleaning up floating-point round-off errors after
+      geometric computations.
+
+      ## Examples
+
+          iex> new(e1: 1.0, e2: 1.0e-12)
+          ...> |> cleanup()
+          ...> |> coefficient(:e2)
+          0.0
+      """
+      def cleanup(m, eps \\ epsilon()) do
+        %__MODULE__{data: data} = m
+
+        data =
+          data
+          |> Tuple.to_list()
+          |> Enum.map(fn x ->
+            if abs(x) < eps, do: 0.0, else: x
+          end)
+          |> List.to_tuple()
+
+        %__MODULE__{data: data}
+      end
+
+      defp null?(p) do
+        n2 = abs(scalar_product(p, p))
+
+        scale =
+          p.data
+          |> Tuple.to_list()
+          |> Enum.map(&abs/1)
+          |> Enum.sum()
+
+        not above_epsilon?(n2, @epsilon * max(scale * scale, 1.0))
+      end
+
+      @doc """
+      Returns whether a multivector is an OPNS circle or line.
+
+      In CGA2 both circles and lines are grade-3 objects.
+      Lines are exactly those trivectors containing e_inf.
+
+      Use `line?/1` to distinguish lines.
+
+      ## Examples
+
+          iex> circle_or_line?(circle(point(0, 0), 2))
+          true
+      """
+      def circle_or_line?(c) do
+        grade?(c, 3)
+      end
+
+      @doc """
+      Returns whether a multivector represents an OPNS circle.
+
+      Lines are also grade-3 blades in CGA2, so they are excluded.
+
+      ## Examples
+
+          iex> circle?(circle(point(0, 0), 2))
+          true
+
+          iex> circle?(line(point(0, 0), point(1, 0)))
+          false
+      """
+      def circle?(x) do
+        circle_or_line?(x) and not line?(x)
+      end
+
+      @doc """
+      Returns whether a multivector is an OPNS line.
+
+      ## Examples
+
+          iex> line?(line(point(0, 0), point(1, 0)))
+          true
+
+          iex> line?(circle(point(0, 0), 1))
+          false
+      """
+      def line?(l) do
+        grade?(l, 3) and
+          not above_epsilon?(norm(wedge(l, e_inf())))
+      end
+
+      @doc """
+      This function checks that the object has bivector grade and
+      contains finite point-pair structure. Use split/1 to extract
+      the actual points.
+
+      This function only checks the grade. Use `split/1` to determine whether
+      the bivector represents a valid point pair.
+
+      ## Examples
+
+          iex> pp = meet(
+          ...>   circle(point(0, 0), 2),
+          ...>   line(point(-2, 0), point(2, 0))
+          ...> )
+          iex> bivector_candidate?(pp)
+          true
+      """
+      def bivector_candidate?(x) do
+        grade?(x, 2) and not zero?(wedge(x, e_inf()))
+      end
+
+      @doc """
+      Extracts the Euclidean parameters of an OPNS circle or line.
+
+      Returns either
+
+        * `{:circle, {{x, y}, radius}}`
+        * `{:line, {a, b, c}}`
+
+      where the line satisfies `ax + by + c = 0`.
+
+      ## Examples
+
+          iex> circle_parameters(circle(point(1, 2), 3))
+          {:circle, {:real, {1.0, 2.0}, 3.0}}
+
+          iex> circle_parameters(circle(point(1, 2), -3.0))
+          {:circle, {:imag, {1.0, 2.0}, 3.0}}
+      """
+      def circle_parameters(c) do
+        v = gp(c, inverse!(pseudoscalar()))
+
+        e1 = coefficient(v, :e1)
+        e2 = coefficient(v, :e2)
+
+        ep = coefficient(v, :ep)
+        em = coefficient(v, :em)
+
+        w = em - ep
+
+        if not above_epsilon?(norm(wedge(c, e_inf()))) do
+          {:line, line_parameters(c)}
+        else
+          x = e1 / w
+          y = e2 / w
+
+          k = (em + ep) / (2 * w)
+
+          b =
+            x * x +
+              y * y -
+              2 * k
+
+          r =
+            abs(b) ** 0.5
+
+          type = if(b < 0.0, do: :imag, else: :real)
+          {:circle, {type, {clean_zero(x), clean_zero(y)}, r}}
+        end
+      end
+
+      @doc """
+      Splits a point pair into its two conformal points.
+
+      Returns
+
+      * `{p1, p2}` for two points,
+      * `:error` if the bivector is not a valid point pair.
+
+      ## Examples
+
+          iex> l = line(point(-2, 0), point(2, 0))
+          iex> c = circle(point(0, 0), 1)
+          iex> {p1, p2} = split(meet(c, l))
+          iex> Enum.sort([point_coordinates(p1), point_coordinates(p2)])
+          [{-1.0, 0.0}, {1.0, 0.0}]
+
+          iex> c1 = circle(point(-0.5, 0), 1)
+          iex> c2 = circle(point(0.5, 0), 1)
+          iex> {p1, p2} = split(meet(c1, c2))
+          iex> [{x1, y1}, {x2, y2}] = Enum.sort([point_coordinates(p1), point_coordinates(p2)])
+          iex> abs(x1) < 1.0e-10 and abs(x2) < 1.0e-10
+          true
+          iex> (y1 < 0) != (y2 < 0)
+          true
+          iex> abs(abs(y1) - 0.75 ** 0.5) < 1.0e-10
+          true
+          iex> abs(abs(y2) - 0.75 ** 0.5) < 1.0e-10
+          true
+
+          iex> split(meet(circle(point(0, 0), 1), circle(point(0, 0), 1)))
+          :error
+
+          iex> c1 = circle(point(0, 0), 1)
+          iex> c2 = circle(point(5, 0), 1)
+          iex> {_, _} = split(meet(c1, c2))
+
+          iex> l = line(point(-1, 1), point(1, 1))
+          iex> c = circle(point(0, 0), 1)
+          iex> {:tangent, p} = split(meet(c, l))
+          iex> point_coordinates(p)
+          {0.0, 1.0}
+
+          iex> pp = join(point(0.0, 0.0), point(1, 0))
+          iex> {a, b} = split(pp)
+          iex> point_coordinates(a)
+          {1.0, 0.0}
+          iex> point_coordinates(b)
+          {0.0, 0.0}
+      """
+
+      def split(b) do
+        scalar_product(b, b)
+        |> case do
+          bb when bb == 0.0 ->
+            wedge(b, e_inf())
+            |> inverse()
+            |> case do
+              :error ->
+                :error
+
+              {:ok, inv} ->
+                pos = gp(b, inv)
+                w = scalar_product(pos, sub(e_inf(), one()))
+
+                {:tangent, scale(pos, 1.0 / w)}
+            end
+
+          bb ->
+            b = if(bb < 0, do: gp(b, pseudoscalar()), else: b)
+
+            b_bar = b |> scale(1 / scalar_product(b, b) ** 0.5)
+            p = one() |> add(b_bar)
+            p_tilde = one() |> sub(b_bar)
+
+            v = inner(b, new(em: 1))
+            p1 = gp(p, v)
+            p2 = gp(p_tilde, v)
+
+            {p1, p2}
+        end
+      end
+
+      @doc """
+      Lifts an affine point representative back into the conformal point embedding.
+
+      ## Examples
+
+          iex> lift_point(point(2, 3))
+          ...> |> point_coordinates()
+          {2.0, 3.0}
+
+          iex> lift_point(point(2, 3))
+          add(add(e_o(), add(new(e1: 2), new(e2: 3))), scale(6.5, e_inf()))
+
+          iex> point_coordinates(lift_point(point(4, 5)))
+          {4.0, 5.0}
+
+          iex> point?(lift_point(point(1, 2)))
+          true
+      """
+      def lift_point(p) do
+        x = scalar_product(p, new(e1: 1))
+        y = scalar_product(p, new(e2: 1))
+
+        point(x, y)
+      end
+
+      @doc """
+      Classifies a geometric object and extracts its Euclidean parameters.
+
+      Returns one of
+
+        * `{:point, {x, y}}`
+        * `{:line, {a, b, c}}`
+        * `{:circle, {{x, y}, radius}}`
+        * `{:point_pair, p1, p2}`
+        * `{:point_pair, p}`
+        * `{:unknown, multivector}`
+
+      ## Examples
+
+          iex> classify(point(2, 3))
+          {:point, {2.0, 3.0}}
+
+          iex> classify(point(-5, 4))
+          {:point, {-5.0, 4.0}}
+
+          iex> {:line, {a, b, c}} = classify(line(point(0, 0), point(0, 1)))
+          iex> abs(a) == 1.0 and b == 0.0 and c == 0.0
+          true
+
+          iex> {:line, {a, b, c}} = classify(line(point(0, 0), point(1, 0)))
+          iex> a == 0.0 and abs(b) == 1.0 and c == 0.0
+          true
+
+          iex> classify(circle(point(0, 0), 2))
+          {:circle, {:real, {0.0, 0.0}, 2.0}}
+
+          iex> classify(circle(point(3, -2), 5))
+          {:circle, {:real, {3.0, -2.0}, 5.0}}
+
+          iex> pp =
+          ...>   meet(
+          ...>     circle(point(0, 0), 2),
+          ...>     line(point(-3, 0), point(3, 0))
+          ...>   )
+          iex> {:point_pair, p1, p2} = classify(pp)
+          iex> Enum.sort([p1, p2])
+          [{-2.0, 0.0}, {2.0, 0.0}]
+
+          iex> pp =
+          ...>   meet(
+          ...>     circle(point(0, 0), 1),
+          ...>     line(point(-2, 0), point(2, 0))
+          ...>   )
+          iex> match?({:point_pair, _, _}, classify(pp))
+          true
+
+          iex> pp =
+          ...>   meet(
+          ...>     circle(point(1, 2), 1),
+          ...>     circle(point(3, 2), 1)
+          ...>   )
+          iex> classify(pp)
+          {:point_pair, {2.0, 2.0}}
+
+          iex> pp =
+          ...>   meet(
+          ...>     circle(point(1, -1), 1),
+          ...>     circle(point(1, -3), 1)
+          ...>   )
+          iex> classify(pp)
+          {:point_pair, {1.0, -2.0}}
+
+          iex> classify(meet(circle(point(0, 0), 1), circle(point(0, 0), 1)))
+          {:unknown, ~G[0.0]}
+
+          iex> classify(new(e1: 1))
+          {:unknown, new(e1: 1)}
+
+          iex> {:point_pair, _, _} =  classify(join(point(0, 0), point(1, 0)))
+      """
+      def classify(x) do
+        cond do
+          point?(x) ->
+            {:point, point_coordinates(x)}
+
+          line?(x) ->
+            {:line, line_parameters(x)}
+
+          circle?(x) ->
+            circle_parameters(x)
+            |> case do
+              {:circle, c} -> {:circle, c}
+            end
+
+          bivector_candidate?(x) ->
+            split(x)
+            |> case do
+              {:tangent, p} ->
+                {
+                  :point_pair,
+                  point_coordinates(p)
+                }
+
+              {p1, p2} ->
+                {
+                  :point_pair,
+                  point_coordinates(p1),
+                  point_coordinates(p2)
+                }
+            end
+
+          true ->
+            {:unknown, x}
+        end
+      end
+
+      @doc """
+      Returns the Euclidean coefficients of an OPNS line.
+
+      The returned tuple `{a, b, c}` satisfies
+
+          `ax + by + c = 0`
+
+      ## Examples
+
+          iex> {a, b, c} = line_parameters(line(point(0, 0), point(0, 1)))
+          iex> {abs(a), b, c}
+          {1.0, 0.0, 0.0}
+
+          iex> line_parameters(line(point(0, 0), point(1, 2)))
+          {-2.0, 1.0, 0.0}
+
+          iex> line_parameters(line(point(0, 0), point(1, 0)))
+          {0.0, 1.0, 0.0}
+      """
+      def line_parameters(l) do
+        l = hodge_dual(l)
+
+        {
+          coefficient(l, :e1),
+          coefficient(l, :e2),
+          0.5 * scalar_product(l, e_inf())
+        }
+      end
+
+      # handle IEEE-754 negative zero
+      defp clean_zero(x) when x == 0.0, do: 0.0
+      defp clean_zero(x), do: x
     end
   end
 end

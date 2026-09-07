@@ -1,6 +1,6 @@
-<img src="./guides/galixir.svg" width="100%" alt="Galixir Header">
-
 # Galixir
+
+<img src="./guides/assets/galixir.svg" width="100%" alt="Galixir Header">
 
 [![galixir](https://img.shields.io/hexpm/v/galixir)](https://hex.pm/packages/galixir)
 
@@ -8,7 +8,7 @@ Geometric Algebra implementation in Elixir.
 
 A concrete algebra can be generated via macro:
 
-```ex
+```elixir
 defmodule Example.PGA3 do
   # e1 squares to 1
   # e2 squares to 1

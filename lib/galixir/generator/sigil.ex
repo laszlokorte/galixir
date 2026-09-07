@@ -151,11 +151,11 @@ defmodule Galixir.Generator.Sigil do
         end
       end
 
-      defp parse_blade(<<"e", rest::binary>>) do
+      defp parse_blade(<<"e", rest::binary>> = all) do
         {symbols, rest} = take_basis_names(rest, [])
 
         if symbols == [] do
-          raise ArgumentError, "expected basis after e, got '#{rest}'"
+          raise ArgumentError, "expected basis after e, got '#{all}'"
         end
 
         blade =

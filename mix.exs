@@ -4,6 +4,7 @@ defmodule Galixir.MixProject do
   def project do
     [
       app: :galixir,
+      name: "Galixir",
       version: "0.34.0",
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
@@ -35,6 +36,19 @@ defmodule Galixir.MixProject do
 
   def docs do
     [
+      main: "readme",
+      extras: [
+        "README.md",
+        "guides/introduction.md",
+        "guides/example.livemd"
+      ],
+      assets: %{
+        "guides" => "guides"
+      },
+      groups_for_extras: [
+        Introduction: ~r".*introduction",
+        Livebooks: ~r".*livemd"
+      ],
       groups_for_modules: [
         AlgebraKinds: [
           ~r/^Galixir\.Algebras.Kinds/
