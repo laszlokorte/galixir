@@ -74,11 +74,12 @@ defmodule Galixir.Generator.Canonical do
           iex> max_abs_component(new(#{unquote(blade)}: 5, scalar: 2))
           5.0
       """
+      @doc group: :norm
       def max_abs_component(%__MODULE__{data: d}) do
         max_abs_component_tuple(d)
       end
 
-      def max_abs_component_tuple(unquote(tuple_ast(a))) do
+      defp max_abs_component_tuple(unquote(tuple_ast(a))) do
         Enum.max([
           unquote_splicing(values)
         ])
@@ -159,11 +160,13 @@ defmodule Galixir.Generator.Canonical do
           0
 
       """
+
+      @doc group: :norm
       def canonical_sign(%__MODULE__{data: d}) do
         canonical_sign_tuple(d)
       end
 
-      def canonical_sign_tuple(unquote(tuple_ast(a))) do
+      defp canonical_sign_tuple(unquote(tuple_ast(a))) do
         result =
           [
             unquote_splicing(clauses)

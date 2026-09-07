@@ -53,13 +53,14 @@ defmodule Galixir.Generator.Utils do
     """
   end
 
-  def generate_unary_function(name, args, result, description, examples \\ []) do
+  def generate_unary_function(name, args, result, description, examples \\ [], group \\ nil) do
     tuple_fun = :"#{name}_tuple"
     doc = generate_doc(description, examples)
 
     quote do
       unquote(doc)
 
+      @doc group: unquote(group)
       def unquote(name)(%__MODULE__{data: d}) do
         %__MODULE__{data: unquote(tuple_fun)(d)}
       end
@@ -70,14 +71,22 @@ defmodule Galixir.Generator.Utils do
     end
   end
 
-  def generate_binary_function(name, args_a, args_b, result, description, examples \\ []) do
+  def generate_binary_function(
+        name,
+        args_a,
+        args_b,
+        result,
+        description,
+        examples \\ [],
+        group \\ nil
+      ) do
     tuple_fun = :"#{name}_tuple"
 
     doc = generate_doc(description, examples)
 
     quote do
       unquote(doc)
-
+      @doc group: unquote(group)
       def unquote(name)(%__MODULE__{data: a}, %__MODULE__{data: b}) do
         %__MODULE__{data: unquote(tuple_fun)(a, b)}
       end

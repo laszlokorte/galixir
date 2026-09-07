@@ -39,6 +39,8 @@ defmodule Galixir.Generator.PseudoscalarDual do
           true
 
       """
+
+      @doc group: :dual
       def dual(%__MODULE__{} = mv) do
         gp(mv, inverse!(pseudoscalar()))
       end
@@ -63,6 +65,8 @@ defmodule Galixir.Generator.PseudoscalarDual do
           true
 
       """
+
+      @doc group: :dual
       def undual(%__MODULE__{} = mv) do
         gp(mv, pseudoscalar())
       end

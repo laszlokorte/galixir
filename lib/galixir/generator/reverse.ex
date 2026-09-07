@@ -103,11 +103,12 @@ defmodule Galixir.Generator.Reverse do
     quote do
       unquote(doc)
 
+      @doc group: :inverse
       def reverse(%__MODULE__{data: d}) do
         %__MODULE__{data: reverse_tuple(d)}
       end
 
-      def reverse_tuple(unquote(tuple_ast(a))) do
+      defp reverse_tuple(unquote(tuple_ast(a))) do
         unquote(tuple_ast(result))
       end
     end

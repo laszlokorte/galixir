@@ -1,4 +1,4 @@
-defmodule Galixir.Algebras.Kinds.CGA do
+defmodule Galixir.Algebras.Models.CGA do
   defmacro __using__(_opts) do
     quote do
       @moduledoc """

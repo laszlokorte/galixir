@@ -76,6 +76,10 @@ defmodule Galixir.Generator.Grade do
           ...> )
           new(scalar: 1)
       """
+
+      @doc group: :grades
+      def grade(mv, grade)
+
       def grade(%__MODULE__{data: d}, g) do
         %__MODULE__{data: grade(d, g)}
       end
@@ -158,6 +162,8 @@ defmodule Galixir.Generator.Grade do
           []
 
       """
+
+      @doc group: :grades
       def grades(%__MODULE__{data: d}) do
         grades(d)
       end
@@ -198,6 +204,8 @@ defmodule Galixir.Generator.Grade do
           ...> )
           nil
       """
+
+      @doc group: :grades
       def grade(x) do
         case grades(x) do
           [g] -> g
@@ -251,6 +259,8 @@ defmodule Galixir.Generator.Grade do
 
       See `grade?/2`
       """
+
+      @doc group: :grades
       defguard is_grade(mv, grade) when unquote(guard_condition)
 
       @doc """
@@ -275,6 +285,8 @@ defmodule Galixir.Generator.Grade do
 
       See `is_grade/2`
       """
+
+      @doc group: :grades
       def grade?(mv, g) when is_grade(mv, g), do: true
       def grade?(_mv, _g), do: false
     end

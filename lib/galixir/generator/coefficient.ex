@@ -36,6 +36,7 @@ defmodule Galixir.Generator.Cofficients do
           ...> )
           3.0
       """
+      @doc group: :coefficient
       def coefficient(%__MODULE__{data: data}, blade) do
         {canonical, sign} =
           Map.get(@blade_aliases, blade, {blade, 1})
@@ -54,6 +55,7 @@ defmodule Galixir.Generator.Cofficients do
           5.0
 
       """
+      @doc group: :coefficient
       def scalar_part(%__MODULE__{data: data}) do
         elem(data, 0)
       end

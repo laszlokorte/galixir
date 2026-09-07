@@ -1,3 +1,3 @@
 defmodule Galixir.Algebras.CGA2 do
-  use Galixir.Algebras.Kinds.CGA, dimensions: {"x", "y"}
+  use Galixir.Algebras.Models.CGA, dimensions: {"x", "y"}
 end

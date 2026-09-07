@@ -53,6 +53,15 @@ defmodule Galixir.Generator.Header do
         @epsilon unquote(epsilon)
         @degenerate unquote(degenerate)
 
+        @doc """
+        Checks if the algebra is degenerate.
+
+        It is degenerate if at least one element of the metric is zero.
+
+        iex> degenerate?()
+        {unquote(@denenerate)}
+        """
+        @doc group: :meta
         def degenerate?, do: @degenerate
 
         @doc """
@@ -63,6 +72,7 @@ defmodule Galixir.Generator.Header do
             iex> grades(pseudoscalar())
             [#{unquote(tuple_size(bases))}]
         """
+        @doc group: :constructor
         def pseudoscalar() do
           new([{unquote(pseudoscalar_name), 1.0}])
         end
@@ -78,6 +88,7 @@ defmodule Galixir.Generator.Header do
             ~G"1.0"
 
         """
+        @doc group: :constructor
         def one() do
           new(scalar: 1)
         end
@@ -90,10 +101,12 @@ defmodule Galixir.Generator.Header do
             iex> zero()
             ~G"0"
         """
+        @doc group: :constructor
         def zero do
           new()
         end
 
+        @doc group: :constructor
         def epsilon() do
           @epsilon
         end
@@ -103,6 +116,7 @@ defmodule Galixir.Generator.Header do
 
         A dimension `n` algebra contains `2^n` basis blades.
         """
+        @doc group: :meta
         def blade_count() do
           @blade_count
         end
@@ -112,6 +126,7 @@ defmodule Galixir.Generator.Header do
 
         This is the number of basis vectors defined by the metric.
         """
+        @doc group: :meta
         def dimension do
           tuple_size(@metric)
         end
@@ -126,6 +141,7 @@ defmodule Galixir.Generator.Header do
         represents a projective geometric algebra with three Euclidean basis
         vectors and one null basis vector.
         """
+        @doc group: :meta
         def metric do
           @metric
         end
@@ -143,6 +159,7 @@ defmodule Galixir.Generator.Header do
             iex> table() |> Map.has_key?({#{unquote(elem(bases, 0))}, #{unquote(elem(bases, 0))}})
             #{unquote(elem(metric, 0) != 0)}
         """
+        @doc group: :meta
         def table do
           @table
         end
@@ -158,6 +175,7 @@ defmodule Galixir.Generator.Header do
             iex> blade_indices()[:e#{unquote(elem(bases, 0))}]
             1
         """
+        @doc group: :meta
         def blade_indices do
           @blade_indices
         end

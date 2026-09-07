@@ -1,4 +1,4 @@
-defmodule Galixir.Algebras.Kinds.Vector do
+defmodule Galixir.Algebras.Models.Vector do
   @example_values [3.0, 4.0, 5.0, -3.0, -5.0, -4.0, 1.0, 3.0, 5.0, 1.0]
 
   defp example_values do

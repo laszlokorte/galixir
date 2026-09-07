@@ -1,4 +1,4 @@
-defmodule Galixir.Algebras.Kinds.STA do
+defmodule Galixir.Algebras.Models.CSTA do
   defmacro __using__(_opts) do
     quote do
     end

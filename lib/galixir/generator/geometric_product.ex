@@ -81,6 +81,8 @@ defmodule Galixir.Generator.GeometricProduct do
             new(scalar: #{unquote(first_matric)})
 
         """
+
+        @doc group: :product
         def gp(%__MODULE__{data: lhs}, %__MODULE__{data: rhs}) do
           %__MODULE__{data: gp_tuple(lhs, rhs)}
         end

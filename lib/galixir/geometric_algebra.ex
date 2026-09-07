@@ -253,6 +253,8 @@ defmodule Galixir.GeometricAlgebra do
              """,
              else: "")}
              """)
+
+        @doc group: :product
         def wedge_all(vectors) do
           Enum.reduce(vectors, one(), fn v, acc ->
             wedge(acc, v)

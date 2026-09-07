@@ -136,6 +136,7 @@ defmodule Galixir.Generator.Inverse do
     quote do
       unquote(doc!)
 
+      @doc group: :inverse
       def inverse!(%__MODULE__{} = a) do
         inverse(a)
         |> case do
@@ -150,6 +151,7 @@ defmodule Galixir.Generator.Inverse do
 
       unquote(doc)
 
+      @doc group: :inverse
       def inverse(%__MODULE__{} = a) do
         with rev <- reverse(a),
              product <- gp(a, rev),
@@ -160,6 +162,7 @@ defmodule Galixir.Generator.Inverse do
         end
       end
 
+      @doc group: :inverse
       def blade_inverse(b) do
         rev = reverse(b)
 

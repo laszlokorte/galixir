@@ -17,6 +17,7 @@ defmodule Galixir.Generator.New do
 
   def new_impl(blade_count) do
     quote do
+      @doc group: :construction
       def new(basis \\ [])
 
       def new(data) when is_tuple(data) and tuple_size(data) == unquote(blade_count) do

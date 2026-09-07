@@ -50,11 +50,11 @@ defmodule Galixir.MixProject do
         Livebooks: ~r".*livemd"
       ],
       groups_for_modules: [
-        AlgebraKinds: [
-          ~r/^Galixir\.Algebras.Kinds/
-        ],
         Algebras: [
-          ~r/^Galixir\.Algebras/
+          ~r/^Galixir\.Algebras.(?!Models)/
+        ],
+        Models: [
+          ~r/^Galixir\.Algebras.Models/
         ],
         Generators: [
           Galixir.GeometricAlgebra,

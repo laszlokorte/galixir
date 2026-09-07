@@ -114,18 +114,20 @@ defmodule Galixir.Generator.LinearOps do
     [
       quote do
         @doc unquote(doc)
+
+        @doc group: :linear
         def unquote(name)(
               %__MODULE__{data: a},
               %__MODULE__{data: b}
             ) do
-          %__MODULE__{data: unquote(name)(a, b)}
+          %__MODULE__{data: unquote(:"#{name}_tuple")(a, b)}
         end
       end,
       quote do
-        def unquote(name)(
-              unquote(tuple_ast(a)),
-              unquote(tuple_ast(b))
-            ) do
+        defp unquote(:"#{name}_tuple")(
+               unquote(tuple_ast(a)),
+               unquote(tuple_ast(b))
+             ) do
           unquote(tuple_ast(result))
         end
       end

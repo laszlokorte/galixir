@@ -139,19 +139,21 @@ defmodule Galixir.Generator.InnerProduct do
           ...> )
 
       """
+
+      @doc group: :product
       def unquote(function_name)(
             %__MODULE__{data: a},
             %__MODULE__{data: b}
           ) do
         %__MODULE__{
-          data: unquote(function_name)(a, b)
+          data: unquote(:"#{function_name}_tuple")(a, b)
         }
       end
 
-      def unquote(function_name)(
-            unquote(tuple_ast(lhs)),
-            unquote(tuple_ast(rhs))
-          ) do
+      defp unquote(:"#{function_name}_tuple")(
+             unquote(tuple_ast(lhs)),
+             unquote(tuple_ast(rhs))
+           ) do
         unquote(tuple_ast(result))
       end
     end

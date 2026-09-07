@@ -20,6 +20,8 @@ defmodule Galixir.Generator.Conversion do
           iex> ~G[3.0 + e1] |> to_scalar()
           ** (ArgumentError) cannot convert multivector to scalar: only grade-0 multivectors can be converted to a scalar, got ...
       """
+
+      @doc group: :scalar
       def to_scalar(mv) do
         if scalar?(mv) do
           scalar_part(mv)
@@ -38,6 +40,7 @@ defmodule Galixir.Generator.Conversion do
           iex> ~G[3.0 + e1] |> scalar()
           :error
       """
+      @doc group: :scalar
       def scalar(mv) do
         if scalar?(mv) do
           {:ok, scalar_part(mv)}

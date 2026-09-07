@@ -63,6 +63,8 @@ defmodule Galixir.Generator.BasisNames do
       end
 
     quote do
+      @doc group: :meta
+      def basis_name(mask)
       (unquote_splicing(defs))
     end
   end

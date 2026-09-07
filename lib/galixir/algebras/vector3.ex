@@ -1,5 +1,5 @@
 defmodule Galixir.Algebras.Vector3 do
-  use Galixir.Algebras.Kinds.Vector,
+  use Galixir.Algebras.Models.Vector,
     dimensions: {"x", "y", "z"},
     docs: """
     ## Examples

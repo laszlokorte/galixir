@@ -105,11 +105,13 @@ defmodule Galixir.Generator.ScalarProduct do
           #{unquote(6.0 * first_sig)}
 
       """
+
+      @doc group: :product
       def scalar_product(%__MODULE__{data: a}, %__MODULE__{data: b}) do
-        scalar_product(a, b)
+        scalar_product_tuple(a, b)
       end
 
-      def scalar_product(unquote(tuple_ast(lhs)), unquote(tuple_ast(rhs))) do
+      defp scalar_product_tuple(unquote(tuple_ast(lhs)), unquote(tuple_ast(rhs))) do
         unquote(sum(terms))
       end
     end

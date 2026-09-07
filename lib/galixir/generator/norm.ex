@@ -31,6 +31,8 @@ defmodule Galixir.Generator.Norm do
           iex> squared_norm(a)
           9.0
       """
+
+      @doc group: :norm
       def squared_norm(%__MODULE__{} = a) do
         scalar_part(gp(a, reverse(a)))
       end
@@ -46,6 +48,8 @@ defmodule Galixir.Generator.Norm do
           iex> norm(a)
           3.0
       """
+
+      @doc group: :norm
       def norm(%__MODULE__{} = a) do
         abs(squared_norm(a)) ** 0.5
       end
@@ -71,6 +75,8 @@ defmodule Galixir.Generator.Norm do
           iex> normalize!(new(scalar: epsilon() / 2.0))
           ** (ArgumentError) cannot normalize given null multivector ...
       """
+
+      @doc group: :norm
       def normalize!(%__MODULE__{} = a) do
         normalize(a)
         |> case do
@@ -82,6 +88,7 @@ defmodule Galixir.Generator.Norm do
         end
       end
 
+      @doc group: :norm
       def normalize(%__MODULE__{} = a) do
         n2 = squared_norm(a)
 
@@ -92,6 +99,7 @@ defmodule Galixir.Generator.Norm do
         end
       end
 
+      @doc group: :norm
       def canonicalize!(%__MODULE__{} = a) do
         canonicalize(a)
         |> case do
@@ -106,6 +114,7 @@ defmodule Galixir.Generator.Norm do
         end
       end
 
+      @doc group: :norm
       def canonicalize(%__MODULE__{} = a) do
         case {blade?(a), max_abs_component(a)} do
           {false, _} ->

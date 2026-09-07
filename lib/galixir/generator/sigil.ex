@@ -29,6 +29,8 @@ defmodule Galixir.Generator.Sigil do
       The parsed expression is converted into the same representation accepted by
       `new/1`, so blade ordering and signs are handled by the algebra implementation.
       """
+
+      @doc group: :parse
       defmacro sigil_G({:<<>>, _, [string]}, []) do
         fields = parse_expression(string, [])
 
@@ -51,6 +53,8 @@ defmodule Galixir.Generator.Sigil do
           iex> parse("foo")
           ** (ArgumentError) expected number ...
       """
+
+      @doc group: :parse
       def parse(string) do
         string
         |> parse_expression([])

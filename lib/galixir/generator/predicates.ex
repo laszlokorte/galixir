@@ -31,8 +31,11 @@ defmodule Galixir.Generator.Predicates do
 
           def foo(x) when is_near_zero(x), do: x
       """
+
+      @doc group: :predicates
       defguard is_above_epsilon(num, eps \\ @epsilon) when abs(num) > abs(eps)
 
+      @doc group: :predicates
       def above_epsilon?(num, eps \\ @epsilon)
       def above_epsilon?(num, eps) when is_above_epsilon(num, eps), do: true
       def above_epsilon?(num, eps), do: false
@@ -71,11 +74,13 @@ defmodule Galixir.Generator.Predicates do
           iex> scalar?(new())
           true
       """
+
+      @doc group: :predicates
       def scalar?(%__MODULE__{data: d}) do
-        scalar?(d)
+        scalar_tuple?(d)
       end
 
-      def scalar?(unquote(tuple_ast(a)), eps \\ 1.0e-12) do
+      defp scalar_tuple?(unquote(tuple_ast(a)), eps \\ 1.0e-12) do
         unquote(
           Enum.map(1..(blade_count - 1), &Enum.at(a, &1))
           |> Enum.map(&quote(do: not is_above_epsilon(unquote(&1), eps)))
@@ -125,11 +130,13 @@ defmodule Galixir.Generator.Predicates do
           iex> zero?(new(#{unquote(first_basis)}: 1))
           false
       """
+
+      @doc group: :predicates
       def zero?(%__MODULE__{data: d}) do
-        zero?(d)
+        zero_tuple?(d)
       end
 
-      def zero?(unquote(tuple_ast(a))) do
+      def zero_tuple?(unquote(tuple_ast(a))) do
         unquote(condition)
       end
 
@@ -140,6 +147,8 @@ defmodule Galixir.Generator.Predicates do
 
           def foo(x) when is_zero(x), do: x
       """
+
+      @doc group: :predicates
       defguard is_zero(mv) when unquote(guard_condition)
     end
   end
@@ -198,12 +207,15 @@ defmodule Galixir.Generator.Predicates do
 
               iex> blade?(new(scalar: 2, #{unquote(first_basis)}: 1))
               false
+
           """
         end
       end
 
     quote do
       unquote(doc)
+
+      @doc group: :predicates
 
       def blade?(%__MODULE__{} = a) do
         Enum.count(grades(a)) <= 1
@@ -254,6 +266,7 @@ defmodule Galixir.Generator.Predicates do
       end)
 
     quote do
+      @doc group: :predicates
       defguard is_blade(mv) when unquote(guard_condition)
     end
   end

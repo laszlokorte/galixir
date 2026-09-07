@@ -112,7 +112,8 @@ defmodule Galixir.Generator.HodgeDual do
               new(unquote(Utils.keyword_ast(dual_blade, dual_value))) |> inspect
             end
           }
-        ]
+        ],
+        :dual
       ),
       Utils.generate_unary_function(
         :hodge_undual,
@@ -149,7 +150,8 @@ defmodule Galixir.Generator.HodgeDual do
               new(unquote(Utils.keyword_ast(first_blade, 2)))
             end
           }
-        ]
+        ],
+        :dual
       )
     ]
 

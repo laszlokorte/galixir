@@ -125,11 +125,12 @@ defmodule Galixir.Generator.WedgeProduct do
     quote do
       unquote(doc)
 
+      @doc group: :product
       def wedge(%__MODULE__{data: a}, %__MODULE__{data: b}) do
-        %__MODULE__{data: wedge(a, b)}
+        %__MODULE__{data: wedge_tuple(a, b)}
       end
 
-      def wedge(unquote(tuple_ast(lhs)), unquote(tuple_ast(rhs))) do
+      defp wedge_tuple(unquote(tuple_ast(lhs)), unquote(tuple_ast(rhs))) do
         unquote(tuple_ast(result))
       end
     end

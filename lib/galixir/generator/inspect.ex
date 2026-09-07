@@ -73,6 +73,8 @@ defmodule Galixir.Generator.Inspect do
           iex> inspect(~G[-ε - εe1])
           "~G[-ε - εe1]"
       """
+
+      @doc group: :formatting
       def format(value, opts) do
         format_document(value, opts)
       end
