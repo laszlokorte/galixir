@@ -1,7 +1,7 @@
 defmodule Galixir.Algebras.Kinds.Vector do
-  @example_values [1, 2, -3, -1, -2, 4, 3, 1, 5, 2]
+  @example_values [3.0, 4.0, 5.0, -3.0, -5.0, -4.0, 1.0, 3.0, 5.0, 1.0]
 
-  def example_values do
+  defp example_values do
     @example_values
   end
 
@@ -23,8 +23,8 @@ defmodule Galixir.Algebras.Kinds.Vector do
           raise ArgumentError, "dimension must be a tuple of dimension names, #{inspect(e)} given"
       end
 
+    #   module = __CALLER__.module
     dim = length(dimnames)
-    module = __CALLER__.module
     metric = List.to_tuple(for _ <- 1..dim, do: 1)
     bases = List.to_tuple(for d <- 1..dim, do: "#{d}")
 
@@ -37,7 +37,7 @@ defmodule Galixir.Algebras.Kinds.Vector do
 
     bibases =
       for i <- 1..dim, j <- 1..dim, i < j do
-        "e#{i}#{j}"
+        "#{i}#{j}"
       end
 
     args =
@@ -50,19 +50,19 @@ defmodule Galixir.Algebras.Kinds.Vector do
         Macro.var(String.to_atom(name), nil)
       end)
 
-    values = Enum.take(Galixir.Algebras.Kinds.Vector.example_values(), length(dimnames))
-    bivalues = Enum.take(Galixir.Algebras.Kinds.Vector.example_values(), length(biargs))
+    values = Enum.take(example_values(), length(dimnames))
+    bivalues = Enum.take(example_values(), length(biargs))
 
     fields =
       dimnames
       |> Enum.zip_with(Tuple.to_list(bases), fn name, ba ->
-        {String.to_atom(ba), Macro.var(String.to_atom(name), nil)}
+        {String.to_atom("e#{ba}"), Macro.var(String.to_atom(name), nil)}
       end)
 
     bifields =
       bidimnames
       |> Enum.zip_with(bibases, fn name, biba ->
-        {String.to_atom(biba), Macro.var(String.to_atom(name), nil)}
+        {String.to_atom("e#{biba}"), Macro.var(String.to_atom(name), nil)}
       end)
 
     quote do
@@ -93,7 +93,7 @@ defmodule Galixir.Algebras.Kinds.Vector do
       ## Examples
 
           iex> vector(#{unquote(values |> Enum.join(", "))})
-          new(#{unquote(inspect(fields))})
+          new(#{unquote(bases |> Tuple.to_list() |> Enum.zip_with(values, fn b, v -> "e#{b}: #{v}" end) |> Enum.join(", "))})
       """
       def vector(unquote_splicing(args)) do
         new(unquote(fields))
@@ -108,7 +108,7 @@ defmodule Galixir.Algebras.Kinds.Vector do
           {#{unquote(values |> Enum.join(", "))}}
       """
       def coordinates(v) do
-        {unquote(
+        {unquote_splicing(
            Enum.with_index(dimnames, 1)
            |> Enum.map(fn {_name, index} ->
              quote do
@@ -137,7 +137,7 @@ defmodule Galixir.Algebras.Kinds.Vector do
       ## Examples
 
           iex> scalar_product(vector(#{unquote(values |> Enum.join(", "))}), vector(#{unquote(values |> Enum.join(", "))}))
-          32.0
+          #{unquote(Enum.zip_with(values, values, &(&1 * &2)) |> Enum.sum())}
       """
       def scalar_product(a, b), do: scalar_part(gp(a, b))
 
@@ -147,7 +147,7 @@ defmodule Galixir.Algebras.Kinds.Vector do
       ## Examples
 
           iex> squared_length(vector(#{unquote(values |> Enum.join(", "))}))
-          49.0
+          #{unquote(Enum.zip_with(values, values, &(&1 * &2)) |> Enum.sum())}
       """
       def squared_length(v), do: scalar_product(v, v)
 
@@ -157,7 +157,7 @@ defmodule Galixir.Algebras.Kinds.Vector do
       ## Examples
 
           iex> len(vector(#{unquote(values |> Enum.join(", "))}))
-          7.0
+          #{unquote(Enum.zip_with(values, values, &(&1 * &2)) |> Enum.sum() |> then(&(&1 ** 0.5)))}
       """
       def len(v), do: squared_length(v) ** 0.5
 
@@ -173,31 +173,11 @@ defmodule Galixir.Algebras.Kinds.Vector do
         _ -> 0
       end) |> Enum.join(", "))})) |> coordinates()
           {#{unquote(1..dim |> Enum.map(fn
-        1 -> 2
-        _ -> 0
+        1 -> 1.0
+        _ -> 0.0
       end) |> Enum.join(", "))}}
       """
       def normal(v), do: normalize!(v)
-
-      @doc """
-      Computes the vector cross product of two vectors.
-
-      It is the negative pseudoscalar dual of the outer product:
-
-          a × b = -(a ∧ b) * e123
-
-      ## Examples
-
-          iex> cross(vector(#{unquote(1..dim |> Enum.map(fn
-        1 -> 1
-        _ -> 0
-      end) |> Enum.join(", "))}), vector(#{unquote(1..dim |> Enum.map(fn
-        2 -> 1
-        _ -> 0
-      end) |> Enum.join(", "))}))
-          new(e3: 1)
-      """
-      def cross(a, b), do: negate(gp(wedge(a, b), pseudoscalar()))
 
       @doc """
       Returns the unsigned angle between two non-zero vectors, in radians.
@@ -227,7 +207,10 @@ defmodule Galixir.Algebras.Kinds.Vector do
         1 -> 1
         _ -> 0
       end) |> Enum.join(", "))})) |> coordinates()
-          {3.0, 0.0, 0.0}
+          {#{unquote(values |> Enum.with_index() |> Enum.map(fn
+        {v, 0} -> v
+        _ -> 0.0
+      end) |> Enum.join(", "))}}
       """
       def project(v, onto) do
         scale(scalar_product(v, onto) / squared_length(onto), onto)
@@ -242,7 +225,10 @@ defmodule Galixir.Algebras.Kinds.Vector do
         1 -> 1
         _ -> 0
       end) |> Enum.join(", "))})) |> coordinates()
-          {0.0, 4.0, 5.0}
+          {#{unquote(values |> Enum.with_index() |> Enum.map(fn
+        {_, 0} -> 0.0
+        {v, _} -> v
+      end) |> Enum.join(", "))}}
       """
       def reject(v, onto), do: sub(v, project(v, onto))
 
@@ -251,8 +237,8 @@ defmodule Galixir.Algebras.Kinds.Vector do
 
       ## Examples
 
-          iex> distance(vector(#{unquote(values |> Enum.join(", "))}), vector(#{unquote(values |> Enum.join(", "))}))
-          5.0
+          iex> distance(vector(#{unquote(values |> Enum.join(", "))}), vector(#{unquote(values |> Enum.reverse() |> Enum.join(", "))}))
+          #{unquote(Enum.zip_with(values, Enum.reverse(values), &((&1 - &2) ** 2.0)) |> Enum.sum() |> then(&(&1 ** 0.5)))}
       """
       def distance(a, b), do: len(sub(a, b))
 
@@ -264,7 +250,7 @@ defmodule Galixir.Algebras.Kinds.Vector do
       ## Examples
 
           iex> bivector(#{unquote(bivalues |> Enum.join(", "))})
-          new(e12: 1, e23: 2, e31: 3)
+          new(#{unquote(Enum.zip_with(bivalues, bibases, fn v, b -> "e#{b}: #{v}" end) |> Enum.join(", "))})
       """
       def bivector(unquote_splicing(biargs)), do: new(unquote(bifields))
 
@@ -274,17 +260,25 @@ defmodule Galixir.Algebras.Kinds.Vector do
       ## Examples
 
           iex> bivector_coordinates(bivector(#{unquote(bivalues |> Enum.join(", "))}))
-          {1.0, 2.0, 3.0}
+          {#{unquote(bivalues |> Enum.join(", "))}}
       """
       def bivector_coordinates(b),
-        do: {coefficient(b, :e12), coefficient(b, :e23), coefficient(b, :e31)}
+        do: {
+          unquote_splicing(
+            for b <- bibases do
+              quote do
+                coefficient(b, :"e#{unquote(b)}")
+              end
+            end
+          )
+        }
 
       unquote_splicing(
-        for {{b, dim}, bi} <- bibases |> Enum.zip(bidimnames) |> Enum.with_index() do
+        for {{biba, dim}, bix} <- bibases |> Enum.zip(bidimnames) |> Enum.with_index() do
           bibases =
-            1..length(bibases)
+            0..(length(bibases) - 1)
             |> Enum.map(fn
-              ^bi -> 1
+              ^bix -> 1
               _ -> 0
             end)
 
@@ -292,12 +286,12 @@ defmodule Galixir.Algebras.Kinds.Vector do
 
           quote do
             @doc """
-            Returns the #{unquote(dim)} plane bivector `#{unquote(b)}`.
+            Returns the #{unquote(dim)} plane bivector `e#{unquote(biba)}`.
 
             ## Examples
 
                 iex> bivector_#{unquote(dim)}()
-                new(#{unquote(b)}: 1)
+                new(#{unquote("e#{biba}")}: 1)
             """
             def unquote(function_name)(), do: bivector(unquote_splicing(bibases))
           end
@@ -311,14 +305,17 @@ defmodule Galixir.Algebras.Kinds.Vector do
 
       ## Examples
 
-          iex> rotate(rotor(vector(#{unquote(1..dim |> Enum.map(fn
-        2 -> 1
-        _ -> 0
-      end) |> Enum.join(", "))}), :math.pi() / 2), vector(#{unquote(1..dim |> Enum.map(fn
+          iex> vector(#{unquote(values |> Enum.join(", "))})
+          ...> |> rotate(rotor(vector(#{unquote(1..dim |> Enum.map(fn
         1 -> 1
         _ -> 0
-      end) |> Enum.join(", "))})) |> coordinates() |> Tuple.to_list() |> Enum.map(&Float.round(&1, 12))
-          [0.0, 1.0, 0.0]
+      end) |> Enum.join(", "))}), :math.pi()))
+          ...> |> rotate(rotor(vector(#{unquote(1..dim |> Enum.map(fn
+        1 -> 1
+        _ -> 0
+      end) |> Enum.join(", "))}), :math.pi()))
+          ...> |> coordinates() |> Tuple.to_list() |> Enum.map(&Float.round(&1, 12))
+          [#{unquote(values |> Enum.join(", "))}]
       """
       def rotor(axis, angle) do
         plane = axis |> normal() |> hodge_dual()
@@ -332,16 +329,19 @@ defmodule Galixir.Algebras.Kinds.Vector do
 
       ## Examples
 
-          iex> rotate(rotor(vector(#{unquote(1..dim |> Enum.map(fn
-        3 -> 1
-        _ -> 0
-      end) |> Enum.join(", "))}), :math.pi()), vector(#{unquote(1..dim |> Enum.map(fn
+          iex> vector(#{unquote(values |> Enum.join(", "))})
+          ...> |> rotate(rotor(vector(#{unquote(1..dim |> Enum.map(fn
         1 -> 1
         _ -> 0
-      end) |> Enum.join(", "))})) |> coordinates() |> Tuple.to_list() |> Enum.map(&Float.round(&1, 12))
-          [-1.0, 0.0, 0.0]
+      end) |> Enum.join(", "))}), :math.pi()))
+          ...> |> rotate(rotor(vector(#{unquote(1..dim |> Enum.map(fn
+        1 -> 1
+        _ -> 0
+      end) |> Enum.join(", "))}), :math.pi()))
+          ...> |> coordinates() |> Tuple.to_list() |> Enum.map(&Float.round(&1, 12))
+          [#{unquote(values |> Enum.join(", "))}]
       """
-      def rotate(r, v), do: gp(gp(r, v), reverse(r))
+      def rotate(v, r), do: gp(gp(r, v), reverse(r))
 
       @doc """
       Reflects `v` in the plane whose normal is non-zero vector `n`.
@@ -349,10 +349,13 @@ defmodule Galixir.Algebras.Kinds.Vector do
       ## Examples
 
           iex> reflect(vector(#{unquote(values |> Enum.join(", "))}), vector(#{unquote(1..dim |> Enum.map(fn
-        3 -> 1
+        1 -> 1
         _ -> 0
       end) |> Enum.join(", "))})) |> coordinates()
-          {1.0, 2.0, -3.0}
+          {#{unquote(values |> Enum.with_index() |> Enum.map(fn
+        {v, 0} -> -v
+        {v, _} -> v
+      end) |> Enum.join(", "))}}
       """
       def reflect(v, n), do: negate(gp(gp(n, v), inverse!(n)))
 
@@ -362,7 +365,7 @@ defmodule Galixir.Algebras.Kinds.Vector do
       ## Examples
 
           iex> negate(vector(#{unquote(values |> Enum.join(", "))}))
-          new(e1: -1, e2: 2, e3: -3)
+          vector(#{unquote(values |> Enum.map(&(-&1)) |> Enum.join(", "))})
       """
       def negate(x), do: scale(-1, x)
     end

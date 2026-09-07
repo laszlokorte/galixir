@@ -36,6 +36,9 @@ defmodule Galixir.MixProject do
   def docs do
     [
       groups_for_modules: [
+        AlgebraKinds: [
+          ~r/^Galixir\.Algebras.Kinds/
+        ],
         Algebras: [
           ~r/^Galixir\.Algebras/
         ],

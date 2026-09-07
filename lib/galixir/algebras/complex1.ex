@@ -4,7 +4,7 @@ defmodule Galixir.Algebras.Complex1 do
 
   This module implements the complex numbers using the geometric algebra:
 
-      Cl(0,1)
+      Cl(0, 1)
 
   with metric:
 
@@ -82,7 +82,7 @@ defmodule Galixir.Algebras.Complex1 do
 
   This is equivalent to the geometric product:
 
-      a * b = gp(a,b)
+      a * b = gp(a, b)
   """
   def multiply(a, b) do
     gp(a, b)

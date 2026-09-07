@@ -1,26 +1,28 @@
 defmodule Galixir.Algebras.CGA2 do
+  use Galixir.Algebras.Kinds.CGA, dimensions: {"x", "y"}
+
   @moduledoc """
   Two-dimensional Conformal Geometric Algebra (CGA).
 
   This module implements CGA for the Euclidean plane using the metric:
 
-      `{1, 1, 1, -1}`
+      {1, 1, 1, -1}
 
   with basis vectors:
 
-      `e1, e2, ep, em`
+      e1, e2, ep, em
 
   where `ep` and `em` are the positive and negative basis
   vectors used to construct the null vectors `e_inf` and `e_o`.
 
   The conformal basis is defined as:
 
-      `e_inf = e_m + e_p`
-      `e_o = (e_m - e_p) / 2`
+      e_inf = e_m + e_p
+      e_o = (e_m - e_p) / 2
 
   Points are embedded using the standard conformal embedding:
 
-      `P(x,y) = e_o + x*e1 + y*e2 + 1/2(x²+y²)e_inf`
+      P(x, y) = e_o + x*e1 + y*e2 + 1/2(x²+y²)e_inf
 
   Objects are represented as multivectors and can be combined using the
   operations provided by `Galixir.GeometricAlgebra`.
@@ -249,10 +251,10 @@ defmodule Galixir.Algebras.CGA2 do
 
   ## Examples
 
-      iex> line?(line(point(0,0), point(1,0)))
+      iex> line?(line(point(0, 0), point(1, 0)))
       true
 
-      iex> contains?(line(point(0,0), point(1,0)), point(0.5,0))
+      iex> contains?(line(point(0, 0), point(1, 0)), point(0.5, 0))
       true
 
       iex> l = line(point(0, 0), point(1, 0))
@@ -289,10 +291,10 @@ defmodule Galixir.Algebras.CGA2 do
 
   ## Examples
 
-      iex> l = line(point(0,0), point(1,0))
-      iex> contains?(l, point(2,0))
+      iex> l = line(point(0, 0), point(1, 0))
+      iex> contains?(l, point(2, 0))
       true
-      iex> contains?(l, point(0,1))
+      iex> contains?(l, point(0, 1))
       false
   """
   def contains?(object, point) do
@@ -304,13 +306,13 @@ defmodule Galixir.Algebras.CGA2 do
 
   The meet is implemented using duality:
 
-    `meet(a,b) = dual(dual(a) ∧ dual(b))`
+    `meet(a, b) = dual(dual(a) ∧ dual(b))`
 
   ## Examples
 
-      iex> l = line(point(-2,0), point(2,0))
-      iex> c = circle(point(0,0),1)
-      iex> bivector_candidate?(meet(c,l))
+      iex> l = line(point(-2, 0), point(2, 0))
+      iex> c = circle(point(0, 0), 1)
+      iex> bivector_candidate?(meet(c, l))
       true
 
       iex> c1 = circle(point(1, 2), 1)
@@ -327,8 +329,8 @@ defmodule Galixir.Algebras.CGA2 do
 
       iex> pp =
       ...>   meet(
-      ...>     circle(point(0,0),1),
-      ...>     circle(point(5,0),1)
+      ...>     circle(point(0, 0), 1),
+      ...>     circle(point(5, 0), 1)
       ...>   )
       iex> match?({:point_pair, _, _}, classify(pp))
       true
@@ -377,9 +379,9 @@ defmodule Galixir.Algebras.CGA2 do
 
       iex> c =
       ...>   join(
-      ...>     point(1,0),
-      ...>     point(0,1),
-      ...>     point(-1,0)
+      ...>     point(1, 0),
+      ...>     point(0, 1),
+      ...>     point(-1, 0)
       ...>   )
       iex> circle_parameters(c)
       {:circle, {:real, {0.0, 0.0}, 1.0}}
@@ -480,7 +482,7 @@ defmodule Galixir.Algebras.CGA2 do
       iex> scalar_product(new(e1: 1), new(e1: 1))
       1.0
 
-      iex> scalar_product(point(1,0), new(e1: 1))
+      iex> scalar_product(point(1, 0), new(e1: 1))
       1.0
   """
   def scalar_product(a, b) do
@@ -729,20 +731,20 @@ defmodule Galixir.Algebras.CGA2 do
       iex> abs(abs(y2) - 0.75 ** 0.5) < 1.0e-10
       true
 
-      iex> split(meet(circle(point(0,0),1), circle(point(0,0),1)))
+      iex> split(meet(circle(point(0, 0), 1), circle(point(0, 0), 1)))
       :error
 
-      iex> c1 = circle(point(0,0),1)
-      iex> c2 = circle(point(5,0),1)
-      iex> {_, _} = split(meet(c1,c2))
+      iex> c1 = circle(point(0, 0), 1)
+      iex> c2 = circle(point(5, 0), 1)
+      iex> {_, _} = split(meet(c1, c2))
 
-      iex> l = line(point(-1,1), point(1,1))
-      iex> c = circle(point(0,0),1)
-      iex> {:tangent, p} = split(meet(c,l))
+      iex> l = line(point(-1, 1), point(1, 1))
+      iex> c = circle(point(0, 0), 1)
+      iex> {:tangent, p} = split(meet(c, l))
       iex> point_coordinates(p)
-      {0.0,1.0}
+      {0.0, 1.0}
 
-      iex> pp = join(point(0.0,0.0), point(1,0))
+      iex> pp = join(point(0.0, 0.0), point(1, 0))
       iex> {a, b} = split(pp)
       iex> point_coordinates(a)
       {1.0, 0.0}
@@ -791,13 +793,13 @@ defmodule Galixir.Algebras.CGA2 do
       ...> |> point_coordinates()
       {2.0, 3.0}
 
-      iex> lift_point(point(2,3))
+      iex> lift_point(point(2, 3))
       add(add(e_o(), add(new(e1: 2), new(e2: 3))), scale(6.5, e_inf()))
 
-      iex> point_coordinates(lift_point(point(4,5)))
-      {4.0,5.0}
+      iex> point_coordinates(lift_point(point(4, 5)))
+      {4.0, 5.0}
 
-      iex> point?(lift_point(point(1,2)))
+      iex> point?(lift_point(point(1, 2)))
       true
   """
   def lift_point(p) do
@@ -874,13 +876,13 @@ defmodule Galixir.Algebras.CGA2 do
       iex> classify(pp)
       {:point_pair, {1.0, -2.0}}
 
-      iex> classify(meet(circle(point(0,0),1), circle(point(0,0),1)))
+      iex> classify(meet(circle(point(0, 0), 1), circle(point(0, 0), 1)))
       {:unknown, ~G[0.0]}
 
       iex> classify(new(e1: 1))
       {:unknown, new(e1: 1)}
 
-      iex> {:point_pair, _, _} =  classify(join(point(0,0), point(1,0)))
+      iex> {:point_pair, _, _} =  classify(join(point(0, 0), point(1, 0)))
   """
   def classify(x) do
     cond do
@@ -934,7 +936,7 @@ defmodule Galixir.Algebras.CGA2 do
       iex> line_parameters(line(point(0, 0), point(1, 2)))
       {-2.0, 1.0, 0.0}
 
-      iex> line_parameters(line(point(0,0), point(1,0)))
+      iex> line_parameters(line(point(0, 0), point(1, 0)))
       {0.0, 1.0, 0.0}
   """
   def line_parameters(l) do

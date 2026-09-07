@@ -5,7 +5,7 @@ defmodule Galixir.Algebras.Hyper1 do
   This module implements the split-complex (hyperbolic) numbers using the
   geometric algebra:
 
-      Cl(1,0)
+      Cl(1, 0)
 
   with metric:
 

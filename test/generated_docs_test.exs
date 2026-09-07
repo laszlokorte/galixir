@@ -10,6 +10,7 @@ defmodule GeneratedDocsTest do
   doctest Galixir.Algebras.Dual1, import: true
   doctest Galixir.Algebras.Vector2, import: true
   doctest Galixir.Algebras.Vector3, import: true
+  doctest Galixir.Algebras.Vector4, import: true
 
   doctest Galixir.Meta, import: true
 

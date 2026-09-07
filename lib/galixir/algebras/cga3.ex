@@ -1,35 +1,34 @@
 defmodule Galixir.Algebras.CGA3 do
+  use Galixir.Algebras.Kinds.CGA, dimensions: {"x", "y", "z"}
+
   @moduledoc """
   Three-dimensional Conformal Geometric Algebra (CGA).
 
   This module implements CGA for Euclidean 3-space using the metric:
 
-      `{1, 1, 1, 1, -1}`
+      {1, 1, 1, 1, -1}
 
   with basis:
 
-      `e1, e2, e3, ep, em`
+      e1, e2, e3, ep, em
 
   The Euclidean basis vectors represent ordinary 3D coordinates.
   The additional conformal basis vectors are combined into the null vectors:
 
-      * `e_o   = (ep + em) / 2`
-      * `e_inf = em - ep`
+      e_o   = (ep + em) / 2
+      e_inf = em - ep
 
   Here `e_o` uses the letter `o` for *origin*; it is not the basis vector
   `e0` (e-subscript zero).
 
   Points are embedded into conformal space using:
 
-
-  ```
-      P(x,y,z) =
+      P(x, y, z) =
         e_o
-        + x*e1
-        + y*e2
-        + z*e3
-        + 1/2(x²+y²+z²)e_inf
-  ```
+        + x * e1
+        + y * e2
+        + z * e3
+        + 1/2 * (x²+y²+z²) * e_inf
 
   Lines, planes, and point-defined spheres use outer-product null-space
   (OPNS) representations. The center-and-radius form of `sphere/2` is an
@@ -276,7 +275,7 @@ defmodule Galixir.Algebras.CGA3 do
 
   The meet is implemented through duality:
 
-      `meet(a,b) = dual(dual(a) ∧ dual(b))`
+      `meet(a, b) = dual(dual(a) ∧ dual(b))`
 
   ## Examples
 
@@ -299,7 +298,7 @@ defmodule Galixir.Algebras.CGA3 do
 
   The join is the outer product:
 
-      `join(a,b) = a ∧ b`
+      `join(a, b) = a ∧ b`
 
   The operands must use compatible representations. In particular, joining
   conformal points creates an OPNS point pair, not a line; use `line/2` to

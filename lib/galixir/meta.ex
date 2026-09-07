@@ -24,10 +24,10 @@ defmodule Galixir.Meta do
 
   ## Examples
 
-      iex> degenerate?(%Galixir.Meta{metric:  {1,1,0,1}})
+      iex> degenerate?(%Galixir.Meta{metric:  {1, 1, 0, 1}})
       true
 
-      iex> degenerate?(%Galixir.Meta{metric:  {1,1,1,1}})
+      iex> degenerate?(%Galixir.Meta{metric:  {1, 1, 1, 1}})
       false
   """
   def degenerate?(%__MODULE__{metric: metric}) do

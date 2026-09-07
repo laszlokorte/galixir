@@ -1,4 +1,6 @@
 defmodule Galixir.Algebras.PGA2 do
+  use Galixir.Algebras.Kinds.PGA, dimensions: {"x", "y"}, homogeneous: "h"
+
   @moduledoc """
 
   This module implements two-dimensional Euclidean geometry using the
@@ -8,11 +10,11 @@ defmodule Galixir.Algebras.PGA2 do
   allowing geometric constructions to be expressed through algebraic
   operations such as the wedge product, meet, join, and sandwich product.
 
-      Cl(2,0,1)
+      Cl(2, 0, 1)
 
   with metric:
 
-      {1,1,0} # e1*e1 = 1, e2*e2 = 1, e0*e0 = 0
+      {1, 1, 0} # e1*e1 = 1, e2*e2 = 1, e0*e0 = 0
 
   and basis:
 
@@ -121,14 +123,14 @@ defmodule Galixir.Algebras.PGA2 do
 
   # Examples
 
-      iex> finite_point?(point(1,2))
+      iex> finite_point?(point(1, 2))
       true
 
 
-      iex> finite_point?(ideal_point(1,2))
+      iex> finite_point?(ideal_point(1, 2))
       false
 
-      iex> finite_point?(vector(1,2))
+      iex> finite_point?(vector(1, 2))
       false
 
   """
@@ -144,13 +146,13 @@ defmodule Galixir.Algebras.PGA2 do
 
   ## Examples
 
-      iex> ideal_point?(ideal_point(1,0))
+      iex> ideal_point?(ideal_point(1, 0))
       true
 
-      iex> ideal_point?(point(1,0))
+      iex> ideal_point?(point(1, 0))
       false
 
-      iex> ideal_point?(vector(1,0))
+      iex> ideal_point?(vector(1, 0))
       false
 
   """
@@ -218,7 +220,7 @@ defmodule Galixir.Algebras.PGA2 do
 
   The line is represented up to scale.
 
-      iex> normalize!(line(1,2,3)) == normalize!(line(2,4,6))
+      iex> normalize!(line(1, 2, 3)) == normalize!(line(2, 4, 6))
       true
 
   """
@@ -239,8 +241,8 @@ defmodule Galixir.Algebras.PGA2 do
 
   ## Examples
 
-      iex> l = line(point(23, 42), point(3,4))
-      iex> incident?(point(23,42), l)
+      iex> l = line(point(23, 42), point(3, 4))
+      iex> incident?(point(23, 42), l)
       true
   """
   def line(a, b) do
@@ -362,7 +364,7 @@ defmodule Galixir.Algebras.PGA2 do
 
   ## Examples
 
-      iex> incident?(point(0,0), line(0,1,0))
+      iex> incident?(point(0, 0), line(0, 1, 0))
       true
 
       iex> p = point(1, 2)
@@ -423,7 +425,7 @@ defmodule Galixir.Algebras.PGA2 do
 
   ## Examples
 
-      iex> direction_vector(line(point(0,1), point(2,0)))
+      iex> direction_vector(line(point(0, 1), point(2, 0)))
       new(e1: 2, e2: -1)
 
   """
@@ -450,7 +452,7 @@ defmodule Galixir.Algebras.PGA2 do
   @doc """
   Creates a translation motor.
 
-  Translates by the vector `(x,y)`.
+  Translates by the vector `(x, y)`.
 
   ## Examples
 
@@ -469,9 +471,9 @@ defmodule Galixir.Algebras.PGA2 do
       iex> point_coordinates(transform(p, translator(0, 0)))
       {1.0, 2.0}
 
-      iex> m = translator(3,4)
-      iex> point_coordinates(transform(transform(point(5,6), m), inverse!(m)))
-      {5.0,6.0}
+      iex> m = translator(3, 4)
+      iex> point_coordinates(transform(transform(point(5, 6), m), inverse!(m)))
+      {5.0, 6.0}
   """
   def translator(x, y) do
     new(
@@ -504,18 +506,18 @@ defmodule Galixir.Algebras.PGA2 do
 
   ## Examples
 
-      iex> p = point(1,0)
+      iex> p = point(1, 0)
       iex> {x, y} = point_coordinates(transform(p, rotor(:math.pi / 2)))
       iex> {Float.round(x, 10), Float.round(y, 10)}
       {0.0, 1.0}
 
-      iex> p = point(3,4)
+      iex> p = point(3, 4)
       iex> {x, y} = p
       ...>  |> transform(rotor(:math.pi() / 2))
       ...>  |> transform(rotor(-:math.pi() / 2))
       ...>  |> point_coordinates()
-      iex> {Float.round(x,10), Float.round(y,10)}
-      {3.0,4.0}
+      iex> {Float.round(x, 10), Float.round(y, 10)}
+      {3.0, 4.0}
   """
   def rotor(angle) do
     new(
@@ -543,10 +545,10 @@ defmodule Galixir.Algebras.PGA2 do
   @doc """
   Computes Euclidean distance between two finite points.
 
-      iex> distance(point(1,2), point(1,2))
+      iex> distance(point(1, 2), point(1, 2))
       0.0
 
-      iex> distance(point(-1,-1), point(2,3))
+      iex> distance(point(-1, -1), point(2, 3))
       5.0
 
   """

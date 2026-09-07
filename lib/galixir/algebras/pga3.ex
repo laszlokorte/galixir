@@ -1,4 +1,6 @@
 defmodule Galixir.Algebras.PGA3 do
+  use Galixir.Algebras.Kinds.PGA, dimensions: {"x", "y", "z"}, homogeneous: "h"
+
   @moduledoc """
   This module implements three-dimensional Euclidean geometry using the
   projective geometric algebra (PGA) model.
@@ -8,11 +10,11 @@ defmodule Galixir.Algebras.PGA3 do
   algebraic operations such as the wedge product, meet, join, and sandwich
   product.
 
-      Cl(3,0,1)
+      Cl(3, 0, 1)
 
   with metric:
 
-      {1,1,1,0} # e1*e1 = 1, e2*e2 = 1, e3*e3 = 1, e0*e0 = 0
+      {1, 1, 1, 0} # e1*e1 = 1, e2*e2 = 1, e3*e3 = 1, e0*e0 = 0
 
   and basis:
 
@@ -99,10 +101,10 @@ defmodule Galixir.Algebras.PGA3 do
 
   ## Examples
 
-      iex> ideal_point?(ideal_point(1,0,0))
+      iex> ideal_point?(ideal_point(1, 0, 0))
       true
 
-      iex> finite_point?(point(1,2,3))
+      iex> finite_point?(point(1, 2, 3))
       true
   """
   def ideal_point?(p) do
@@ -430,7 +432,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   ## Examples
 
-      iex> l = line(point(0,0,0), point(1,0,0))
+      iex> l = line(point(0, 0, 0), point(1, 0, 0))
       iex> ideal_point?(direction_point(l))
       true
   """
@@ -462,7 +464,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   ## Examples
 
-      iex> l = line(point(0,0,0), point(0,0,5))
+      iex> l = line(point(0, 0, 0), point(0, 0, 5))
       iex> normalized_direction_vector(l)
       new(e3: 1.0)
   """
@@ -646,7 +648,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   ## Examples
 
-      iex> ideal_point(1,2,3)
+      iex> ideal_point(1, 2, 3)
       new(e032: 1, e013: 2, e021: 3)
   """
   def ideal_point(x, y, z) do
@@ -662,7 +664,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   ## Examples
 
-      iex> point_coordinates(point(4,5,6))
+      iex> point_coordinates(point(4, 5, 6))
       {4.0, 5.0, 6.0}
   """
   def point_coordinates(p) do
@@ -685,7 +687,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   ## Examples
 
-      iex> direction_between_points(point(1,2,3), point(4,6,8))
+      iex> direction_between_points(point(1, 2, 3), point(4, 6, 8))
       new(e1: 3, e2: 4, e3: 5)
   """
   def direction_between_points(a, b) do
@@ -722,7 +724,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   ## Examples
 
-      iex> negate(vector(1,2,3)).data
+      iex> negate(vector(1, 2, 3)).data
       new(e1: -1, e2: -2, e3: -3).data
   """
   def negate(x) do
@@ -734,7 +736,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   ## Examples
 
-      iex> scalar_product(vector(1,2,3), vector(4,5,6))
+      iex> scalar_product(vector(1, 2, 3), vector(4, 5, 6))
       32.0
   """
   def scalar_product(a, b) do
@@ -763,7 +765,7 @@ defmodule Galixir.Algebras.PGA3 do
       iex> align([], []) == one()
       true
 
-      iex> m = align([point(0,0,0)], [point(1,2,3)])
+      iex> m = align([point(0, 0, 0)], [point(1, 2, 3)])
       iex> point(0, 0, 0)
       ...> |> transform(m)
       ...> |> point_coordinates()
@@ -844,7 +846,7 @@ defmodule Galixir.Algebras.PGA3 do
 
   ## Examples
 
-      iex> t = translator(10,0,0)
+      iex> t = translator(10, 0, 0)
       iex> motor_exp(motor_log(t)) |> normalize!() == normalize!(t)
       true
   """
@@ -857,8 +859,8 @@ defmodule Galixir.Algebras.PGA3 do
 
   ## Examples
 
-      iex> b = motor_log(translator(5,0,0))
-      iex> motor_exp(b) |> normalize!() == normalize!(translator(5,0,0))
+      iex> b = motor_log(translator(5, 0, 0))
+      iex> motor_exp(b) |> normalize!() == normalize!(translator(5, 0, 0))
       true
   """
   def motor_exp(bv) do
