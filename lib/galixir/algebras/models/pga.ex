@@ -1,5 +1,77 @@
 defmodule Galixir.Algebras.Models.PGA do
-  defmacro __using__(_opts) do
+  @example_values [3.0, 4.0, 5.0, -3.0, -5.0, -4.0, 1.0, 3.0, 5.0, 1.0]
+
+  defp example_values(count) do
+    Enum.take(@example_values, count)
+  end
+
+  defmacro __using__(opts) do
+    additional_docs = Keyword.get(opts, :docs, "")
+
+    homo =
+      Keyword.fetch(opts, :homogeneous)
+      |> case do
+        h -> h
+      end
+
+    dimnames =
+      Keyword.fetch(opts, :dimensions)
+      |> case do
+        {:ok, d} when is_tuple(d) and tuple_size(d) >= 1 ->
+          d
+          |> Code.eval_quoted([], __CALLER__)
+          |> case do
+            {metric, _} -> metric
+          end
+          |> Tuple.to_list()
+
+        e ->
+          raise ArgumentError, "dimension must be a tuple of dimension names, #{inspect(e)} given"
+      end
+
+    #   module = __CALLER__.module
+    dim = length(dimnames)
+    metric = List.to_tuple(for(_ <- 1..dim, do: 1) ++ [0])
+    bases_list = for(d <- 1..dim, do: "#{d}") ++ ["0"]
+    bases = List.to_tuple(bases_list)
+
+    bidimnames =
+      for {a, i} <- Enum.with_index(dimnames),
+          {b, j} <- Enum.with_index(dimnames),
+          i < j do
+        "#{a}#{b}"
+      end
+
+    bibases =
+      for i <- 1..dim, j <- 1..dim, i < j do
+        "#{i}#{j}"
+      end
+
+    args =
+      Enum.map(dimnames, fn name ->
+        Macro.var(String.to_atom(name), nil)
+      end)
+
+    biargs =
+      Enum.map(bidimnames, fn name ->
+        Macro.var(String.to_atom(name), nil)
+      end)
+
+    values = example_values(length(dimnames))
+    bivalues = example_values(length(biargs))
+
+    fields =
+      dimnames
+      |> Enum.zip_with(bases_list, fn name, ba ->
+        {String.to_atom("e#{ba}"), Macro.var(String.to_atom(name), nil)}
+      end)
+
+    bifields =
+      bidimnames
+      |> Enum.zip_with(bibases, fn name, biba ->
+        {String.to_atom("e#{biba}"), Macro.var(String.to_atom(name), nil)}
+      end)
+
     quote do
       @moduledoc """
       This module implements three-dimensional Euclidean geometry using the
@@ -10,15 +82,16 @@ defmodule Galixir.Algebras.Models.PGA do
       algebraic operations such as the wedge product, meet, join, and sandwich
       product.
 
-          Cl(3, 0, 1)
+          Cl(#{unquote(dim)}, 0, 1)
 
       with metric:
 
-          {1, 1, 1, 0} # e1*e1 = 1, e2*e2 = 1, e3*e3 = 1, e0*e0 = 0
+          #{unquote(inspect(bases))}
+          # e1*e1 = 1, e2*e2 = 1, e3*e3 = 1, e0*e0 = 0
 
       and basis:
 
-          e1, e2, e3, e0
+          #{unquote(for e <- bases_list, do: "e#{e}") |> Enum.join(", ")}
 
       where `e0` is the ideal (infinite) basis vector.
 
@@ -72,11 +145,12 @@ defmodule Galixir.Algebras.Models.PGA do
           iex> Galixir.Algebras.PGA3.point_coordinates(p)
           {1.0, 2.0, 3.0}
 
+      #{unquote(additional_docs)}
       """
 
       use Galixir.GeometricAlgebra,
-        metric: {1, 1, 1, 0},
-        bases: {"1", "2", "3", "0"}
+        metric: unquote(Macro.escape(metric)),
+        bases: unquote(Macro.escape(bases))
 
       @doc """
       Returns the Euclidean origin point.

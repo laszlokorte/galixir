@@ -1,8 +1,8 @@
 defmodule Galixir.Algebras.Models.Vector do
   @example_values [3.0, 4.0, 5.0, -3.0, -5.0, -4.0, 1.0, 3.0, 5.0, 1.0]
 
-  defp example_values do
-    @example_values
+  defp example_values(count) do
+    Enum.take(@example_values, count)
   end
 
   defmacro __using__(opts) do
@@ -26,7 +26,8 @@ defmodule Galixir.Algebras.Models.Vector do
     #   module = __CALLER__.module
     dim = length(dimnames)
     metric = List.to_tuple(for _ <- 1..dim, do: 1)
-    bases = List.to_tuple(for d <- 1..dim, do: "#{d}")
+    bases_list = for d <- 1..dim, do: "#{d}"
+    bases = List.to_tuple(bases_list)
 
     bidimnames =
       for {a, i} <- Enum.with_index(dimnames),
@@ -50,12 +51,12 @@ defmodule Galixir.Algebras.Models.Vector do
         Macro.var(String.to_atom(name), nil)
       end)
 
-    values = Enum.take(example_values(), length(dimnames))
-    bivalues = Enum.take(example_values(), length(biargs))
+    values = example_values(length(dimnames))
+    bivalues = example_values(length(biargs))
 
     fields =
       dimnames
-      |> Enum.zip_with(Tuple.to_list(bases), fn name, ba ->
+      |> Enum.zip_with(bases_list, fn name, ba ->
         {String.to_atom("e#{ba}"), Macro.var(String.to_atom(name), nil)}
       end)
 
@@ -93,7 +94,7 @@ defmodule Galixir.Algebras.Models.Vector do
       ## Examples
 
           iex> vector(#{unquote(values |> Enum.join(", "))})
-          new(#{unquote(bases |> Tuple.to_list() |> Enum.zip_with(values, fn b, v -> "e#{b}: #{v}" end) |> Enum.join(", "))})
+          new(#{unquote(bases_list |> Enum.zip_with(values, fn b, v -> "e#{b}: #{v}" end) |> Enum.join(", "))})
       """
       def vector(unquote_splicing(args)) do
         new(unquote(fields))

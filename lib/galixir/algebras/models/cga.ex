@@ -1,16 +1,82 @@
 defmodule Galixir.Algebras.Models.CGA do
-  defmacro __using__(_opts) do
+  @example_values [3.0, 4.0, 5.0, -3.0, -5.0, -4.0, 1.0, 3.0, 5.0, 1.0]
+
+  defp example_values(count) do
+    Enum.take(@example_values, count)
+  end
+
+  defmacro __using__(opts) do
+    additional_docs = Keyword.get(opts, :docs, "")
+
+    dimnames =
+      Keyword.fetch(opts, :dimensions)
+      |> case do
+        {:ok, d} when is_tuple(d) and tuple_size(d) >= 1 ->
+          d
+          |> Code.eval_quoted([], __CALLER__)
+          |> case do
+            {metric, _} -> metric
+          end
+          |> Tuple.to_list()
+
+        e ->
+          raise ArgumentError, "dimension must be a tuple of dimension names, #{inspect(e)} given"
+      end
+
+    #   module = __CALLER__.module
+    dim = length(dimnames)
+    metric = List.to_tuple(for(_ <- 1..dim, do: 1) ++ [1, -1])
+    bases_list = for(d <- 1..dim, do: "#{d}") ++ ["p", "m"]
+    bases = List.to_tuple(bases_list)
+
+    bidimnames =
+      for {a, i} <- Enum.with_index(dimnames),
+          {b, j} <- Enum.with_index(dimnames),
+          i < j do
+        "#{a}#{b}"
+      end
+
+    bibases =
+      for i <- 1..dim, j <- 1..dim, i < j do
+        "#{i}#{j}"
+      end
+
+    args =
+      Enum.map(dimnames, fn name ->
+        Macro.var(String.to_atom(name), nil)
+      end)
+
+    biargs =
+      Enum.map(bidimnames, fn name ->
+        Macro.var(String.to_atom(name), nil)
+      end)
+
+    values = example_values(length(dimnames))
+    bivalues = example_values(length(biargs))
+
+    fields =
+      dimnames
+      |> Enum.zip_with(bases_list, fn name, ba ->
+        {String.to_atom("e#{ba}"), Macro.var(String.to_atom(name), nil)}
+      end)
+
+    bifields =
+      bidimnames
+      |> Enum.zip_with(bibases, fn name, biba ->
+        {String.to_atom("e#{biba}"), Macro.var(String.to_atom(name), nil)}
+      end)
+
     quote do
       @moduledoc """
       Two-dimensional Conformal Geometric Algebra (CGA).
 
       This module implements CGA for the Euclidean plane using the metric:
 
-          {1, 1, 1, -1}
+          #{unquote(inspect(bases))}
 
       with basis vectors:
 
-          e1, e2, ep, em
+          #{unquote(for e <- bases_list, do: "e#{e}") |> Enum.join(", ")}
 
       where `ep` and `em` are the positive and negative basis
       vectors used to construct the null vectors `e_inf` and `e_o`.
@@ -35,10 +101,12 @@ defmodule Galixir.Algebras.Models.CGA do
           iex> p = Galixir.Algebras.CGA2.point(2, 3)
           iex> Galixir.Algebras.CGA2.point_coordinates(p)
           {2.0, 3.0}
+
+      #{unquote(additional_docs)}
       """
       use Galixir.GeometricAlgebra,
-        metric: {1, 1, 1, -1},
-        bases: {"1", "2", "p", "m"}
+        metric: unquote(Macro.escape(metric)),
+        bases: unquote(Macro.escape(bases))
 
       @doc """
       Returns the conformal infinity vector.

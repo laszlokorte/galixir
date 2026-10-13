@@ -59,7 +59,7 @@ defmodule Galixir.Generator.Header do
         It is degenerate if at least one element of the metric is zero.
 
         iex> degenerate?()
-        {unquote(@denenerate)}
+        #{unquote(degenerate)}
         """
         @doc group: :meta
         def degenerate?, do: @degenerate
