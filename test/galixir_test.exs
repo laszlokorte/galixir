@@ -140,19 +140,17 @@ defmodule GalixirTest do
   end
 
   test "addition" do
-    a = {1, 2, 3, 4, 0, 0, 0, 0}
-    b = {5, 6, 7, 8, 1, 2, 3, 4}
+    a = %PGA2{data: {1, 2, 3, 4, 0, 0, 0, 0}}
+    b = %PGA2{data: {5, 6, 7, 8, 1, 2, 3, 4}}
 
-    assert PGA2.add(a, b) ==
-             {6, 8, 10, 12, 1, 2, 3, 4}
+    assert PGA2.add(a, b) == %PGA2{data: {6, 8, 10, 12, 1, 2, 3, 4}}
   end
 
   test "subtraction" do
-    a = {1, 2, 3, 4, 0, 0, 0, 0}
-    b = {5, 6, 7, 8, 1, 2, 3, 4}
+    a = %PGA2{data: {1, 2, 3, 4, 0, 0, 0, 0}}
+    b = %PGA2{data: {5, 6, 7, 8, 1, 2, 3, 4}}
 
-    assert PGA2.sub(a, b) ==
-             {-4, -4, -4, -4, -1, -2, -3, -4}
+    assert PGA2.sub(a, b) == %PGA2{data: {-4, -4, -4, -4, -1, -2, -3, -4}}
   end
 
   test "scalar multiplication" do
