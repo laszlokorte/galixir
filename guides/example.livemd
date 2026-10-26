@@ -1,8 +1,10 @@
-# Projective Geometric Algebra 3D
+# 3D Projective Geometric Algebra
+
+Open this notebook in Livebook to render a 3D scene with `Galixir.Algebras.PGA3`. The `Mix.install/1` cell fetches Galixir and Kino; the remaining cells build and display an interactive SVG scene.
 
 ```elixir
 Mix.install([
-  {:galixir, "~> 0.30.0"},
+  {:galixir, "~> 0.34.0"},
   {:kino, "~> 0.19.0"}
 ])
 ```
@@ -12,41 +14,29 @@ Mix.install([
 ```elixir
 alias Galixir.Algebras.PGA3
 
-Galixir.Algebras.PGA3.origin() |> IO.inspect()
+PGA3.origin() |> IO.inspect()
 PGA3.point(1, 2, 3) |> PGA3.point_coordinates() |> IO.inspect()
 PGA3.origin() |> PGA3.point_coordinates() |> IO.inspect()
 
-PGA3.dual(PGA3.one()) |> IO.inspect()
+PGA3.hodge_dual(PGA3.one()) |> IO.inspect()
 ```
 
-## 3d Rendering
+## 3D rendering
+
+The first two constraints position and orient the camera; the ideal-point constraint sets its up direction. Avoid placing the eye at the target or choosing a pole parallel to the viewing direction.
 
 ```elixir
 defmodule Utils do
-  import PGA3, except: [align: 2]
-
-  def align(ps, qs) do
-    # https://observablehq.com/@enkimute/glu-lookat-in-3d-pga
-    initial_m = identity = one()
-    initial_q = dual(one())
-
-    Enum.zip_reduce(ps, qs, {initial_m, initial_q}, fn p, q, {m, prev_q} ->
-      p = prev_q |> join(transform(p, m)) |> normalize!()
-      new_q = prev_q |> join(q) |> normalize!() |> inverse!()
-      new_m = new_q |> gp(p) |> add(identity) |> gp(m)
-      {new_m, new_q}
-    end)
-    |> elem(0)
-  end
+  import Galixir.Algebras.PGA3
 
   def look_at(
-      position \\ point(0, 10, 0),
-      target \\ point(0, 0, 0),
-      pole \\ ideal_point(0, 0, 1)
-  ) do
+        position \\ point(0, 10, 0),
+        target \\ point(0, 0, 0),
+        pole \\ ideal_point(0, 0, 1)
+      ) do
     align(
       [position, target, pole],
-      [point(0, 0, 0), point(0, 0, 1), point(0, 1, 0)]
+      [point(0, 0, 0), point(0, 0, 1), ideal_point(0, 1, 0)]
     )
   end
 end

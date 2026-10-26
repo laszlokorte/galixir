@@ -6,7 +6,7 @@ defmodule Galixir.GeometricAlgebra do
   multivectors, including geometric products, outer products, inverses, duals,
   norms, grade extraction, and basis blade helpers.
 
-  The algebra is defined by a metric and a set of basis identifiers.
+  The algebra is defined by a diagonal metric and a set of basis identifiers.
 
   ## Usage
 
@@ -33,19 +33,20 @@ defmodule Galixir.GeometricAlgebra do
   The optional `:bases` option defines the identifiers used for basis vectors.
   The number of bases must match the dimension of the metric.
 
-  By default, basis identifiers are generated as consecutive integers starting
-  from `1`. For example, a four-dimensional algebra without an explicit `:bases`
-  option uses:
+  Basis identifiers must be single-character strings. Supply `:bases` explicitly:
 
     bases: {"1", "2", "3", "4"}
+
+  Note: omitting `:bases` currently produces integer defaults that fail the
+  string validation at compile time.
 
   For algebras with a special basis convention, such as projective geometric
   algebra (PGA), the identifiers can be customized:
 
     bases: {"1", "2", "3", "0"}
 
-  This allows the null basis vector to be represented as `e0`, producing basis
-  blades such as:
+  This allows the null basis vector to be represented as `e0`, producing blade
+  names such as:
 
     e1
     e2
@@ -71,13 +72,13 @@ defmodule Galixir.GeometricAlgebra do
     * scalar and inner products
     * norms and normalization
     * inverses
-    * blade and scalar predicates
-    * basis blade constructors
+    * grade-homogeneity and scalar predicates
+    * `pseudoscalar/0` and named basis-blade coefficients through `new/1`
 
   It also provides higher-level helpers:
 
     * `commutator/2` for the Lie algebra commutator
-    * `rotor_between_frames/2` for constructing rotors mapping one frame to another
+    * `rotor_between_frames/2` for normalizing `1 + T * S⁻¹` from frame blades
   """
 
   alias Galixir.Table
@@ -92,16 +93,20 @@ defmodule Galixir.GeometricAlgebra do
     * `:metric` - required tuple describing the metric.
       Each element corresponds to the square of one basis vector.
 
-    * `:bases` - optional tuple containing names for the basis vectors.
-      The number of bases must match the metric dimension.
+    * `:bases` - tuple of single-character strings naming the basis vectors.
+      The number of bases must match the metric dimension. Currently, omitting
+      this option causes compile-time validation to fail (integer defaults).
 
-    * `:epsilon` - optional epsilon value that is used for florating point comparisons
+    * `:epsilon` - optional non-negative float for selected near-zero checks;
+      defaults to `1.0e-10`. Other operations may use exact comparisons or
+      their own threshold.
 
   ## Examples
 
       defmodule GA3 do
         use Galixir.GeometricAlgebra,
-          metric: {1, 1, 1}
+          metric: {1, 1, 1},
+          bases: {"1", "2", "3"}
       end
 
       defmodule PGA3 do
@@ -199,17 +204,17 @@ defmodule Galixir.GeometricAlgebra do
 
              #{if(dimension > 1,
              do: """
-                 iex> commutator(new(e1: 1), new(e2: 1))
-                 new(e12: 1)
+                 iex> commutator(new(e#{elem(bases, 0)}: 1), new(e#{elem(bases, 1)}: 1))
+                 new(e#{elem(bases, 0)}#{elem(bases, 1)}: 1)
 
-                 iex> commutator(new(e2: 1), new(e1: 1))
-                 new(e12: -1)
+                 iex> commutator(new(e#{elem(bases, 1)}: 1), new(e#{elem(bases, 0)}: 1))
+                 new(e#{elem(bases, 0)}#{elem(bases, 1)}: -1)
              """,
              else: "")}
-                 iex> commutator(new(e1: 1), new(e1: 1))
+                 iex> commutator(new(e#{elem(bases, 0)}: 1), new(e#{elem(bases, 0)}: 1))
                  new()
 
-                 iex> commutator(new(e1: 1), new(scalar: 2))
+                 iex> commutator(new(e#{elem(bases, 0)}: 1), new(scalar: 2))
                  new()
              """)
         def commutator(a, b) do
@@ -222,20 +227,21 @@ defmodule Galixir.GeometricAlgebra do
         @doc unquote("""
              Computes the outer product of a list of multivectors.
 
-             The vectors are combined from left to right using the wedge product.
+             The inputs are combined from left to right using the wedge product.
 
-             The result is a blade representing the subspace spanned by all input
-             multivectors.
+             For vector inputs, the result is a blade representing their oriented
+             span (or zero if they are dependent). For arbitrary multivectors,
+             the result need not be a single blade.
 
              ## Examples
 
                  iex> wedge_all([])
                  new(scalar: 1)
 
-                 iex> wedge_all([new(e1: 1)])
-                 new(e1: 1)
+                 iex> wedge_all([new(e#{elem(bases, 0)}: 1)])
+                 new(e#{elem(bases, 0)}: 1)
 
-                 iex> wedge_all([new(e1: 1), new(e1: 1)])
+                 iex> wedge_all([new(e#{elem(bases, 0)}: 1), new(e#{elem(bases, 0)}: 1)])
                  new()
 
              #{if(dimension > 2,
@@ -243,7 +249,7 @@ defmodule Galixir.GeometricAlgebra do
                  iex> wedge_all([new(e#{elem(bases, 0)}: 1), new(e#{elem(bases, 1)}: 1)])
                  new(e#{elem(bases, 0)}#{elem(bases, 1)}: 1)
 
-                 iex> wedge_all([new(e2: 1), new(e1: 1)])
+                 iex> wedge_all([new(e#{elem(bases, 1)}: 1), new(e#{elem(bases, 0)}: 1)])
                  new(e#{elem(bases, 0)}#{elem(bases, 1)}: -1)
              """,
              else: "")}#{if(dimension > 3,
@@ -271,8 +277,10 @@ defmodule Galixir.GeometricAlgebra do
 
              where `S` is the source frame blade and `T` is the target frame blade.
 
-             The resulting rotor can be applied to multivectors to rotate the source frame
-             into the target frame.
+             This expression is only useful when `S` is invertible and the sum
+             has non-zero norm; otherwise `inverse!/1` or `normalize!/1` raises.
+             No check is made that the inputs form frames or that the result
+             maps each source vector to its corresponding target vector.
              """)
         def rotor_between_frames(source, target) do
           source_blade = wedge_all(source)

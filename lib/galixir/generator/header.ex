@@ -85,7 +85,7 @@ defmodule Galixir.Generator.Header do
         ## Examples
 
             iex> one()
-            ~G"1.0"
+            new(scalar: 1)
 
         """
         @doc group: :constructor
@@ -99,14 +99,15 @@ defmodule Galixir.Generator.Header do
         ## Examples
 
             iex> zero()
-            ~G"0"
+            new()
         """
         @doc group: :constructor
         def zero do
           new()
         end
 
-        @doc group: :constructor
+        @doc "Returns the algebra's configured epsilon threshold (default `1.0e-10`)."
+        @doc group: :meta
         def epsilon() do
           @epsilon
         end
@@ -156,8 +157,8 @@ defmodule Galixir.Generator.Header do
 
         ## Example
 
-            iex> table() |> Map.has_key?({#{unquote(elem(bases, 0))}, #{unquote(elem(bases, 0))}})
-            #{unquote(elem(metric, 0) != 0)}
+            iex> Map.get(table(), {1, 1})
+            #{unquote(inspect(if(elem(metric, 0) == 0, do: nil, else: {elem(metric, 0), 0})))}
         """
         @doc group: :meta
         def table do
@@ -167,8 +168,8 @@ defmodule Galixir.Generator.Header do
         @doc """
         Returns the mapping between blade names and storage indices.
 
-        Blade coefficients are stored in a fixed-blade_count tuple. This map translates
-        canonical blade names into their corresponding tuple index.
+        Blade coefficients are stored in a fixed-size tuple of `blade_count/0`
+        entries. This map translates canonical blade names into tuple indices.
 
         ## Example
 

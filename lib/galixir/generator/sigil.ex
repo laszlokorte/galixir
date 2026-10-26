@@ -28,6 +28,9 @@ defmodule Galixir.Generator.Sigil do
 
       The parsed expression is converted into the same representation accepted by
       `new/1`, so blade ordering and signs are handled by the algebra implementation.
+      Use the algebra's `:bases` identifiers in blade names. The parser accepts
+      decimal and integer coefficients, `ε` for `epsilon/0`, and spaces; it
+      does not parse scientific notation or arbitrary Elixir expressions.
       """
 
       @doc group: :parse
@@ -43,7 +46,8 @@ defmodule Galixir.Generator.Sigil do
       Parses a string representation into a multivector.
 
       The string may contain scalar coefficients and basis blades combined
-      using `+` and `-` operators.
+      using `+` and `-` operators. A blade without a coefficient has
+      coefficient one; `ε` denotes `epsilon/0`. Unsupported tokens raise.
 
       Examples:
 

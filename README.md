@@ -6,67 +6,29 @@
 
 Geometric Algebra implementation in Elixir.
 
-A concrete algebra can be generated via macro:
+Generate a concrete algebra with `Galixir.GeometricAlgebra`:
 
 ```elixir
 defmodule Example.PGA3 do
-  # e1 squares to 1
-  # e2 squares to 1
-  # e3 squares to 1
-  # e0 squares to 0
   use Galixir.GeometricAlgebra,
     metric: {1, 1, 1, 0},
-    bases: {1, 2, 3, 0}
-
-  # ... additional custom functions ...
+    bases: {"1", "2", "3", "0"}
 end
 ```
 
-`PGA3` is already defined in [`Galixir.Algebras.PGA3`](./lib/galixir/algebras/pga3.ex).
-
-Then the `PGA3` module can be used to to calculations inside of the generated algebra:
+The package already provides `Galixir.Algebras.PGA3`, which adds point, motor, and geometry helpers to the generated operations. For example, align two pairs of corresponding points and transform a third point:
 
 ```elixir
-defmodule Example do
-  import Galixir.Algebras.PGA3
+alias Galixir.Algebras.PGA3
 
- def align(ps, qs) do
-    # https://observablehq.com/@enkimute/glu-lookat-in-3d-pga
-    initial_m = identity = one()
-    initial_q = dual(one())
+from = [PGA3.point(0, 0, 0), PGA3.point(1, 0, 0)]
+to = [PGA3.point(0, 0, 0), PGA3.point(0, 1, 0)]
+motor = PGA3.align(from, to)
 
-    Enum.zip_reduce(ps, qs, {initial_m, initial_q}, fn p, q, {m, prev_q} ->
-      p = prev_q |> join(transform(p, m)) |> normalize!()
-      new_q = prev_q |> join(q) |> normalize!() |> inverse!()
-      new_m = new_q |> gp(p) |> add(identity) |> gp(m)
-      {new_m, new_q}
-    end)
-    |> elem(0)
-  end
-
-  def look_at(
-        position \\ point(0, 10, 0),
-        target \\ point(0, 0, 0),
-        pole \\ ideal_point(0, 0, 1)
-      ) do
-    align(
-      [position, target, pole],
-      [point(0, 0, 0), point(0, 0, 1), ideal_point(0, 1, 0)]
-    )
-  end
-end
-
-eye = Galixir.Algebras.PGA3.point(3, 2, 1)
-target = Galixir.Algebras.PGA3.point(0, 1, 0)
-pole = Galixir.Algebras.PGA3.ideal_point(0, 0, 1)
-
-camera_transform = Example.look_at(eye, target, pole)
-
-point_in_world = Galixir.Algebras.PGA3.point(6, 5, 4)
-point_in_screen = {sx,sy,sz} = Galixir.Algebras.PGA3.transform(camera_transform, point_in_world)
-  |> Galixir.Algebras.PGA3.point_coordinates()
-fov = 2
-projected = {sx / sz * fov, sy / sz * fov}
+PGA3.point(1, 0, 0)
+|> PGA3.transform(motor)
+|> PGA3.point_coordinates()
+# => {0.0, 1.0, 0.0}
 ```
 
 ## Installation
@@ -74,27 +36,23 @@ projected = {sx / sz * fov, sy / sz * fov}
 ```elixir
 def deps do
   [
-    {:galixir, "~> 0.27.0"}
+    {:galixir, "~> 0.34.0"}
   ]
 end
 ```
 
-Some of the concrete algebras are not fully implemented yet. `PGA2`, `PGA3` and `CGA2` are pretty complete and provide many manually implemented helper functions and doctests on top of the macro generated core.
-
-`Vector2` and `Vector3` provide classic Euclidean, non-projective vector
-algebra helpers on top of the generated core. `Complex1` remains a small
-example algebra generated via `use Galixir.GeometricAlgebra`.
+The package includes projective (`PGA2`, `PGA3`, `PGA4`), conformal (`CGA2`, `CGA3`), and Euclidean vector (`Vector2`, `Vector3`) algebras. The generated core provides multivector operations; the concrete modules offer different sets of higher-level geometry helpers. `Complex1` represents complex numbers as a geometric algebra. See the [introduction](./guides/introduction.md) for where to start.
 
 Contributions are welcome.
 
 ## Example
 
-[This Livebook](./guides/example.livemd) shows an example of how to used 3D Projective Geometric Algebra (PGA3) to render a 3D scene as SVG.
+[This Livebook](./guides/example.livemd) uses 3D projective geometric algebra (`PGA3`) to render a scene as SVG. Open it in Livebook to use the interactive camera controls.
 
-## 3d Projective Geometric Algebra
+## 3D Projective Geometric Algebra
 
 ![Preview Screenshot for projective geometric algebra in 3d](./guides/pga3.png)
 
-# 2d Conformal Geometric Algebra
+## 2D Conformal Geometric Algebra
 
 ![Preview Screenshot for conformal geometric algebra in 2d](./guides/cga2.png)

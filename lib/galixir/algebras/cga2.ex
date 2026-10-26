@@ -269,12 +269,9 @@ defmodule Galixir.Algebras.CGA2 do
   end
 
   @doc """
-  This function checks that the object has bivector grade and
-  contains finite point-pair structure. Use split/1 to extract
-  the actual points.
-
-  This function only checks the grade. Use `split/1` to determine whether
-  the bivector represents a valid point pair.
+  Returns true for a grade-2 bivector whose outer product with `e_inf` has
+  norm above `epsilon()`. This is only a candidate check, not a guarantee of
+  finite real intersection points. Use `split/1` to inspect the result.
 
   ## Examples
 
@@ -340,12 +337,18 @@ defmodule Galixir.Algebras.CGA2 do
   end
 
   @doc """
-  Splits a point pair into its two conformal points.
+  Splits a bivector into point representatives.
 
   Returns
 
-  * `{p1, p2}` for two points,
-  * `:error` if the bivector is not a valid point pair.
+  * `{p1, p2}` for a non-tangent pair,
+  * `{:tangent, p}` for a tangent pair,
+  * `:error` when it cannot split the bivector.
+
+  For disjoint circles, the pair can split into two pseudo-points whose
+  Euclidean coordinates do not lie on either circle. Do not treat the tuple
+  alone as proof of real intersection points; check incidence with the
+  original objects when real endpoints are needed.
 
   ## Examples
 
@@ -373,7 +376,9 @@ defmodule Galixir.Algebras.CGA2 do
 
       iex> c1 = circle(point(0, 0), 1)
       iex> c2 = circle(point(5, 0), 1)
-      iex> {_, _} = split(meet(c1, c2))
+      iex> {p1, p2} = split(meet(c1, c2))
+      iex> Enum.all?([p1, p2], fn p -> contains?(c1, p) or contains?(c2, p) end)
+      false
 
       iex> l = line(point(-1, 1), point(1, 1))
       iex> c = circle(point(0, 0), 1)
@@ -454,9 +459,14 @@ defmodule Galixir.Algebras.CGA2 do
     * `{:point, {x, y}}`
     * `{:line, {a, b, c}}`
     * `{:circle, {:real | :imag, {x, y}, radius}}`
-    * `{:point_pair, p1, p2}`
-    * `{:point_pair, p}`
+    * `{:point_pair, p1, p2}` for a non-tangent pair
+    * `{:point_pair, p}` for a tangent pair
     * `{:unknown, multivector}`
+
+  Point-pair coordinates from disjoint circles can be pseudo-points rather
+  than real intersections; verify incidence before treating them as endpoints.
+  The generated `point?/1` excludes `point(0, 0)`, so the conformal origin
+  is classified as unknown even though `point_coordinates/1` accepts it.
 
   ## Examples
 
@@ -465,6 +475,9 @@ defmodule Galixir.Algebras.CGA2 do
 
       iex> classify(point(-5, 4))
       {:point, {-5.0, 4.0}}
+
+      iex> {point?(point(0, 0)), point_coordinates(point(0, 0))}
+      {false, {0.0, 0.0}}
 
       iex> {:line, {a, b, c}} = classify(line(point(0, 0), point(0, 1)))
       iex> abs(a) == 1.0 and b == 0.0 and c == 0.0

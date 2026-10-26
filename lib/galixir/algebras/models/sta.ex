@@ -1,4 +1,11 @@
 defmodule Galixir.Algebras.Models.STA do
+  @moduledoc """
+  Placeholder for a spacetime algebra model.
+
+  `use` currently generates no algebra or helper functions; the `space` and
+  `time` options are not yet used.
+  """
+
   defmacro __using__(_opts) do
     quote do
     end

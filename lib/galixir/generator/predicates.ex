@@ -25,11 +25,10 @@ defmodule Galixir.Generator.Predicates do
   def scalar_zero_check do
     quote do
       @doc """
-      A guard that checks if a floating point number is below the epsilon threshold.
-
-      Can be used in function guards:
-
-          def foo(x) when is_near_zero(x), do: x
+      A guard that checks whether `abs(num) > abs(eps)` (default `eps` is
+      the algebra's `epsilon/0`). Use it in guards as `is_above_epsilon/1` or
+      `is_above_epsilon/2`. `above_epsilon?/1` and `/2` return the same test
+      as ordinary functions.
       """
 
       @doc group: :predicates
@@ -60,8 +59,9 @@ defmodule Galixir.Generator.Predicates do
       @doc """
       Checks whether a multivector contains only a scalar component.
 
-      Components with an absolute value smaller than `eps` are considered
-      zero.
+      Non-scalar components with absolute value at most `1.0e-12` are
+      considered zero. This threshold is independent of `epsilon/0`;
+      the scalar coefficient is not checked.
 
       ## Examples
 
@@ -141,7 +141,7 @@ defmodule Galixir.Generator.Predicates do
       end
 
       @doc """
-      A guard that matches multi vectors that are all zero.
+      A guard that matches multivectors whose coefficients are exactly zero.
 
       Can be used in function guards:
 
@@ -162,11 +162,12 @@ defmodule Galixir.Generator.Predicates do
 
         quote do
           @doc """
-          Checks whether a multivector is a blade.
+          Checks whether a multivector is grade-homogeneous.
 
-          A blade is a multivector containing components from at most one grade.
-
-          Scalars are considered blades.
+          This predicate treats a multivector with at most one non-zero grade
+          as a blade; it does not test decomposability. In dimensions four and
+          above, a homogeneous multivector need not be a simple blade.
+          Scalars and zero pass.
 
           ## Examples
 
@@ -191,11 +192,10 @@ defmodule Galixir.Generator.Predicates do
 
         quote do
           @doc """
-          Checks whether a multivector is a blade.
+          Checks whether a multivector is grade-homogeneous.
 
-          A blade is a multivector containing components from at most one grade.
-
-          Scalars are considered blades.
+          This predicate treats a multivector with at most one non-zero grade
+          as a blade; it does not test decomposability. Scalars and zero pass.
 
           ## Examples
 
@@ -266,6 +266,11 @@ defmodule Galixir.Generator.Predicates do
       end)
 
     quote do
+      @doc """
+      Guard equivalent to checking grade homogeneity, including zero and scalars.
+      It does not check whether a homogeneous multivector is decomposable.
+      See `blade?/1`.
+      """
       @doc group: :predicates
       defguard is_blade(mv) when unquote(guard_condition)
     end

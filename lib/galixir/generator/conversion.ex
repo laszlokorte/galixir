@@ -10,9 +10,10 @@ defmodule Galixir.Generator.Conversion do
   def conversion_impl() do
     quote do
       @doc """
-      Turns a Multivector with only a scalar part into an elixir number.
+      Returns the scalar coefficient as an Elixir number.
 
-      Raises if the given Multivector is not grade 0.
+      Raises `ArgumentError` if `scalar?/1` is false (non-scalar
+      coefficients above its fixed `1.0e-12` threshold).
 
           iex> ~G[3.0] |> to_scalar()
           3.0
@@ -32,7 +33,8 @@ defmodule Galixir.Generator.Conversion do
       end
 
       @doc """
-      Turns a Multivector with only a scalar part into an elixir number.
+      Returns `{:ok, coefficient}` if `scalar?/1` holds, or `:error` otherwise.
+      This uses the same fixed tolerance as `scalar?/1`.
 
           iex> ~G[3.0] |> scalar()
           {:ok, 3.0}

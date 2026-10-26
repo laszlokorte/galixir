@@ -11,7 +11,7 @@ defmodule Galixir.Generator do
 
   For example, with:
 
-      bases: {1, 2, 3}
+      bases: {"1", "2", "3"}
 
   the generator creates mappings such as:
 
@@ -28,9 +28,8 @@ defmodule Galixir.Generator do
   @doc """
   Generates a lookup table from blade names to storage indices.
 
-  The generated index corresponds to the bitmask representation of the blade
-  and is used as the position of the blade coefficient in the multivector
-  storage.
+  Each map value is the blade bitmask and also the position of its coefficient
+  in multivector storage.
 
   For example, for a three-dimensional algebra:
 
@@ -43,7 +42,7 @@ defmodule Galixir.Generator do
       :e123   -> 7
 
   The index is a bitmask, where each bit represents the presence of a basis
-  vector.
+  vector. Names use the supplied `bases` identifiers.
   """
   def blade_indices(bases) when is_tuple(bases) do
     dimensions = tuple_size(bases)
@@ -137,10 +136,10 @@ defmodule Galixir.Generator do
 
   ## Examples
 
-      iex> Galixir.Generator.blade_atom(0, {1, 2, 3})
+      iex> Galixir.Generator.blade_atom(0, {"1", "2", "3"})
       :scalar
 
-      iex> Galixir.Generator.blade_atom(3, {1, 2, 3})
+      iex> Galixir.Generator.blade_atom(3, {"1", "2", "3"})
       :e12
   """
   def blade_atom(0, _bases), do: :scalar

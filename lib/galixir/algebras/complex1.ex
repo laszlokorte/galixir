@@ -129,7 +129,7 @@ defmodule Galixir.Algebras.Complex1 do
   @doc """
   Computes the multiplicative inverse.
 
-  For a non-zero complex number:
+  Requires a non-zero complex number (zero causes division by zero):
 
       z⁻¹ = conjugate(z) / |z|²
   """
@@ -143,7 +143,7 @@ defmodule Galixir.Algebras.Complex1 do
   @doc """
   Computes the complex argument.
 
-  Returns the angle in radians:
+  Returns the principal angle in radians via `atan2` (undefined at zero):
 
       atan2(imaginary, real)
   """
@@ -176,7 +176,7 @@ defmodule Galixir.Algebras.Complex1 do
   end
 
   @doc """
-  Computes the principal complex logarithm.
+  Computes the principal complex logarithm of a non-zero number.
 
   Returns:
 
@@ -190,7 +190,8 @@ defmodule Galixir.Algebras.Complex1 do
   end
 
   @doc """
-  Computes complex exponentiation.
+  Raises a non-zero complex number to a real scalar exponent `t` using
+  the principal logarithm.
 
   Calculates:
 
@@ -206,7 +207,10 @@ defmodule Galixir.Algebras.Complex1 do
   end
 
   @doc """
-  Computes the scalar product of two multivectors.
+  Returns the scalar part of the geometric product.
+
+  For `a + bj` and `c + dj`, this is `a*c - b*d`, not the usual
+  conjugate-based Hermitian product.
   """
   def scalar_product(a, b) do
     scalar_part(gp(a, b))

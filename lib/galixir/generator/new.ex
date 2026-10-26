@@ -17,6 +17,23 @@ defmodule Galixir.Generator.New do
 
   def new_impl(blade_count) do
     quote do
+      @doc """
+      Constructs a multivector from blade coefficients or a coefficient tuple.
+
+      A keyword list (or list of `{blade, coefficient}` pairs) accepts canonical
+      blade names and reordered aliases; repeated terms are added together.
+      Missing coefficients default to zero. A tuple must contain exactly
+      #{unquote(blade_count)} coefficients in blade-bitmask order and is used
+      as given, without conversion or validation of its elements.
+
+      ## Examples
+
+          iex> new()
+          new()
+
+          iex> new(scalar: 2)
+          new(scalar: 2)
+      """
       @doc group: :construction
       def new(basis \\ [])
 

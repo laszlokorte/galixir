@@ -91,12 +91,16 @@ defmodule Galixir.Algebras.Models.CGA do
 
     coordinates_doc = """
     Extracts the #{dim} Euclidean coordinates of a finite conformal point,
-    independently of its nonzero homogeneous scale.
+    independently of its homogeneous scale, provided the weight
+    `-p · e_inf` has magnitude greater than `epsilon()`. A nonzero weight
+    at or below that threshold raises the same "point at infinity" error.
 
     ## Examples
 
         iex> #{point_call} |> scale(7) |> point_coordinates()
         #{sample_tuple}
+        iex> #{point_call} |> scale(1.0e-12) |> point_coordinates()
+        ** (ArgumentError) cannot extract coordinates from point at infinity
     """
 
     translator_doc = """
@@ -228,7 +232,11 @@ defmodule Galixir.Algebras.Models.CGA do
       end
 
       @doc """
-      Returns whether a multivector is a finite grade-1 null conformal point.
+      Returns whether a multivector is a grade-1 null conformal point whose
+      `p · e_o` magnitude exceeds `epsilon()`.
+
+      This generated predicate does not recognize the conformal origin:
+      `e_o · e_o = 0`. A concrete algebra may override it to include the origin.
 
       ## Examples
 

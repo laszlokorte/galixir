@@ -114,10 +114,10 @@ defmodule Galixir.Algebras.Hyper1 do
 
   returns:
 
-      |z|² = a² - b²
+      N(z) = z * conjugate(z) = a² - b²
 
-  The norm is not positive definite because hyperbolic numbers have an
-  indefinite metric.
+  This signed quantity can be negative or zero for non-zero numbers;
+  it is not a non-negative magnitude squared.
   """
   def norm_squared(z) do
     coefficient(
@@ -172,11 +172,14 @@ defmodule Galixir.Algebras.Hyper1 do
   end
 
   @doc """
-  Computes the principal hyperbolic logarithm.
+  Computes a real split-complex logarithm in the positive timelike cone.
 
-  Returns:
+  For `z = a + bj` with `a > |b|`, returns:
 
-      log(z) = log(|z|) + atanh(b/a)j
+      log(z) = log(sqrt(a² - b²)) + atanh(b/a)j
+
+  Outside this domain the implementation may raise or return a value whose
+  exponential is not `z`; it does not handle the other timelike cone.
   """
   def log(z) do
     a = real(z)
@@ -192,7 +195,8 @@ defmodule Galixir.Algebras.Hyper1 do
   end
 
   @doc """
-  Computes hyperbolic exponentiation.
+  Raises a hyperbolic number in the positive timelike cone to a real
+  scalar exponent `t` via `log/1`.
 
   Calculates:
 
@@ -208,7 +212,10 @@ defmodule Galixir.Algebras.Hyper1 do
   end
 
   @doc """
-  Computes the scalar product of two hyperbolic multivectors.
+  Returns the scalar part of the geometric product.
+
+  For `a + bj` and `c + dj`, this is `a*c + b*d`, not the
+  conjugate-based bilinear form `a*c - b*d`.
   """
   def scalar_product(a, b) do
     scalar_part(gp(a, b))

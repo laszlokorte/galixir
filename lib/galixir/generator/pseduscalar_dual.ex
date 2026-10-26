@@ -20,8 +20,9 @@ defmodule Galixir.Generator.PseudoscalarDual do
       @doc """
       Returns the pseudoscalar dual of a multivector.
 
-      The dual is computed by multiplying the multivector by the inverse
-      of the algebra's pseudoscalar.
+      The dual is computed by right-multiplying the multivector by the inverse
+      of the algebra's pseudoscalar. For general mixed-grade multivectors,
+      the geometric product may contain multiple grades.
 
       This operation is only defined for non-degenerate algebras, where
       the pseudoscalar is invertible.
@@ -48,7 +49,7 @@ defmodule Galixir.Generator.PseudoscalarDual do
       @doc """
       Returns the inverse pseudoscalar dual of a multivector.
 
-      This multiplies the multivector by the algebra's pseudoscalar
+      This right-multiplies the multivector by the algebra's pseudoscalar
       and reverses the operation performed by `dual/1`.
 
 

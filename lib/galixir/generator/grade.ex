@@ -178,9 +178,7 @@ defmodule Galixir.Generator.Grade do
       @doc """
       Returns the grade of a homogeneous multivector.
 
-      The zero multivector is considered grade 0.
-
-      Returns `nil` for mixed-grade multivectors.
+      Returns `nil` for mixed-grade and zero multivectors.
 
       # Examples
 
@@ -216,6 +214,8 @@ defmodule Galixir.Generator.Grade do
   end
 
   def guard_impl(blade_indices) do
+    {first_blade, 1} = Enum.find(blade_indices, fn {_blade, index} -> index == 1 end)
+
     conditions =
       for {grade, condition} <- grade_guard_conditions(blade_indices) do
         quote do
@@ -234,10 +234,10 @@ defmodule Galixir.Generator.Grade do
       @doc """
       Checks whether a multivector contains components of the given grade only.
 
-      A multivector is considered to have a grade if all non-zero components belong
-      to that grade. The zero multivector is considered to have grade 0.
+      A non-zero multivector has grade `g` if all non-zero components belong
+      to that grade. The zero multivector matches grade 0 only.
 
-      The `is_grade(vector, grade)` guard can be used in function guards:
+      The `is_grade(mv, grade)` guard can be used in function guards:
 
           def foo(mv) when is_grade(mv, 1) do
             mv
@@ -245,10 +245,10 @@ defmodule Galixir.Generator.Grade do
 
       ## Examples
 
-          iex> grade?(new(e1: 1), 1)
+          iex> grade?(new(#{unquote(first_blade)}: 1), 1)
           true
 
-          iex> grade?(new(scalar: 1, e1: 2), 2)
+          iex> grade?(new(scalar: 1, #{unquote(first_blade)}: 2), 1)
           false
 
           iex> grade?(new(scalar: 1), 0)
@@ -266,15 +266,15 @@ defmodule Galixir.Generator.Grade do
       @doc """
       Checks whether a multivector contains components of the given grade only.
 
-      A multivector is considered to have a grade if all non-zero components belong
-      to that grade. The zero multivector is considered to have grade 0.
+      A non-zero multivector has grade `g` if all non-zero components belong
+      to that grade. The zero multivector matches grade 0 only.
 
       ## Examples
 
-          iex> grade?(new(e1: 1), 1)
+          iex> grade?(new(#{unquote(first_blade)}: 1), 1)
           true
 
-          iex> grade?(new(scalar: 1, e1: 2), 2)
+          iex> grade?(new(scalar: 1, #{unquote(first_blade)}: 2), 1)
           false
 
           iex> grade?(new(scalar: 1), 0)

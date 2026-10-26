@@ -1,4 +1,12 @@
 defmodule Galixir.Algebras.Models.Vector do
+  @moduledoc """
+  Generates a Euclidean geometric algebra from a tuple of coordinate names.
+
+  `use Galixir.Algebras.Models.Vector, dimensions: {"x", "y"}` defines
+  Cartesian vector and bivector helpers in the using module. The generated
+  `rotor/2` represents an axis rotation only in three dimensions.
+  """
+
   @example_values [3.0, 4.0, 5.0, -3.0, -5.0, -4.0, 1.0, 3.0, 5.0, 1.0]
 
   defp example_values(count) do
@@ -78,8 +86,9 @@ defmodule Galixir.Algebras.Models.Vector do
 
       Bivectors represent oriented planes and generate rotations. The
       pseudoscalar `e#{unquote(for(d <- 1..dim, do: d) |> Enum.join(""))}`
-      dualizes vectors and bivectors, which makes the familiar
-      three-dimensional cross product available.
+      maps grade-`k` blades to complementary grade-`#{unquote(dim)} - k` blades
+      under Hodge duality. In three dimensions, this gives the familiar
+      vector cross product.
 
       #{unquote(additional_docs)}
       """
@@ -244,9 +253,9 @@ defmodule Galixir.Algebras.Models.Vector do
       def distance(a, b), do: len(sub(a, b))
 
       @doc """
-      Creates an oriented bivector from its `xy`, `yz`, and `zx` components.
+      Creates an oriented bivector from its coordinate-plane components.
 
-          B = xy*e12 + yz*e23 + zx*e31
+          B = #{unquote(Enum.zip_with(bidimnames, bibases, fn name, basis -> "#{name}*e#{basis}" end) |> Enum.join(" + "))}
 
       ## Examples
 
@@ -256,7 +265,7 @@ defmodule Galixir.Algebras.Models.Vector do
       def bivector(unquote_splicing(biargs)), do: new(unquote(bifields))
 
       @doc """
-      Extracts the `xy`, `yz`, and `zx` components of a bivector.
+      Extracts a bivector's coordinate-plane components in basis order.
 
       ## Examples
 
@@ -300,9 +309,11 @@ defmodule Galixir.Algebras.Models.Vector do
       )
 
       @doc """
-      Creates a rotor around non-zero vector `axis` by `angle` radians.
+      Constructs `cos(angle/2) - sin(angle/2) * hodge_dual(normal(axis))`.
 
-      Positive angles follow the right-hand rule around the axis.
+      In three dimensions, this is a rotor about non-zero `axis`; positive
+      angles follow the right-hand rule. In other dimensions, this expression
+      does not generally produce a rotation rotor.
 
       ## Examples
 
@@ -324,9 +335,11 @@ defmodule Galixir.Algebras.Models.Vector do
       end
 
       @doc """
-      Rotates a vector or multivector with rotor `r`.
+      Applies the sandwich product `r*v*reverse(r)` to a multivector.
 
-      Applies the sandwich product `R*v*reverse(R)`.
+      When `r` is a rotation rotor, this rotates `v`. In particular, `rotor/2`
+      constructs such a rotor in three dimensions, but not generally in two
+      or four dimensions.
 
       ## Examples
 
@@ -345,7 +358,7 @@ defmodule Galixir.Algebras.Models.Vector do
       def rotate(v, r), do: gp(gp(r, v), reverse(r))
 
       @doc """
-      Reflects `v` in the plane whose normal is non-zero vector `n`.
+      Reflects vector `v` in the hyperplane whose normal is non-zero vector `n`.
 
       ## Examples
 

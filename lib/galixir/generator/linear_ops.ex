@@ -1,6 +1,9 @@
 defmodule Galixir.Generator.LinearOps do
   @moduledoc """
   Generates component-wise addition, subtraction, and scaling operations.
+
+  Generated `scale/2` accepts either `(number, multivector)` or
+  `(multivector, number)`. Addition and subtraction take two multivectors.
   """
 
   import Galixir.Generator.Utils, only: [vars: 2, tuple_ast: 1]
@@ -92,6 +95,18 @@ defmodule Galixir.Generator.LinearOps do
       end
 
     quote do
+      @doc """
+      Multiplies every coefficient of a multivector by a number.
+
+      Accepts either `scale(number, multivector)` or
+      `scale(multivector, number)`.
+
+      ## Example
+
+          iex> scale(2, new(scalar: 3))
+          new(scalar: 6)
+      """
+      @doc group: :linear
       def scale(unquote(s), %__MODULE__{data: d}) when is_number(unquote(s)) do
         %__MODULE__{data: scale(unquote(s), d)}
       end

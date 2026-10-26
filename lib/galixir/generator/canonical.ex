@@ -30,8 +30,8 @@ defmodule Galixir.Generator.Canonical do
   The generated function returns the largest absolute coefficient contained
   in a multivector.
 
-  This is commonly used when selecting a numerically stable scale factor or
-  determining whether a multivector has a significant component.
+  This is used by `canonicalize/1` to scale a homogeneous multivector
+  so its largest absolute coefficient is one.
 
   ## Examples
 
@@ -64,7 +64,7 @@ defmodule Galixir.Generator.Canonical do
       @doc """
       Returns the maximum absolute coefficient of a multivector.
 
-      Accepts either a multivector struct or the internal coefficient tuple.
+      Accepts a multivector struct. The internal tuple helper is private.
 
       ## Example
 
@@ -91,16 +91,11 @@ defmodule Galixir.Generator.Canonical do
   Generates a `canonical_sign/1` function.
 
   The generated function returns the sign of the first non-zero coefficient
-  in storage order.
+  in blade-bitmask storage order: `1` for positive, `-1` for negative, and
+  `0` when all coefficients are zero.
 
-  It returns:
-
-    * `1`  if the first non-zero coefficient is positive
-    * `-1` if the first non-zero coefficient is negative
-    * `1`  for a completely zero multivector
-
-  The function is used to choose a deterministic sign representation for
-  objects that are equivalent up to a scalar sign.
+  The function is used by `canonicalize/1` to choose a deterministic sign
+  for a homogeneous multivector.
 
   ## Examples
 

@@ -23,9 +23,13 @@ defmodule Galixir.Generator.Inspect do
 
     quote do
       @doc """
-      Formats this multivector as geometric algebra notation.
+      Formats a multivector using the generated `Inspect` implementation.
 
-      This is the same representation used by `Inspect`.
+      Accepts an `Inspect.Opts` struct, as supplied by `Kernel.inspect/2`.
+      Custom options include `:all_blades` (show zero terms), `:short_ones`
+      (omit unit coefficients on non-scalar blades), `:epsilon` (display
+      sufficiently small non-zero terms as `ε`), and `:skip_epsilon`
+      (hide terms whose absolute coefficient is at most `:epsilon`).
 
       ## Examples
 
@@ -37,9 +41,6 @@ defmodule Galixir.Generator.Inspect do
         {:scalar, _} -> "0.0"
         {b, _} -> "0.0#{b}"
       end) |> then(&"~G[#{&1}]"))}"
-
-          iex> inspect(new(scalar: -2))
-          "~G[-2.0]"
 
           iex> inspect(new(scalar: 2))
           "~G[2.0]"
@@ -68,10 +69,11 @@ defmodule Galixir.Generator.Inspect do
           iex> inspect(new(#{unquote(first_blade)}: -2))
           "~G[-2.0#{unquote(first_blade)}]"
 
-          iex> inspect(~G[ε + εe1])
-          "~G[ε + εe1]"
-          iex> inspect(~G[-ε - εe1])
-          "~G[-ε - εe1]"
+          iex> inspect(new(scalar: epsilon(), #{unquote(first_blade)}: epsilon()))
+          "~G[ε + ε#{unquote(first_blade)}]"
+
+          iex> inspect(new(scalar: -epsilon(), #{unquote(first_blade)}: -epsilon()))
+          "~G[-ε - ε#{unquote(first_blade)}]"
       """
 
       @doc group: :formatting

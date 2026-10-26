@@ -1,6 +1,6 @@
 defmodule Galixir.Generator.Inverse do
   @moduledoc """
-  Generates inverse operations based on multivector reversion.
+  Generates inverse operations using reversion when the reverse product is scalar.
   """
 
   alias Galixir.GeneratorBehaviour
@@ -26,16 +26,11 @@ defmodule Galixir.Generator.Inverse do
 
           inverse!(a) = reverse(a) / scalar_part(a * reverse(a))
 
-          This formula is valid when `a * reverse(a)` is a non-zero scalar.
-
-          Raises `ArgumentError` if the multivector is not invertible by this formula.
+          The reverse product must pass `scalar?/1` and its scalar coefficient
+          must exceed `epsilon/0` in absolute value. Raises `ArgumentError`
+          otherwise.
 
           ## Examples
-
-              iex> inverse!(
-              ...>   new(#{unquote(first_blade)}: 2)
-              ...> )
-              new(#{unquote(first_blade)}: #{unquote(2 / metric / 4)})
 
               iex> inverse!(
               ...>   new(#{unquote(first_blade)}: 2)
@@ -56,9 +51,9 @@ defmodule Galixir.Generator.Inverse do
 
           inverse!(a) = reverse(a) / scalar_part(a * reverse(a))
 
-          This formula is valid when `a * reverse(a)` is a non-zero scalar.
-
-          Raises `ArgumentError` if the multivector is not invertible by this formula.
+          The reverse product must pass `scalar?/1` and its scalar coefficient
+          must exceed `epsilon/0` in absolute value. Raises `ArgumentError`
+          otherwise.
 
           ## Examples
 
@@ -85,16 +80,12 @@ defmodule Galixir.Generator.Inverse do
 
           `inverse(a) = reverse(a) / scalar_part(a * reverse(a))`
 
-          This formula is valid when `a * reverse(a)` is a non-zero scalar.
-
-          Returns either `{:ok, result}` if inverse can be compute or :error otherwise
+          The reverse product must pass `scalar?/1` (which has its own fixed
+          tolerance), and its scalar coefficient must exceed `epsilon/0` in
+          absolute value. Returns `{:ok, result}` if both checks pass, or
+          `:error` otherwise.
 
           ## Examples
-
-              iex> inverse(
-              ...>   new(#{unquote(first_blade)}: 2)
-              ...> )
-              {:ok, new(#{unquote(first_blade)}: #{unquote(2 / metric / 4)}) }
 
               iex> inverse(
               ...>   new(#{unquote(first_blade)}: 2)
@@ -114,11 +105,11 @@ defmodule Galixir.Generator.Inverse do
 
           The inverse is computed using the reverse:
 
-          `inverse!(a) = reverse(a) / scalar_part(a * reverse(a))`
+          `inverse(a) = reverse(a) / scalar_part(a * reverse(a))`
 
-          This formula is valid when `a * reverse(a)` is a non-zero scalar.
-
-          Returns either `{:ok, result}` if inverse can be compute or `:error` otherwise
+          Returns `{:ok, result}` when the reverse product passes `scalar?/1`
+          and its scalar coefficient exceeds `epsilon/0` in absolute value;
+          otherwise returns `:error`.
 
           ## Examples
 
@@ -128,7 +119,7 @@ defmodule Galixir.Generator.Inverse do
               {:ok, new(scalar: 0.5)}
 
               iex> inverse(new(#{unquote(first_blade)}: 1))
-              ...> :error
+              :error
           """
         end
       end
@@ -162,6 +153,14 @@ defmodule Galixir.Generator.Inverse do
         end
       end
 
+      @doc """
+      Computes `reverse(b) / scalar_part(b * reverse(b))`.
+
+      Intended for a non-null simple blade, whose reverse product is scalar.
+      Unlike `inverse!/1`, this does not check that the reverse product is
+      scalar; it only checks that its scalar part exceeds `epsilon/0` in
+      absolute value and raises `ArgumentError` otherwise.
+      """
       @doc group: :inverse
       def blade_inverse(b) do
         rev = reverse(b)

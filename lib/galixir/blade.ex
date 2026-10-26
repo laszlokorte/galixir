@@ -95,8 +95,8 @@ defmodule Galixir.Blade do
   @doc """
   Calculates the sign required to reorder two blades into canonical order.
 
-  When multiplying blades, basis vectors from the left blade must be moved
-  before those from the right blade. Each swap changes the sign of the result.
+  When multiplying blades, the concatenated basis vectors are reordered into
+  canonical order. Each swap of vectors from opposite operands changes the sign.
 
   Returns:
 
@@ -125,9 +125,9 @@ defmodule Galixir.Blade do
   @doc """
   Calculates the sign contribution of dualizing a blade.
 
-  The dual of a blade is computed relative to the pseudoscalar of the algebra.
-  This function determines the sign introduced when moving the blade and its
-  complement into canonical order.
+  This is the orientation sign used by the metric-independent Hodge dual:
+  it is the sign of the wedge product of the blade with its complement
+  in pseudoscalar order. It does not incorporate the metric.
 
   """
   def dual_sign(mask, dimension) do

@@ -15,7 +15,9 @@ defmodule Galixir.Algebras.CGA3 do
 
   @doc """
   Constructs an OPNS sphere from its center and signed radius. Negative radii
-  denote imaginary spheres (negative squared radius).
+  encode negative squared radius. `sphere_parameters/1` classifies squared
+  radii within `1.0e-10` of zero as tangent, so a sufficiently small negative
+  radius can be reported as tangent rather than imaginary.
 
   ## Examples
 
@@ -23,6 +25,8 @@ defmodule Galixir.Algebras.CGA3 do
       {:sphere, {:real, {1.0, 2.0, 3.0}, 4.0}}
       iex> sphere_parameters(sphere(point(0, 0, 0), -2))
       {:sphere, {:imag, {0.0, 0.0, 0.0}, 2.0}}
+      iex> sphere_parameters(sphere(0, 0, 0, -1.0e-6))
+      {:sphere, {:tangent, {0.0, 0.0, 0.0}, 0.0}}
   """
   def sphere(center, radius) do
     sub(center, scale(0.5 * radius * abs(radius), e_inf()))
@@ -32,12 +36,17 @@ defmodule Galixir.Algebras.CGA3 do
   def sphere(x, y, z, radius), do: sphere(point(x, y, z), radius)
 
   @doc """
-  Constructs an OPNS sphere through four conformal points. Coplanar inputs
-  instead produce a plane.
+  Constructs an OPNS sphere through four conformal points. Four coplanar,
+  noncocircular points produce a plane; four cocircular points produce a
+  degenerate zero blade instead.
 
       iex> s = sphere_from_points(point(1, 0, 0), point(0, 1, 0), point(0, 0, 1), point(-1, 0, 0))
       iex> sphere_parameters(s)
       {:sphere, {:real, {0.0, 0.0, 0.0}, 1.0}}
+      iex> plane?(sphere_from_points(point(0, 0, 0), point(1, 0, 0), point(0, 1, 0), point(2, 2, 0)))
+      true
+      iex> zero?(sphere_from_points(point(0, 0, 0), point(1, 0, 0), point(0, 1, 0), point(1, 1, 0)))
+      true
   """
   def sphere_from_points(a, b, c, d), do: wedge(join(a, b, c), d)
 
@@ -73,7 +82,8 @@ defmodule Galixir.Algebras.CGA3 do
 
   @doc """
   Constructs an OPNS circle in the plane through `center`, with the given
-  normal. A negative radius denotes an imaginary circle.
+  normal. A negative radius encodes a negative squared radius; values close
+  enough to zero are classified as tangent by `circle_parameters/1`.
 
   ## Examples
 
@@ -215,8 +225,10 @@ defmodule Galixir.Algebras.CGA3 do
     do: grade?(b, 2) and not zero?(b) and not near_zero?(wedge(b, e_inf()), b)
 
   @doc """
-  Extracts a sphere's center and real, imaginary or tangent radius. Returns
-  `:error` for planes or invalid spheres.
+  Extracts a sphere's center and real, imaginary or tangent radius. Squared
+  radii from `-1.0e-10` through `1.0e-10` are classified as tangent with
+  radius `0.0`, including spheres constructed with small negative radii.
+  Returns `:error` for planes or invalid spheres.
   """
   def sphere_parameters(s) do
     if grade?(s, 4) and not zero?(s) do
@@ -255,8 +267,9 @@ defmodule Galixir.Algebras.CGA3 do
   end
 
   @doc """
-  Extracts circle center, radius and unit normal, or `:error`. An imaginary
-  circle has a negative squared radius; a radius-zero circle is tangent.
+  Extracts circle center, radius and unit normal, or `:error`. Negative
+  squared radii below `-1.0e-10` are imaginary; squared radii within
+  `1.0e-10` of zero are classified as tangent with radius `0.0`.
   The normal follows the oriented circle blade: multiplying the blade by a
   negative number reverses it. For circles joined from points it is opposite
   to `plane_from_points/3` for the same ordered inputs.

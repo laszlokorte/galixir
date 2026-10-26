@@ -1,11 +1,16 @@
 defmodule Galixir.Algebras.PGA3 do
   use Galixir.Algebras.Models.PGA, dimensions: {"x", "y", "z"}
 
-  @doc "Applies a normalized motor using its reverse in the sandwich product."
+  @doc """
+  Applies a unit motor using its reverse as inverse in the sandwich product.
+  The motor must satisfy `motor * reverse(motor) = 1`; non-unit motors do not
+  preserve the intended geometry.
+  """
   def transform(object, motor), do: gp(gp(motor, object), reverse(motor))
 
   @doc """
-  Creates a line through two points (a grade-2 blade).
+  Creates a line through two distinct points (grade 2). Coincident
+  homogeneous points give the zero multivector, not a unique line.
 
       iex> grade(line(point(0, 0, 0), point(1, 0, 0)))
       2
@@ -13,14 +18,15 @@ defmodule Galixir.Algebras.PGA3 do
   def line(a, b), do: join(a, b)
 
   @doc """
-  Creates a plane `ax + by + cz + d = 0` (a grade-1 blade).
+  Creates a plane `ax + by + cz + d = 0` (grade 1) when the normal
+  `(a, b, c)` is nonzero. A zero normal gives an ideal hyperplane or zero.
 
       iex> incident?(plane(0, 0, 1, -3), point(1, 2, 3))
       true
   """
   def plane(a, b, c, d), do: new(e1: a, e2: b, e3: c, e0: d)
 
-  @doc "Creates a plane from a Euclidean normal vector and a finite point."
+  @doc "Creates a plane from a nonzero Euclidean normal vector and a finite point."
   def plane_from_normal_point(n, p) do
     n = normalize!(n)
     {x, y, z} = point_coordinates(p)
@@ -33,7 +39,7 @@ defmodule Galixir.Algebras.PGA3 do
   @doc "Returns the Euclidean normal vector of a plane."
   def plane_normal(p), do: vector(coefficient(p, :e1), coefficient(p, :e2), coefficient(p, :e3))
 
-  @doc "Returns the normalized normal vector of a plane."
+  @doc "Returns the normalized normal vector of a finite plane; requires a nonzero normal."
   def normalized_plane_normal(p), do: normalize!(plane_normal(p))
 
   @doc """
@@ -46,14 +52,15 @@ defmodule Galixir.Algebras.PGA3 do
   """
   def ideal_line?(l), do: grade?(l, 2) and zero?(wedge(l, new(e0: 1)))
 
-  @doc "Checks whether two lines have the same direction (including identical lines)."
+  @doc "Checks whether two nondegenerate finite lines have the same direction (including identical lines). Ideal or zero lines have no usable direction here."
   def parallel?(line_a, line_b), do: coincident?(direction_point(line_a), direction_point(line_b))
 
-  @doc "Returns the ideal point representing the direction of a line."
+  @doc "Returns the ideal point representing the direction of a finite line. Ideal or zero lines give the zero multivector."
   def direction_point(line), do: meet(line, new(e0: 1))
 
   @doc """
-  Returns the Euclidean direction vector of a line.
+  Returns the Euclidean direction vector of a finite line. Its magnitude
+  depends on the line's scale; ideal or zero lines give zero.
 
       iex> direction_vector(line(point(1, 2, 3), point(2, 3, 4)))
       new(e1: 1, e2: 1, e3: 1)
@@ -63,11 +70,12 @@ defmodule Galixir.Algebras.PGA3 do
     vector(coefficient(d, :e032), coefficient(d, :e013), coefficient(d, :e021))
   end
 
-  @doc "Returns the normalized direction vector of a line."
+  @doc "Returns the normalized direction vector of a finite line; requires a nonzero direction."
   def normalized_direction_vector(line), do: normalize!(direction_vector(line))
 
   @doc """
-  Creates a rotation motor about a line axis.
+  Creates a rotation motor about a nondegenerate finite line axis.
+  An ideal or null axis cannot be normalized.
 
       iex> axis = line(point(0, 0, 0), point(0, 0, 1))
       iex> {x, y, z} = point_coordinates(transform(point(1, 0, 0), rotor(axis, :math.pi() / 2)))
@@ -82,7 +90,8 @@ defmodule Galixir.Algebras.PGA3 do
   end
 
   @doc """
-  Normalizes a line used as a rotation axis. Raises for a null line.
+  Normalizes a nondegenerate finite line used as a rotation axis. Raises
+  for a null line (including an ideal line).
 
       iex> n = normalize_line(line(point(0, 0, 0), point(0, 0, 1)))
       iex> scalar_part(gp(n, n))
@@ -95,8 +104,11 @@ defmodule Galixir.Algebras.PGA3 do
   end
 
   @doc """
-  Computes a motor aligning corresponding finite or ideal points.
-  An empty list returns the identity motor. Lines and planes are not direct constraints.
+  Computes a motor aligning corresponding points. An empty list returns
+  the identity motor. Use nondegenerate finite points first; subsequent ideal
+  points require normalizable intermediate joins. An ideal point as the first
+  constraint makes the intermediate normalization fail. Lines and planes are
+  not direct constraints. Degenerate or incompatible constraints may also fail.
 
       iex> align([], []) == one()
       true
@@ -115,6 +127,9 @@ defmodule Galixir.Algebras.PGA3 do
 
       iex> align([origin()], [])
       ** (ArgumentError) cannot align different numbers of objects
+
+      iex> align([ideal_point(1, 0, 0)], [ideal_point(0, 1, 0)])
+      ** (ArgumentError) cannot normalize given null multivector ...
   """
   def align([], []), do: one()
 
@@ -135,11 +150,16 @@ defmodule Galixir.Algebras.PGA3 do
     |> elem(0)
   end
 
-  @doc "Computes the logarithm of a motor."
+  @doc """
+  Extracts a bivector for a translation motor with nonzero scalar part.
+  Used with `motor_exp/1` for translations; this is not a general rotation
+  or screw motor logarithm. A zero scalar part causes division by zero.
+  """
   def motor_log(mot), do: scale(grade(mot, 2), 1 / coefficient(mot, :scalar))
 
   @doc """
-  Computes the exponential of a bivector motor logarithm.
+  Reconstructs a translation motor from the ideal bivector returned by
+  `motor_log/1`. This is not a general bivector exponential for rotations.
 
       iex> t = translator(5, 0, 0)
       iex> motor_exp(motor_log(t)) |> normalize!() == normalize!(t)
@@ -154,7 +174,10 @@ defmodule Galixir.Algebras.PGA3 do
   end
 
   @doc """
-  Raises a motor to a scalar power for interpolation.
+  Raises a translation motor to a scalar power for translation interpolation.
+  This is not a general motor power for rotations or screw motions: even a
+  90-degree rotor raised to `0.5` gives an incorrect rotation, and a
+  180-degree rotor can raise during normalization.
 
       iex> point_coordinates(transform(origin(), motor_pow(translator(10, 0, 0), 0.5)))
       {5.0, 0.0, 0.0}

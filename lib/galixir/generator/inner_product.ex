@@ -1,6 +1,10 @@
 defmodule Galixir.Generator.InnerProduct do
   @moduledoc """
-  Generates inner, left-contraction, and right-contraction product functions.
+  Generates `inner/2`, `left_contraction/2`, and `right_contraction/2`.
+
+  `inner/2` uses the absolute grade-difference convention, including
+  scalar-grade terms; the contractions retain only grade differences in
+  their respective directions.
   """
 
   import Galixir.Generator.Utils,
@@ -128,8 +132,13 @@ defmodule Galixir.Generator.InnerProduct do
       @doc """
       Computes the #{unquote(operation_name)} of two multivectors.
 
-      The operation is generated from the geometric product and retains only
-      terms satisfying the grade selection rule.
+      It retains the geometric-product terms of grades
+      #{unquote(case mode do
+        :inner -> "|grade(a) - grade(b)| for homogeneous inputs (including scalar terms)"
+        :left -> "grade(b) - grade(a) when grade(a) <= grade(b)"
+        :right -> "grade(a) - grade(b) when grade(a) >= grade(b)"
+      end)}.
+      For mixed-grade inputs the rule is applied to each pair of grade components.
 
       ## Example
 
@@ -137,6 +146,7 @@ defmodule Galixir.Generator.InnerProduct do
           ...>   new(#{unquote(first_blade)}: 2),
           ...>   new(#{unquote(first_blade)}: 3)
           ...> )
+          new(scalar: #{unquote(6 * elem(metric, 0))})
 
       """
 

@@ -9,7 +9,7 @@ defmodule Galixir do
   construct and manipulate them.
 
   Galixir provides tools for defining geometric algebras with arbitrary
-  metrics and automatically generating the operations required to work
+  diagonal metrics and automatically generating the operations required to work
   with them.
 
   ## Geometric Algebras
@@ -19,7 +19,7 @@ defmodule Galixir do
      defmodule PGA3 do
        use Galixir.GeometricAlgebra,
          metric: {1, 1, 1, 0},
-         bases: {1, 2, 3, 0}
+         bases: {"1", "2", "3", "0"}
      end
 
   This creates a projective geometric algebra for 3D Euclidean geometry
@@ -27,7 +27,7 @@ defmodule Galixir do
 
     * geometric product (`gp/2`)
     * outer product (`wedge/2`)
-    * inner product (`scalar_product/2`)
+    * inner product (`inner/2`) and scalar product (`scalar_product/2`)
     * reverse
     * dual
     * inverse
@@ -39,12 +39,12 @@ defmodule Galixir do
 
       iex> import Galixir.Algebras.PGA3, only: [sigil_G: 2]
       iex> Galixir.Algebras.PGA3.new(e1: 1, e2: 2, e3: 3)
-      ~G"1.0e1 + 2.0e2 + 3.0e3"
+      ~G[1.0e1 + 2.0e2 + 3.0e3]
 
   A multivector can contain components of different grades:
       iex> import Galixir.Algebras.PGA3, only: [sigil_G: 2]
       iex> Galixir.Algebras.PGA3.new(e1: 1, e23: 2, scalar: 3)
-      ~G"3.0 + 1.0e1 + 2.0e23"
+      ~G[3.0 + 1.0e1 + 2.0e23]
 
   ## Geometry
 
@@ -86,10 +86,12 @@ defmodule Galixir do
       iex> alias Galixir.Algebras.PGA2
       iex> {a, b} = {PGA2.vector(1, 2), PGA2.vector(2, 3)}
       iex> ab = PGA2.add(PGA2.inner(a, b), PGA2.wedge(a, b))
-      iex> assert ab == PGA2.gp(a,b)
+      iex> ab == PGA2.gp(a, b)
+      true
 
-  where the geometric product combines the metric-dependent inner product
-  with the antisymmetric outer product.
+  For vectors, the geometric product splits into a metric-dependent scalar
+  part and an antisymmetric outer product. For general multivectors, `inner/2`
+  uses grade selection and this decomposition does not hold in general.
 
   Unlike traditional approaches that require different data structures for
   different geometric primitives, GA represents many geometric entities in

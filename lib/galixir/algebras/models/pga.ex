@@ -101,18 +101,14 @@ defmodule Galixir.Algebras.Models.PGA do
     origin_call = "point(#{Enum.join(ones, ", ")})"
 
     point_formula =
-      "e#{Enum.join(indices)} + " <>
-        Enum.join(
-          Enum.zip([names, ideal_bases, orientation])
-          |> Enum.map(fn {name, blade, sign} ->
-            "#{if sign < 0, do: "-", else: ""}#{name}*#{blade}"
-          end),
-          " + "
-        )
+      "e#{Enum.join(indices)}" <>
+        Enum.map_join(Enum.zip([names, ideal_bases, orientation]), fn {name, blade, sign} ->
+          "#{if sign < 0, do: " - ", else: " + "}#{name}*#{blade}"
+        end)
 
     objects =
       "hyperplanes are grade-1 vectors; " <>
-        "a geometric object formed by intersecting k hyperplanes has grade k; " <>
+        "the nonzero intersection of k independent hyperplanes has grade k; " <>
         "points are grade-#{dim} blades"
 
     docs = """
@@ -120,14 +116,16 @@ defmodule Galixir.Algebras.Models.PGA do
 
     The algebra has signature `Cl(#{dim},0,1)`, metric `#{inspect(metric)}` and
     basis `#{Enum.map_join(Tuple.to_list(bases), ", ", &"e#{&1}")}`. The null
-    basis vector `e0` represents infinity. In this dual representation,
-    #{objects}. Euclidean vectors are distinct from ideal points.
+    basis vector `e0` is the ideal hyperplane (the hyperplane at infinity).
+    In this dual representation, #{objects}. Euclidean vectors are distinct
+    from ideal points. The exterior product of dependent hyperplanes vanishes.
 
     The join is `hodge_undual(wedge(hodge_dual(a), hodge_dual(b)))`;
-        the meet is `wedge(a, b)`.
-    Finite points have homogeneous coefficient `#{point_basis}` and orientation
-    `P = #{point_formula}` (with the ideal coefficients multiplied by the
-    homogeneous scale when it differs from one).
+    the meet is `wedge(a, b)`.
+    For a point with Cartesian coordinates `#{Enum.join(names, ", ")}` and
+    homogeneous coefficient `w` on `#{point_basis}`, the orientation is
+    `P = w*(#{point_formula})`. Finite coordinates require a homogeneous
+    coefficient above the implementation's epsilon threshold.
 
     ## Example
 
@@ -151,9 +149,11 @@ defmodule Galixir.Algebras.Models.PGA do
       def origin, do: point(unquote_splicing(ones))
 
       @doc """
-      Creates a point with the given homogeneous scale. A nonzero scale
-      produces a finite point. Where zero scale is accepted, it produces
-      the zero multivector, not a finite point.
+      Creates a point with the given homogeneous scale (default `1`). A zero
+      scale, where accepted, produces the zero multivector. A nonzero scale
+      gives a nonzero homogeneous component, but finite-point checks and
+      coordinate extraction use epsilon thresholds; very small scales may
+      raise during canonicalization or coordinate extraction.
 
           iex> point_coordinates(#{unquote(point_call)})
           #{unquote(tuple)}
@@ -172,7 +172,10 @@ defmodule Galixir.Algebras.Models.PGA do
       def ideal_point(unquote_splicing(coordinates)), do: new(unquote(ideal_fields))
 
       @doc """
-      Tests whether a point has a nonzero homogeneous component.
+      Tests whether a grade-#{unquote(dim)} point has a homogeneous component
+      above the epsilon threshold after canonicalization. A zero multivector
+      cannot be canonicalized; sufficiently small points may also fail
+      canonicalization.
 
           iex> finite_point?(#{unquote(point_call)})
           true
@@ -185,7 +188,9 @@ defmodule Galixir.Algebras.Models.PGA do
             above_epsilon?(coefficient(canonicalize!(p), unquote(point_basis)))
 
       @doc """
-      Tests whether a point is at infinity.
+      Tests whether a grade-#{unquote(dim)} point has a homogeneous component
+      at or below the epsilon threshold after canonicalization. A zero
+      multivector is not an ideal point and cannot be canonicalized.
 
           iex> ideal_point?(#{unquote(ideal_call)})
           true
@@ -198,7 +203,9 @@ defmodule Galixir.Algebras.Models.PGA do
             not above_epsilon?(coefficient(canonicalize!(p), unquote(point_basis)))
 
       @doc """
-      Returns Cartesian coordinates of a finite point. Raises on ideal points.
+      Returns Cartesian coordinates of a point whose raw homogeneous
+      coefficient exceeds the epsilon threshold. Raises for ideal points and
+      points with too small a homogeneous coefficient.
 
           iex> point_coordinates(#{unquote(point_call)})
           #{unquote(tuple)}
@@ -267,10 +274,15 @@ defmodule Galixir.Algebras.Models.PGA do
       defoverridable transform: 2
 
       @doc """
-      Returns the vector from finite point `a` to finite point `b`.
+      Returns the vector from `a` to `b` when both points have the same unit
+      homogeneous scale. This subtracts raw point coefficients without
+      normalizing by homogeneous weight, so other scales change the result;
+      for arbitrary finite points use `point_coordinates/1` first.
 
           iex> direction_between_points(#{unquote(origin_call)}, #{unquote(point_call)})
           new(#{unquote(Enum.zip_with(vector_bases, values, fn blade, value -> "#{blade}: #{value}" end) |> Enum.join(", "))})
+          iex> direction_between_points(#{unquote(origin_call)}, #{unquote(String.replace(point_call, ")", ", 2)"))})
+          new(#{unquote(Enum.zip_with(vector_bases, values, fn blade, value -> "#{blade}: #{2 * value}" end) |> Enum.join(", "))})
       """
       def direction_between_points(a, b) do
         d = sub(b, a)
@@ -278,7 +290,8 @@ defmodule Galixir.Algebras.Models.PGA do
       end
 
       @doc """
-      Computes the Euclidean distance between finite points.
+      Computes the Euclidean distance between finite points whose raw
+      homogeneous coefficients exceed the epsilon threshold.
 
           iex> distance(#{unquote(origin_call)}, #{unquote(point_call)})
           #{unquote(Enum.reduce(values, 0, fn x, acc -> acc + x * x end) ** 0.5)}

@@ -19,8 +19,8 @@ defmodule Galixir.Meta do
   @doc """
   Returns whether the algebra has a degenerate metric.
 
-  A metric is degenerate when at least one basis vector has a zero
-  metric value.
+  For the diagonal metrics used by Galixir, a metric is degenerate when
+  at least one basis vector has a zero square.
 
   ## Examples
 

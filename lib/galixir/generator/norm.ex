@@ -23,7 +23,8 @@ defmodule Galixir.Generator.Norm do
 
       The result may be negative for algebras with indefinite metrics.
 
-      This is also called the Spinor Magnitude.
+      This uses the scalar part even when `a * reverse(a)` has non-scalar
+      terms; it is not necessarily a positive-definite norm.
 
       ## Example
 
@@ -57,11 +58,10 @@ defmodule Galixir.Generator.Norm do
       @doc """
       Normalizes a multivector.
 
-      The result has unit norm while preserving the direction of the
-      multivector.
-
-      Raises `ArgumentError` when attempting to normalize a null
-      multivector.
+      Divides by `norm(a)` when `abs(squared_norm(a)) > epsilon/0`.
+      The result has unit norm under the `norm/1` definition, even when
+      the reverse product has non-scalar terms.
+      Raises `ArgumentError` when the squared norm is below the threshold.
 
       ## Example
 
@@ -88,6 +88,7 @@ defmodule Galixir.Generator.Norm do
         end
       end
 
+      @doc "Returns `{:ok, normalized}` if the squared norm exceeds `epsilon/0` in absolute value, or `:error` otherwise."
       @doc group: :norm
       def normalize(%__MODULE__{} = a) do
         n2 = squared_norm(a)
@@ -99,6 +100,7 @@ defmodule Galixir.Generator.Norm do
         end
       end
 
+      @doc "Like `canonicalize/1`, but raises `ArgumentError` for a mixed-grade or near-zero input."
       @doc group: :norm
       def canonicalize!(%__MODULE__{} = a) do
         canonicalize(a)
@@ -114,6 +116,15 @@ defmodule Galixir.Generator.Norm do
         end
       end
 
+      @doc """
+      Scales a grade-homogeneous multivector to make its largest absolute
+      coefficient one and its first non-zero coefficient positive.
+
+      Returns `{:error, :no_blade}` for mixed grades or `{:error, :zero}`
+      when every coefficient is at most `epsilon/0` in absolute value.
+      Otherwise returns `{:ok, result}`. Like `blade?/1`, this does not
+      test whether a homogeneous multivector is decomposable.
+      """
       @doc group: :norm
       def canonicalize(%__MODULE__{} = a) do
         case {blade?(a), max_abs_component(a)} do

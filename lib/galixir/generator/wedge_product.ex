@@ -67,12 +67,10 @@ defmodule Galixir.Generator.WedgeProduct do
           @doc """
           Computes the outer product (wedge product) of two multivectors.
 
-          The wedge product combines blades by joining their basis vectors. It is
-          antisymmetric:
-
-              a ∧ b = -(b ∧ a)
-
-          and vanishes when the operands share a basis vector.
+          The product extends the wedge of basis blades bilinearly. For homogeneous
+          grades `r` and `s`, `a ∧ b = (-1)^(r*s) (b ∧ a)`.
+          In particular, vectors anticommute; a vector wedged with itself
+          is zero. Basis blades with overlapping basis vectors wedge to zero.
 
           ## Examples
 
@@ -103,12 +101,10 @@ defmodule Galixir.Generator.WedgeProduct do
           @doc """
           Computes the outer product (wedge product) of two multivectors.
 
-          The wedge product combines blades by joining their basis vectors. It is
-          antisymmetric:
-
-              a ∧ b = -(b ∧ a)
-
-          and vanishes when the operands share a basis vector.
+          The product extends the wedge of basis blades bilinearly. For homogeneous
+          grades `r` and `s`, `a ∧ b = (-1)^(r*s) (b ∧ a)`.
+          In particular, vectors anticommute; a vector wedged with itself
+          is zero. Basis blades with overlapping basis vectors wedge to zero.
 
           ## Examples
 

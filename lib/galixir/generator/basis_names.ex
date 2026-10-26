@@ -63,6 +63,12 @@ defmodule Galixir.Generator.BasisNames do
       end
 
     quote do
+      @doc """
+      Returns the canonical basis-blade name for a bitmask index.
+
+      The scalar mask `0` has the empty name; other masks use the configured
+      basis identifiers in storage order. Invalid masks have no matching clause.
+      """
       @doc group: :meta
       def basis_name(mask)
       (unquote_splicing(defs))

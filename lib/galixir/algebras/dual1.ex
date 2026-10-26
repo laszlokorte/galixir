@@ -25,7 +25,8 @@ defmodule Galixir.Algebras.Dual1 do
 
   Dual numbers are useful for automatic differentiation because the
   infinitesimal coefficient propagates derivatives through arithmetic
-  operations and elementary functions.
+  operations and elementary functions when the input is seeded with an
+  infinitesimal coefficient of `1`.
   """
 
   use Galixir.GeometricAlgebra,
@@ -63,8 +64,8 @@ defmodule Galixir.Algebras.Dual1 do
   @doc """
   Extracts the infinitesimal component.
 
-  This corresponds to the derivative component when using dual numbers
-  for automatic differentiation.
+  For an input seeded as `dual(x, 1)`, this is the derivative component
+  after applying a differentiable function.
   """
   def infinitesimal(x) do
     coefficient(x, :e1)
@@ -91,7 +92,8 @@ defmodule Galixir.Algebras.Dual1 do
   @doc """
   Extracts the derivative component.
 
-  Equivalent to returning the infinitesimal coefficient.
+  Equivalent to returning the infinitesimal coefficient. For automatic
+  differentiation, seed the input with `dual(x, 1)`.
   """
   def derivative(x) do
     infinitesimal(x)
@@ -150,7 +152,7 @@ defmodule Galixir.Algebras.Dual1 do
 
       x = a + bε
 
-  returns:
+  for `a > 0`, returns:
 
       log(x) = log(a) + b/a ε
   """
@@ -203,7 +205,7 @@ defmodule Galixir.Algebras.Dual1 do
 
   For: `x = a + bε`
 
-  returns:
+  for `a > 0`, returns:
 
       sqrt(x) = sqrt(a) + b/(2sqrt(a)) ε
   """
@@ -220,16 +222,20 @@ defmodule Galixir.Algebras.Dual1 do
   end
 
   @doc """
-  Returns the normalized (real) value of a dual number.
+  Returns the real coefficient of a dual number.
 
-  This discards the infinitesimal component.
+  This discards the infinitesimal component; it does not normalize the
+  dual number to unit length.
   """
   def normal(x) do
     real(x)
   end
 
   @doc """
-  Computes the scalar product of two dual multivectors.
+  Returns the scalar part of the geometric product.
+
+  For `a + bε` and `c + dε`, this is `a*c`; the infinitesimal
+  coefficients do not contribute.
   """
   def scalar_product(a, b) do
     scalar_part(gp(a, b))
