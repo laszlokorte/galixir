@@ -315,9 +315,7 @@ defmodule Galixir.Algebras.CGA2 do
 
     w = em - ep
 
-    if not above_epsilon?(norm(wedge(c, e_inf()))) do
-      {:line, line_parameters(c)}
-    else
+    if above_epsilon?(norm(wedge(c, e_inf()))) do
       x = e1 / w
       y = e2 / w
 
@@ -333,6 +331,8 @@ defmodule Galixir.Algebras.CGA2 do
 
       type = if(b < 0.0, do: :imag, else: :real)
       {:circle, {type, {clean_zero(x), clean_zero(y)}, r}}
+    else
+      {:line, line_parameters(c)}
     end
   end
 

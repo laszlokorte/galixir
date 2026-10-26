@@ -3,6 +3,28 @@ defmodule SigilInspectTest do
 
   import Galixir.Algebras.PGA3
 
+  test "parser rejects incomplete expressions and missing operators" do
+    for expression <- ["", " ", "+", "-", "1+", "e1-", "1 + ", "1 2", "e1 e2", "1++2", "1+-2"] do
+      assert_raise ArgumentError, fn -> parse(expression) end
+    end
+  end
+
+  test "parser accepts signs, explicit products, aliases, and surrounding spaces" do
+    assert parse(" +2*e1 - 0.5e21 + ε ") ==
+             new(e1: 2, e12: 0.5, scalar: epsilon())
+  end
+
+  test "sigils reject malformed input at expansion time" do
+    assert_raise ArgumentError, fn ->
+      Code.eval_quoted(
+        quote do
+          import Galixir.Algebras.PGA3, only: [sigil_G: 2]
+          ~G[1+]
+        end
+      )
+    end
+  end
+
   test "inspect matches sigil" do
     cases = [
       {~G[0.0], "~G[0.0]"},

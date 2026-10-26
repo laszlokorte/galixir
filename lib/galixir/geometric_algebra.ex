@@ -33,12 +33,12 @@ defmodule Galixir.GeometricAlgebra do
   The optional `:bases` option defines the identifiers used for basis vectors.
   The number of bases must match the dimension of the metric.
 
-  Basis identifiers must be single-character strings. Supply `:bases` explicitly:
+  Basis identifiers must be unique single-character strings. By default, the
+    identifiers are `"1"` through `"9"` for metrics of up to nine dimensions.
+    Larger metrics require explicit identifiers. For example:
 
     bases: {"1", "2", "3", "4"}
 
-  Note: omitting `:bases` currently produces integer defaults that fail the
-  string validation at compile time.
 
   For algebras with a special basis convention, such as projective geometric
   algebra (PGA), the identifiers can be customized:
@@ -93,9 +93,10 @@ defmodule Galixir.GeometricAlgebra do
     * `:metric` - required tuple describing the metric.
       Each element corresponds to the square of one basis vector.
 
-    * `:bases` - tuple of single-character strings naming the basis vectors.
-      The number of bases must match the metric dimension. Currently, omitting
-      this option causes compile-time validation to fail (integer defaults).
+    * `:bases` - optional tuple of unique single-character strings naming the
+      basis vectors. The number of bases must match the metric dimension.
+      Defaults to `"1"` through the dimension for metrics of up to nine dimensions;
+      larger metrics require explicit identifiers.
 
     * `:epsilon` - optional non-negative float for selected near-zero checks;
       defaults to `1.0e-10`. Other operations may use exact comparisons or
@@ -128,6 +129,10 @@ defmodule Galixir.GeometricAlgebra do
         {metric, _} -> metric
       end
 
+    unless is_tuple(metric) and tuple_size(metric) > 0 do
+      raise ArgumentError, ":metric must be a nonempty tuple, given: #{inspect(metric)}"
+    end
+
     for m <- Tuple.to_list(metric), m not in [-1, 0, 1] do
       raise ArgumentError,
             "Each metric element must be -1, 0 or 1, given metric #{inspect(metric)}"
@@ -138,7 +143,7 @@ defmodule Galixir.GeometricAlgebra do
       |> Keyword.get(:bases)
       |> then(&if(&1, do: Code.eval_quoted(&1, [], __CALLER__)))
       |> case do
-        nil -> List.to_tuple(for i <- 1..tuple_size(metric), do: i)
+        nil -> default_bases(tuple_size(metric))
         {b, _} -> b
       end
 
@@ -148,7 +153,11 @@ defmodule Galixir.GeometricAlgebra do
 
     if not is_float(epsilon) or epsilon < 0.0 do
       raise ArgumentError,
-            ":epsilon option is required to be a positive floating point number, given: #{inspect(epsilon)}"
+            ":epsilon option is required to be a non-negative floating point number, given: #{inspect(epsilon)}"
+    end
+
+    unless is_tuple(bases) do
+      raise ArgumentError, ":bases must be a tuple, given: #{inspect(bases)}"
     end
 
     for b <- Tuple.to_list(bases), not is_binary(b) or String.length(b) != 1 do
@@ -159,6 +168,10 @@ defmodule Galixir.GeometricAlgebra do
     if tuple_size(bases) != tuple_size(metric) do
       raise ArgumentError,
             "number of bases (given #{inspect(bases)}) must be the same as the size of the metric (given #{inspect(metric)})"
+    end
+
+    if bases |> Tuple.to_list() |> Enum.uniq() |> length() != tuple_size(bases) do
+      raise ArgumentError, "Basis names must be unique, given: #{inspect(bases)}"
     end
 
     table = Table.build(metric)
@@ -293,5 +306,14 @@ defmodule Galixir.GeometricAlgebra do
       end
 
     ast
+  end
+
+  defp default_bases(dimension) when dimension <= 9 do
+    List.to_tuple(Enum.map(1..dimension, &Integer.to_string/1))
+  end
+
+  defp default_bases(_dimension) do
+    raise ArgumentError,
+          ":bases must be supplied explicitly for metrics with more than 9 dimensions"
   end
 end

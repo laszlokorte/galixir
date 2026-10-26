@@ -10,11 +10,12 @@ defmodule GalixirTest do
   alias Galixir.Algebras.PGA3
   alias Galixir.Table
 
-  test "debug" do
+  test "CGA2 splits a real point pair into its endpoints" do
     import Galixir.Algebras.CGA2
     pp = join(point(0.0, 0.0), point(1, 0))
-    split(pp)
-    {:real, point(1, 0.0), point(0.0, 0.0)}
+    assert {a, b} = split(pp)
+    assert point_coordinates(a) == {1.0, 0.0}
+    assert point_coordinates(b) == {0.0, 0.0}
   end
 
   test "dimension" do
@@ -189,8 +190,8 @@ defmodule GalixirTest do
     b = %PGA2{data: {2, 3, 4, 5, 6, 7, 8, 9}}
     c = %PGA2{data: {9, 8, 7, 6, 5, 4, 3, 2}}
 
-    assert PGA2.gp(PGA2.add(a, b), c) ==
-             PGA2.add(PGA2.gp(a, c), PGA2.gp(b, c))
+    assert PGA2.gp(c, PGA2.add(a, b)) ==
+             PGA2.add(PGA2.gp(c, a), PGA2.gp(c, b))
   end
 
   test "inspect" do
@@ -585,7 +586,7 @@ defmodule GalixirTest do
              PGA2.new()
   end
 
-  test "dual is involutive up to sign" do
+  test "double Hodge dual has sign (-1)^(k(n-k))" do
     blades = [
       PGA2.new(scalar: 1),
       PGA2.new(e1: 1),
@@ -600,8 +601,9 @@ defmodule GalixirTest do
     for blade <- blades do
       double = PGA2.hodge_dual(PGA2.hodge_dual(blade))
 
-      assert double == blade or
-               double == PGA2.scale(-1, blade)
+      k = PGA2.grade(blade)
+      sign = if rem(k * (PGA2.dimension() - k), 2) == 0, do: 1, else: -1
+      assert double == PGA2.scale(sign, blade)
     end
   end
 

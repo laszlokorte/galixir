@@ -12,7 +12,7 @@ defmodule Galixir.Generator.Norm do
     ]
   end
 
-  def norm_impl() do
+  def norm_impl do
     quote do
       @doc """
       Returns the squared norm of a multivector.

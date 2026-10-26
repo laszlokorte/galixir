@@ -100,7 +100,7 @@ defmodule Galixir.Generator.HodgeDual do
             hodge_dual(hodge_undual(a)) == a
 
         See `hodge_undual/1` for the inverse operation.
-        #{if(not degenerate?, do: "See `dual/1` for the pseudoscalar-based dual.", else: "")}
+        #{if(degenerate?, do: "", else: "See `dual/1` for the pseudoscalar-based dual.")}
         """,
         [
           {
@@ -139,7 +139,7 @@ defmodule Galixir.Generator.HodgeDual do
 
 
         See `hodge_dual/1` for the inverse operation.
-        #{if(not degenerate?, do: "See `dual/1` for the pseudoscalar-based dual.", else: "")}
+        #{if(degenerate?, do: "", else: "See `dual/1` for the pseudoscalar-based dual.")}
         """,
         [
           {

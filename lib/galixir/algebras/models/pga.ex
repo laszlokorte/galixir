@@ -1,4 +1,6 @@
 defmodule Galixir.Algebras.Models.PGA do
+  @moduledoc "Generates a projective geometric algebra from named Euclidean coordinates."
+
   defmacro __using__(opts) do
     {dimensions, _} = Code.eval_quoted(Keyword.fetch!(opts, :dimensions), [], __CALLER__)
     names = if is_tuple(dimensions), do: Tuple.to_list(dimensions), else: []

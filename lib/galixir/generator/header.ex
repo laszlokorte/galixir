@@ -23,8 +23,8 @@ defmodule Galixir.Generator.Header do
   them.
   """
 
-  alias Galixir.Meta
   alias Galixir.GeneratorBehaviour
+  alias Galixir.Meta
   @behaviour GeneratorBehaviour
 
   @impl GeneratorBehaviour
@@ -67,13 +67,13 @@ defmodule Galixir.Generator.Header do
         @doc """
         Returns the pseudoscalar:
 
-        #{unquote(Tuple.to_list(bases) |> Enum.map(&"e#{&1}") |> Enum.join(" ∧ "))}
+        #{unquote(Tuple.to_list(bases) |> Enum.map_join(" ∧ ", &"e#{&1}"))}
 
             iex> grades(pseudoscalar())
             [#{unquote(tuple_size(bases))}]
         """
         @doc group: :constructor
-        def pseudoscalar() do
+        def pseudoscalar do
           new([{unquote(pseudoscalar_name), 1.0}])
         end
 
@@ -89,7 +89,7 @@ defmodule Galixir.Generator.Header do
 
         """
         @doc group: :constructor
-        def one() do
+        def one do
           new(scalar: 1)
         end
 
@@ -108,7 +108,7 @@ defmodule Galixir.Generator.Header do
 
         @doc "Returns the algebra's configured epsilon threshold (default `1.0e-10`)."
         @doc group: :meta
-        def epsilon() do
+        def epsilon do
           @epsilon
         end
 
@@ -118,7 +118,7 @@ defmodule Galixir.Generator.Header do
         A dimension `n` algebra contains `2^n` basis blades.
         """
         @doc group: :meta
-        def blade_count() do
+        def blade_count do
           @blade_count
         end
 

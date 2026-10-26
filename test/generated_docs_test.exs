@@ -3,6 +3,7 @@ defmodule GeneratedDocsTest do
 
   doctest Galixir.Algebras.PGA2, import: true
   doctest Galixir.Algebras.PGA3, import: true
+  doctest Galixir.Algebras.PGA4, import: true
   doctest Galixir.Algebras.CGA2, import: true
   doctest Galixir.Algebras.CGA3, import: true
   doctest Galixir.Algebras.Hyper1, import: true

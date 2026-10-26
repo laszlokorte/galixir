@@ -50,7 +50,7 @@ defmodule BladeGuardTest do
     v = PGA3.new(scalar: 1, e1: 1)
     refute test_blade(v)
 
-    for g <- 1..4 do
+    for g <- 0..4 do
       refute PGA3.grade?(v, g)
     end
   end
@@ -59,7 +59,7 @@ defmodule BladeGuardTest do
     v = PGA3.new(e1: 1, e12: 1)
     refute test_blade(v)
 
-    for g <- 1..4 do
+    for g <- 0..4 do
       refute PGA3.grade?(v, g)
     end
   end
@@ -68,8 +68,8 @@ defmodule BladeGuardTest do
     v = PGA3.new(e1: 1, e123: 1)
     refute test_blade(v)
 
-    for g <- 1..4 do
-      refute PGA3.grade?(PGA3.new(e12: 1, e123: 1), g)
+    for g <- 0..4 do
+      refute PGA3.grade?(v, g)
     end
   end
 
@@ -77,8 +77,8 @@ defmodule BladeGuardTest do
     v = PGA3.new(e12: 1, e123: 1)
     refute test_blade(v)
 
-    for g <- 1..4 do
-      refute PGA3.grade?(PGA3.new(e12: 1, e123: 1), g)
+    for g <- 0..4 do
+      refute PGA3.grade?(v, g)
     end
   end
 
@@ -93,8 +93,8 @@ defmodule BladeGuardTest do
 
     refute test_blade(v)
 
-    for g <- 1..4 do
-      refute PGA3.grade?(PGA3.new(e12: 1, e123: 1), g)
+    for g <- 0..4 do
+      refute PGA3.grade?(v, g)
     end
   end
 
@@ -110,8 +110,8 @@ defmodule BladeGuardTest do
     v = PGA3.new(e0: 1, e10: 1)
     refute test_blade(v)
 
-    for g <- 1..4 do
-      refute PGA3.grade?(PGA3.new(e12: 1, e123: 1), g)
+    for g <- 0..4 do
+      refute PGA3.grade?(v, g)
     end
   end
 end

@@ -4,8 +4,8 @@ defmodule Galixir.Generator.GeometricProduct do
   """
 
   import Galixir.Generator.Utils, only: [sum: 1]
-  alias Galixir.Table
   alias Galixir.GeneratorBehaviour
+  alias Galixir.Table
   @behaviour GeneratorBehaviour
   @impl GeneratorBehaviour
   def generate_implementation(%Galixir.Meta{table: t, bases: b, metric: metric}) do

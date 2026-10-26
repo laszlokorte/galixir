@@ -4,8 +4,8 @@ defmodule Galixir.Generator.Reverse do
   """
 
   import Galixir.Generator.Utils, only: [vars: 2, tuple_ast: 1, blade_grade: 1, reverse_sign: 1]
-  alias Galixir.Table
   alias Galixir.GeneratorBehaviour
+  alias Galixir.Table
   @behaviour GeneratorBehaviour
   @impl GeneratorBehaviour
   def generate_implementation(%Galixir.Meta{metric: metric, bases: bases}) do

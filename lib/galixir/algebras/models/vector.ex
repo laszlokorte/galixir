@@ -178,14 +178,14 @@ defmodule Galixir.Algebras.Models.Vector do
 
       ## Examples
 
-          iex> normal(vector(#{unquote(1..dim |> Enum.map(fn
+          iex> normal(vector(#{unquote(1..dim |> Enum.map_join(", ", fn
         1 -> 2
         _ -> 0
-      end) |> Enum.join(", "))})) |> coordinates()
-          {#{unquote(1..dim |> Enum.map(fn
+      end))})) |> coordinates()
+          {#{unquote(1..dim |> Enum.map_join(", ", fn
         1 -> 1.0
         _ -> 0.0
-      end) |> Enum.join(", "))}}
+      end))}}
       """
       def normal(v), do: normalize!(v)
 
@@ -194,13 +194,13 @@ defmodule Galixir.Algebras.Models.Vector do
 
       ## Examples
 
-          iex> angle(vector(#{unquote(1..dim |> Enum.map(fn
+          iex> angle(vector(#{unquote(1..dim |> Enum.map_join(", ", fn
         1 -> 1
         _ -> 0
-      end) |> Enum.join(", "))}), vector(#{unquote(1..dim |> Enum.map(fn
+      end))}), vector(#{unquote(1..dim |> Enum.map_join(", ", fn
         2 -> 1
         _ -> 0
-      end) |> Enum.join(", "))}))
+      end))}))
           :math.pi() / 2
       """
       def angle(a, b) do
@@ -213,14 +213,14 @@ defmodule Galixir.Algebras.Models.Vector do
 
       ## Examples
 
-          iex> project(vector(#{unquote(values |> Enum.join(", "))}), vector(#{unquote(1..dim |> Enum.map(fn
+          iex> project(vector(#{unquote(values |> Enum.join(", "))}), vector(#{unquote(1..dim |> Enum.map_join(", ", fn
         1 -> 1
         _ -> 0
-      end) |> Enum.join(", "))})) |> coordinates()
-          {#{unquote(values |> Enum.with_index() |> Enum.map(fn
+      end))})) |> coordinates()
+          {#{unquote(values |> Enum.with_index() |> Enum.map_join(", ", fn
         {v, 0} -> v
         _ -> 0.0
-      end) |> Enum.join(", "))}}
+      end))}}
       """
       def project(v, onto) do
         scale(scalar_product(v, onto) / squared_length(onto), onto)
@@ -231,14 +231,14 @@ defmodule Galixir.Algebras.Models.Vector do
 
       ## Examples
 
-          iex> reject(vector(#{unquote(values |> Enum.join(", "))}), vector(#{unquote(1..dim |> Enum.map(fn
+          iex> reject(vector(#{unquote(values |> Enum.join(", "))}), vector(#{unquote(1..dim |> Enum.map_join(", ", fn
         1 -> 1
         _ -> 0
-      end) |> Enum.join(", "))})) |> coordinates()
-          {#{unquote(values |> Enum.with_index() |> Enum.map(fn
+      end))})) |> coordinates()
+          {#{unquote(values |> Enum.with_index() |> Enum.map_join(", ", fn
         {_, 0} -> 0.0
         {v, _} -> v
-      end) |> Enum.join(", "))}}
+      end))}}
       """
       def reject(v, onto), do: sub(v, project(v, onto))
 
@@ -318,14 +318,14 @@ defmodule Galixir.Algebras.Models.Vector do
       ## Examples
 
           iex> vector(#{unquote(values |> Enum.join(", "))})
-          ...> |> rotate(rotor(vector(#{unquote(1..dim |> Enum.map(fn
+          ...> |> rotate(rotor(vector(#{unquote(1..dim |> Enum.map_join(", ", fn
         1 -> 1
         _ -> 0
-      end) |> Enum.join(", "))}), :math.pi()))
-          ...> |> rotate(rotor(vector(#{unquote(1..dim |> Enum.map(fn
+      end))}), :math.pi()))
+          ...> |> rotate(rotor(vector(#{unquote(1..dim |> Enum.map_join(", ", fn
         1 -> 1
         _ -> 0
-      end) |> Enum.join(", "))}), :math.pi()))
+      end))}), :math.pi()))
           ...> |> coordinates() |> Tuple.to_list() |> Enum.map(&Float.round(&1, 12))
           [#{unquote(values |> Enum.join(", "))}]
       """
@@ -344,14 +344,14 @@ defmodule Galixir.Algebras.Models.Vector do
       ## Examples
 
           iex> vector(#{unquote(values |> Enum.join(", "))})
-          ...> |> rotate(rotor(vector(#{unquote(1..dim |> Enum.map(fn
+          ...> |> rotate(rotor(vector(#{unquote(1..dim |> Enum.map_join(", ", fn
         1 -> 1
         _ -> 0
-      end) |> Enum.join(", "))}), :math.pi()))
-          ...> |> rotate(rotor(vector(#{unquote(1..dim |> Enum.map(fn
+      end))}), :math.pi()))
+          ...> |> rotate(rotor(vector(#{unquote(1..dim |> Enum.map_join(", ", fn
         1 -> 1
         _ -> 0
-      end) |> Enum.join(", "))}), :math.pi()))
+      end))}), :math.pi()))
           ...> |> coordinates() |> Tuple.to_list() |> Enum.map(&Float.round(&1, 12))
           [#{unquote(values |> Enum.join(", "))}]
       """
@@ -362,14 +362,14 @@ defmodule Galixir.Algebras.Models.Vector do
 
       ## Examples
 
-          iex> reflect(vector(#{unquote(values |> Enum.join(", "))}), vector(#{unquote(1..dim |> Enum.map(fn
+          iex> reflect(vector(#{unquote(values |> Enum.join(", "))}), vector(#{unquote(1..dim |> Enum.map_join(", ", fn
         1 -> 1
         _ -> 0
-      end) |> Enum.join(", "))})) |> coordinates()
-          {#{unquote(values |> Enum.with_index() |> Enum.map(fn
+      end))})) |> coordinates()
+          {#{unquote(values |> Enum.with_index() |> Enum.map_join(", ", fn
         {v, 0} -> -v
         {v, _} -> v
-      end) |> Enum.join(", "))}}
+      end))}}
       """
       def reflect(v, n), do: negate(gp(gp(n, v), inverse!(n)))
 
@@ -379,7 +379,7 @@ defmodule Galixir.Algebras.Models.Vector do
       ## Examples
 
           iex> negate(vector(#{unquote(values |> Enum.join(", "))}))
-          vector(#{unquote(values |> Enum.map(&(-&1)) |> Enum.join(", "))})
+          vector(#{unquote(values |> Enum.map_join(", ", &(-&1)))})
       """
       def negate(x), do: scale(-1, x)
     end

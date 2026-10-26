@@ -1,4 +1,6 @@
 defmodule Galixir.Algebras.Models.CGA do
+  @moduledoc "Generates a conformal geometric algebra from named Euclidean coordinates."
+
   defmacro __using__(opts) do
     additional_docs = Keyword.get(opts, :docs, "")
 

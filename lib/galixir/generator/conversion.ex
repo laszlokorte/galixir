@@ -1,4 +1,6 @@
 defmodule Galixir.Generator.Conversion do
+  @moduledoc "Generates scalar conversion functions for multivectors."
+
   @behaviour Galixir.GeneratorBehaviour
   @impl Galixir.GeneratorBehaviour
   def generate_implementation(%Galixir.Meta{}) do
@@ -7,7 +9,7 @@ defmodule Galixir.Generator.Conversion do
     ]
   end
 
-  def conversion_impl() do
+  def conversion_impl do
     quote do
       @doc """
       Returns the scalar coefficient as an Elixir number.

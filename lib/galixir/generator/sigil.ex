@@ -47,7 +47,8 @@ defmodule Galixir.Generator.Sigil do
 
       The string may contain scalar coefficients and basis blades combined
       using `+` and `-` operators. A blade without a coefficient has
-      coefficient one; `ε` denotes `epsilon/0`. Unsupported tokens raise.
+      coefficient one; `ε` denotes `epsilon/0`. Empty expressions, missing
+      operators, trailing operators, and unsupported tokens raise `ArgumentError`.
 
       Examples:
 
@@ -65,47 +66,49 @@ defmodule Galixir.Generator.Sigil do
         |> new()
       end
 
-      defp parse_expression(binary, acc, sign \\ 1)
+      unquote(expression_parser_impl())
+      unquote(term_parser_impl())
+      unquote(blade_parser_impl())
+    end
+  end
 
-      defp parse_expression(<<>>, acc, _sign) do
-        Enum.reverse(acc)
+  defp expression_parser_impl do
+    quote do
+      defp parse_expression(binary, acc) do
+        {sign, rest} = parse_sign(skip_spaces(binary))
+        parse_signed_term(rest, acc, sign)
       end
 
-      defp parse_expression(binary, acc, sign) do
-        binary = skip_spaces(binary)
+      defp parse_sign(<<"+", rest::binary>>), do: {1, skip_spaces(rest)}
+      defp parse_sign(<<"-", rest::binary>>), do: {-1, skip_spaces(rest)}
+      defp parse_sign(rest), do: {1, rest}
 
-        {sign, binary} =
-          case binary do
-            <<"+", rest::binary>> ->
-              {sign, skip_spaces(rest)}
-
-            <<"-", rest::binary>> ->
-              {-sign, skip_spaces(rest)}
-
-            _ ->
-              {sign, binary}
-          end
-
-        {term, rest} = parse_term(binary)
-
-        {blade, coef} = term
-        term = {blade, sign * coef}
-
-        case skip_spaces(rest) do
-          <<"+", rest::binary>> ->
-            parse_expression(rest, [term | acc], 1)
-
-          <<"-", rest::binary>> ->
-            parse_expression(rest, [term | acc], -1)
-
-          "" ->
-            Enum.reverse([term | acc])
-
-          rest ->
-            parse_expression(rest, [term | acc], 1)
-        end
+      defp parse_signed_term(binary, acc, sign) do
+        {{blade, coef}, rest} = parse_term(binary)
+        parse_operator(skip_spaces(rest), [{blade, sign * coef} | acc])
       end
 
+      defp parse_operator("", acc), do: Enum.reverse(acc)
+
+      defp parse_operator(<<"+", rest::binary>>, acc) do
+        parse_signed_term(skip_spaces(rest), acc, 1)
+      end
+
+      defp parse_operator(<<"-", rest::binary>>, acc) do
+        parse_signed_term(skip_spaces(rest), acc, -1)
+      end
+
+      defp parse_operator(rest, _acc) do
+        raise ArgumentError, "expected + or - in #{inspect(rest)}"
+      end
+
+      defp skip_spaces(<<" ", rest::binary>>), do: skip_spaces(rest)
+      defp skip_spaces(binary), do: binary
+    end
+  end
+
+  defp term_parser_impl do
+    quote do
       defp parse_term(binary) do
         case binary do
           <<"e", _::binary>> ->
@@ -158,7 +161,11 @@ defmodule Galixir.Generator.Sigil do
           String.to_integer(number)
         end
       end
+    end
+  end
 
+  defp blade_parser_impl do
+    quote do
       defp parse_blade(<<"e", rest::binary>> = all) do
         {symbols, rest} = take_basis_names(rest, [])
 
@@ -186,34 +193,6 @@ defmodule Galixir.Generator.Sigil do
             take_basis_names(rest, [name | acc])
         end
       end
-
-      defp take_blade(binary, acc) do
-        case Enum.find(@basis_names, fn name ->
-               String.starts_with?(binary, name)
-             end) do
-          nil ->
-            {acc, binary}
-
-          name ->
-            {matched, rest} = String.split_at(binary, byte_size(name))
-            take_blade(rest, <<acc::binary, matched::binary>>)
-        end
-      end
-
-      defp take_digits(<<c, rest::binary>>) when c in ?0..?9 do
-        take_digits(rest, <<c>>)
-      end
-
-      defp take_digits(rest), do: {"", rest}
-
-      defp take_digits(<<c, rest::binary>>, acc) when c in ?0..?9 do
-        take_digits(rest, <<acc::binary, c>>)
-      end
-
-      defp take_digits(rest, acc), do: {acc, rest}
-
-      defp skip_spaces(<<" ", rest::binary>>), do: skip_spaces(rest)
-      defp skip_spaces(binary), do: binary
     end
   end
 

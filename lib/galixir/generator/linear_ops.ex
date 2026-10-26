@@ -7,8 +7,8 @@ defmodule Galixir.Generator.LinearOps do
   """
 
   import Galixir.Generator.Utils, only: [vars: 2, tuple_ast: 1]
-  alias Galixir.Table
   alias Galixir.GeneratorBehaviour
+  alias Galixir.Table
   @behaviour GeneratorBehaviour
   @impl GeneratorBehaviour
   def generate_implementation(%Galixir.Meta{metric: metric}) do

@@ -43,7 +43,11 @@ end
 
 The package includes projective (`PGA2`, `PGA3`, `PGA4`), conformal (`CGA2`, `CGA3`), and Euclidean vector (`Vector2`, `Vector3`) algebras. The generated core provides multivector operations; the concrete modules offer different sets of higher-level geometry helpers. `Complex1` represents complex numbers as a geometric algebra. See the [introduction](./guides/introduction.md) for where to start.
 
-Contributions are welcome.
+Contributions are welcome. See [Contributing](./CONTRIBUTING.md) for setup,
+validation commands, numerical conventions, and release checks.
+
+Licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+The full license text is included in `LICENSE`.
 
 ## Example
 

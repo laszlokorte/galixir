@@ -6,16 +6,14 @@ defmodule Galixir.Generator.PseudoscalarDual do
   @behaviour Galixir.GeneratorBehaviour
   @impl Galixir.GeneratorBehaviour
   def generate_implementation(%Galixir.Meta{} = meta) do
-    if not Galixir.Meta.degenerate?(meta) do
-      [
-        dual_impl()
-      ]
-    else
+    if Galixir.Meta.degenerate?(meta) do
       []
+    else
+      [dual_impl()]
     end
   end
 
-  def dual_impl() do
+  def dual_impl do
     quote do
       @doc """
       Returns the pseudoscalar dual of a multivector.

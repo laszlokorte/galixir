@@ -8,6 +8,7 @@ defmodule Galixir.MixProject do
       version: "0.34.0",
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
+      consolidate_protocols: Mix.env() != :test,
       source_url: "https://github.com/laszlokorte/galixir",
       deps: deps(),
       description: description(),
@@ -16,14 +17,15 @@ defmodule Galixir.MixProject do
     ]
   end
 
-  defp package() do
+  defp package do
     %{
       licenses: ["Apache-2.0"],
+      files: ~w(lib guides .formatter.exs .credo.exs mix.exs README.md CONTRIBUTING.md LICENSE),
       links: %{"GitHub" => "https://github.com/laszlokorte/galixir"}
     }
   end
 
-  defp description() do
+  defp description do
     "Elixir Macros implementing Geometric Algebras"
   end
 
@@ -39,6 +41,7 @@ defmodule Galixir.MixProject do
       main: "readme",
       extras: [
         "README.md",
+        "CONTRIBUTING.md",
         "guides/introduction.md",
         "guides/example.livemd"
       ],

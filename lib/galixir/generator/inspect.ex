@@ -81,6 +81,21 @@ defmodule Galixir.Generator.Inspect do
         format_document(value, opts)
       end
 
+      unquote(document_impl())
+      unquote(term_impl())
+      unquote(sign_impl())
+
+      defimpl Inspect, for: unquote(module) do
+        def inspect(value, opts) do
+          value
+          |> unquote(module).format(opts)
+        end
+      end
+    end
+  end
+
+  defp document_impl do
+    quote do
       defp format_document(value, %Inspect.Opts{custom_options: custom_opts} = opts) do
         eps = Keyword.get(custom_opts, :epsilon, @epsilon)
         skip_eps = Keyword.get(custom_opts, :skip_epsilon, false)
@@ -123,7 +138,11 @@ defmodule Galixir.Generator.Inspect do
           |> Inspect.Algebra.concat()
         ])
       end
+    end
+  end
 
+  defp term_impl do
+    quote do
       defp format_term(
              coef,
              blade,
@@ -171,7 +190,11 @@ defmodule Galixir.Generator.Inspect do
           abs -> to_doc(abs, opts)
         end
       end
+    end
+  end
 
+  defp sign_impl do
+    quote do
       defp signed_term(term, true, "+") do
         term
       end
@@ -195,13 +218,6 @@ defmodule Galixir.Generator.Inspect do
           Inspect.Algebra.string(" - "),
           term
         ])
-      end
-
-      defimpl Inspect, for: unquote(module) do
-        def inspect(value, opts) do
-          value
-          |> unquote(module).format(opts)
-        end
       end
     end
   end
