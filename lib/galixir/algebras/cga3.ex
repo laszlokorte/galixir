@@ -147,8 +147,8 @@ defmodule Galixir.Algebras.CGA3 do
 
       iex> pp = meet(sphere(0, 0, 0, 1), line(point(-2, 0, 0), point(2, 0, 0)))
       iex> {a, b} = split(pp)
-      iex> Enum.sort([point_coordinates(a), point_coordinates(b)])
-      [{-1.0, 0.0, 0.0}, {1.0, 0.0, 0.0}]
+      iex> {point_coordinates(a), point_coordinates(b)}
+      { {-1.0, 0.0, 0.0}, {1.0, 0.0, 0.0} }
       iex> {:circle, {:real, center, radius, _}} = classify(meet(sphere(0, 0, 0, 2), plane({0, 0, 1}, 1)))
       iex> {x, y, z} = center
       iex> abs(x) < 1.0e-10 and abs(y) < 1.0e-10 and abs(z - 1) < 1.0e-10 and abs(radius - :math.sqrt(3)) < 1.0e-10
@@ -351,8 +351,8 @@ defmodule Galixir.Algebras.CGA3 do
   for coincident intersection points and `:error` for imaginary or invalid
   pairs (which have no real conformal endpoints).
 
-      iex> split(point_pair(point(0, 0, 0), point(2, 0, 0))) |> then(fn {a, b} -> Enum.sort([point_coordinates(a), point_coordinates(b)]) end)
-      [{0.0, 0.0, 0.0}, {2.0, 0.0, 0.0}]
+      iex> split(point_pair(point(0, 0, 0), point(2, 0, 0))) |> then(fn {a, b} -> {point_coordinates(a), point_coordinates(b)} end)
+      { {0.0, 0.0, 0.0}, {2.0, 0.0, 0.0} }
       iex> {:tangent, p} = meet(sphere(0, 0, 0, 1), line(point(-2, 1, 0), point(2, 1, 0))) |> split()
       iex> point_coordinates(p)
       {0.0, 1.0, 0.0}
@@ -360,7 +360,7 @@ defmodule Galixir.Algebras.CGA3 do
       :error
       iex> pair = point_pair(point(1, 2, 3), point(2, 3, 5)) |> scale(1.0e-6)
       iex> {a, b} = split(pair)
-      iex> coords = Enum.sort([point_coordinates(a), point_coordinates(b)])
+      iex> coords = [ point_coordinates(a), point_coordinates(b) ]
       iex> Enum.zip(coords, [{1, 2, 3}, {2, 3, 5}]) |> Enum.all?(fn {actual, expected} -> Enum.zip(Tuple.to_list(actual), Tuple.to_list(expected)) |> Enum.all?(fn {x, y} -> abs(x - y) < 1.0e-10 end) end)
       true
   """
@@ -383,8 +383,8 @@ defmodule Galixir.Algebras.CGA3 do
         bb > 0 ->
           v = inner(b, new(em: 1))
           unit = scale(b, 1.0 / :math.sqrt(bb))
-          p1 = gp(add(one(), unit), v) |> cleanup()
-          p2 = gp(sub(one(), unit), v) |> cleanup()
+          p1 = gp(sub(one(), unit), v) |> cleanup()
+          p2 = gp(add(one(), unit), v) |> cleanup()
 
           if finite_point?(p1) and finite_point?(p2) do
             {scale(p1, 1.0 / -scalar_product(p1, e_inf())) |> cleanup(),
@@ -419,7 +419,7 @@ defmodule Galixir.Algebras.CGA3 do
   ## Examples
 
       iex> point_pair_parameters(point_pair(point(0, 0, 0), point(2, 0, 0)))
-      {:real, {2.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}
+      {:real, {0.0, 0.0, 0.0}, {2.0, 0.0, 0.0}}
       iex> pp = meet(sphere(0, 0, 0, 1), line(point(-2, 2, 0), point(2, 2, 0)))
       iex> point_pair_parameters(pp)
       {:imag, {0.0, 2.0, 0.0}, 1.7320508075688772, {1.0, 0.0, 0.0}}
