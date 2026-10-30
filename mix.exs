@@ -5,7 +5,7 @@ defmodule Galixir.MixProject do
     [
       app: :galixir,
       name: "Galixir",
-      version: "0.35.0-rc.2",
+      version: "0.35.0-rc2",
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
       consolidate_protocols: Mix.env() != :test,
