@@ -63,4 +63,6 @@ The full license text is included in `LICENSE`.
 
 ![Preview Screenshot for conformal geometric algebra in 2d](./guides/cga2.png)
 
+## 3D Conformal Geometric Algebra
+
 ![Preview Screenshot for projective geometric algebra in 3d](./guides/cga-spheres.svg)
