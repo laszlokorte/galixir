@@ -31,7 +31,8 @@ defmodule Galixir.Algebras.Dual1 do
 
   use Galixir.GeometricAlgebra,
     metric: {0},
-    bases: {"1"}
+    bases: {"1"},
+    exp: false
 
   @doc """
   Returns the infinitesimal unit.
@@ -135,7 +136,7 @@ defmodule Galixir.Algebras.Dual1 do
 
       exp(x) = exp(a) + b exp(a) ε
   """
-  def exp(x) do
+  def exp(%__MODULE__{} = x) do
     a = real(x)
     b = infinitesimal(x)
 
@@ -156,7 +157,7 @@ defmodule Galixir.Algebras.Dual1 do
 
       log(x) = log(a) + b/a ε
   """
-  def log(x) do
+  def log(%__MODULE__{} = x) do
     a = real(x)
     b = infinitesimal(x)
 

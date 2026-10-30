@@ -36,7 +36,8 @@ defmodule Galixir.Algebras.Complex1 do
 
   use Galixir.GeometricAlgebra,
     metric: {-1},
-    bases: {"1"}
+    bases: {"1"},
+    exp: false
 
   @doc """
   Returns the imaginary unit.
@@ -66,7 +67,7 @@ defmodule Galixir.Algebras.Complex1 do
   @doc """
   Extracts the real part of a complex number.
   """
-  def real(z) do
+  def real(%__MODULE__{} = z) do
     coefficient(z, :scalar)
   end
 
@@ -165,7 +166,7 @@ defmodule Galixir.Algebras.Complex1 do
 
       exp(z) = exp(a)(cos(b) + j sin(b))
   """
-  def exp(z) do
+  def exp(%__MODULE__{} = z) do
     a = real(z)
     b = imaginary(z)
 
@@ -182,7 +183,7 @@ defmodule Galixir.Algebras.Complex1 do
 
       log(z) = log(|z|) + arg(z)j
   """
-  def log(z) do
+  def log(%__MODULE__{} = z) do
     complex(
       :math.log(mag(z)),
       arg(z)
@@ -197,7 +198,7 @@ defmodule Galixir.Algebras.Complex1 do
 
       z^t = exp(t * log(z))
   """
-  def pow(z, t) do
+  def pow(%__MODULE__{} = z, t) when is_number(t) do
     exp(
       scale(
         t,

@@ -35,7 +35,8 @@ defmodule Galixir.GeneratorRegistry do
     Galixir.Generator.ScalarProduct,
     Galixir.Generator.WedgeProduct,
     Galixir.Generator.Sigil,
-    Galixir.Generator.Conversion
+    Galixir.Generator.Conversion,
+    Galixir.Generator.Exponential
   ]
 
   def generators do

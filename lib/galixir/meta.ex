@@ -13,7 +13,8 @@ defmodule Galixir.Meta do
     :table,
     :blade_indices,
     :blade_aliases,
-    :epsilon
+    :epsilon,
+    :generic_exp
   ]
 
   @doc """

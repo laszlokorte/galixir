@@ -44,7 +44,8 @@ defmodule Galixir.Algebras.Hyper1 do
 
   use Galixir.GeometricAlgebra,
     metric: {1},
-    bases: {"1"}
+    bases: {"1"},
+    exp: false
 
   @doc """
   Returns the hyperbolic unit.
@@ -161,7 +162,7 @@ defmodule Galixir.Algebras.Hyper1 do
       exp(z) =
         exp(a)(cosh(b) + j*sinh(b))
   """
-  def exp(z) do
+  def exp(%__MODULE__{} = z) do
     a = real(z)
     b = hyper_part(z)
 
@@ -181,7 +182,7 @@ defmodule Galixir.Algebras.Hyper1 do
   Outside this domain the implementation may raise or return a value whose
   exponential is not `z`; it does not handle the other timelike cone.
   """
-  def log(z) do
+  def log(%__MODULE__{} = z) do
     a = real(z)
     b = hyper_part(z)
 

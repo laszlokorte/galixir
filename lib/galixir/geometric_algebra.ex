@@ -189,7 +189,8 @@ defmodule Galixir.GeometricAlgebra do
       table: table,
       blade_indices: blade_indices,
       blade_aliases: blade_aliases,
-      epsilon: epsilon
+      epsilon: epsilon,
+      generic_exp: opts |> Keyword.get(:exp, true)
     }
 
     ast =
