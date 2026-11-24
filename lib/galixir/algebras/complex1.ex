@@ -156,58 +156,6 @@ defmodule Galixir.Algebras.Complex1 do
   end
 
   @doc """
-  Computes the complex exponential.
-
-  For:
-
-      z = a + bj
-
-  computes:
-
-      exp(z) = exp(a)(cos(b) + j sin(b))
-  """
-  def exp(%__MODULE__{} = z) do
-    a = real(z)
-    b = imaginary(z)
-
-    complex(
-      :math.exp(a) * :math.cos(b),
-      :math.exp(a) * :math.sin(b)
-    )
-  end
-
-  @doc """
-  Computes the principal complex logarithm of a non-zero number.
-
-  Returns:
-
-      log(z) = log(|z|) + arg(z)j
-  """
-  def log(%__MODULE__{} = z) do
-    complex(
-      :math.log(mag(z)),
-      arg(z)
-    )
-  end
-
-  @doc """
-  Raises a non-zero complex number to a real scalar exponent `t` using
-  the principal logarithm.
-
-  Calculates:
-
-      z^t = exp(t * log(z))
-  """
-  def pow(%__MODULE__{} = z, t) when is_number(t) do
-    exp(
-      scale(
-        t,
-        log(z)
-      )
-    )
-  end
-
-  @doc """
   Returns the scalar part of the geometric product.
 
   For `a + bj` and `c + dj`, this is `a*c - b*d`, not the usual

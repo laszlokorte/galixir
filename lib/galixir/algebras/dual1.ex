@@ -126,48 +126,6 @@ defmodule Galixir.Algebras.Dual1 do
   end
 
   @doc """
-  Computes the exponential function.
-
-  For:
-
-      x = a + bε
-
-  returns:
-
-      exp(x) = exp(a) + b exp(a) ε
-  """
-  def exp(%__MODULE__{} = x) do
-    a = real(x)
-    b = infinitesimal(x)
-
-    dual(
-      :math.exp(a),
-      b * :math.exp(a)
-    )
-  end
-
-  @doc """
-  Computes the natural logarithm.
-
-  For:
-
-      x = a + bε
-
-  for `a > 0`, returns:
-
-      log(x) = log(a) + b/a ε
-  """
-  def log(%__MODULE__{} = x) do
-    a = real(x)
-    b = infinitesimal(x)
-
-    dual(
-      :math.log(a),
-      b / a
-    )
-  end
-
-  @doc """
   Computes the sine function.
 
   The infinitesimal component contains the derivative:
@@ -198,27 +156,6 @@ defmodule Galixir.Algebras.Dual1 do
     dual(
       :math.cos(a),
       -b * :math.sin(a)
-    )
-  end
-
-  @doc """
-  Computes the square root.
-
-  For: `x = a + bε`
-
-  for `a > 0`, returns:
-
-      sqrt(x) = sqrt(a) + b/(2sqrt(a)) ε
-  """
-  def sqrt(x) do
-    a = real(x)
-    b = infinitesimal(x)
-
-    s = a ** 0.5
-
-    dual(
-      s,
-      b / (2 * s)
     )
   end
 

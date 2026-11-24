@@ -151,68 +151,6 @@ defmodule Galixir.Algebras.Hyper1 do
   end
 
   @doc """
-  Computes the hyperbolic exponential.
-
-  For:
-
-      z = a + bj
-
-  returns:
-
-      exp(z) =
-        exp(a)(cosh(b) + j*sinh(b))
-  """
-  def exp(%__MODULE__{} = z) do
-    a = real(z)
-    b = hyper_part(z)
-
-    hyper(
-      :math.exp(a) * :math.cosh(b),
-      :math.exp(a) * :math.sinh(b)
-    )
-  end
-
-  @doc """
-  Computes a real split-complex logarithm in the positive timelike cone.
-
-  For `z = a + bj` with `a > |b|`, returns:
-
-      log(z) = log(sqrt(a² - b²)) + atanh(b/a)j
-
-  Outside this domain the implementation may raise or return a value whose
-  exponential is not `z`; it does not handle the other timelike cone.
-  """
-  def log(%__MODULE__{} = z) do
-    a = real(z)
-    b = hyper_part(z)
-
-    r =
-      abs(a * a - b * b) ** 0.5
-
-    hyper(
-      :math.log(r),
-      :math.atanh(b / a)
-    )
-  end
-
-  @doc """
-  Raises a hyperbolic number in the positive timelike cone to a real
-  scalar exponent `t` via `log/1`.
-
-  Calculates:
-
-      z^t = exp(t * log(z))
-  """
-  def pow(z, t) do
-    exp(
-      scale(
-        t,
-        log(z)
-      )
-    )
-  end
-
-  @doc """
   Returns the scalar part of the geometric product.
 
   For `a + bj` and `c + dj`, this is `a*c + b*d`, not the

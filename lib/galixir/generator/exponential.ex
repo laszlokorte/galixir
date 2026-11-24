@@ -1,194 +1,451 @@
 defmodule Galixir.Generator.Exponential do
   @moduledoc """
-  Generates scaled-Taylor exponential and bounded near-identity logarithm operations.
+  Generates multivector exponential, square root, logarithm and fractional powers.
 
-  Complex1, Dual1, and Hyper1 retain their existing specialized elementary
-  functions because their logarithm contracts cover domains beyond this local
-  real Mercator-series implementation.
+  Scalar-square closed forms handle common blade and complex-like cases. General
+  square roots use Newton iteration and general logarithms use inverse scaling and
+  squaring with the Cayley series.
   """
 
   @behaviour Galixir.GeneratorBehaviour
   @impl Galixir.GeneratorBehaviour
-  def generate_implementation(%Galixir.Meta{generic_exp: exp}) do
-    if exp, do: [implementation()], else: []
+  def generate_implementation(%Galixir.Meta{}) do
+    [implementation()]
   end
 
   defp implementation do
     quote do
+      @functional_tolerance 1.0e-12
+      @functional_iteration_limit 256
+      @functional_reduction_limit 32
+
       @doc """
-      Computes the geometric-algebra exponential of a finite multivector using a
-      scaled Taylor series and repeated squaring. The Taylor series uses at most
-      256 terms after scaling the coefficient L2 norm to at most `0.5`; each term
-      is `gp(previous_term, value) / k`. The summation stops when the next term's
-      L2 norm is at most `1.0e-15` times the larger of one and the sum's L2 norm.
-
-      Raises `ArgumentError` if the input or result has non-finite coefficients,
-      or if the Taylor series does not converge within its term limit. The
-      algebra's metric-dependent `norm/1` is not used for convergence control.
-
-      ## Examples
-
-          iex> exp(new())
-          new(scalar: 1.0)
-
-          iex> exp(new(scalar: 1))
-          new(scalar: 2.7182818284590438)
-
-          iex> exp(new(e12: 1)) |> coefficient(:e12)
-          0.8414709848078965
+      Computes the geometric-algebra exponential. Scalar-square inputs use closed
+      forms; other inputs use coefficient-norm scaling, a bounded Taylor series
+      with a tail bound, and repeated squaring. Raises `ArgumentError` if a
+      coefficient is non-finite, the result is not representable, or the series
+      fails to converge.
       """
       @doc group: :exponential
       def exp(%__MODULE__{} = value) do
-        unless exp_finite?(value) do
-          raise ArgumentError, "cannot exponentiate a multivector with non-finite coefficients"
+        if not functional_finite?(value) do
+          raise ArgumentError, "exponential requires finite coefficients"
         end
 
-        size = exp_l2_norm(value)
-        squarings = if size == 0.0, do: 0, else: max(0, ceil(:math.log2(size) + 1))
+        scalar = scalar_part(value)
+        body = sub(value, new(scalar: scalar))
+
+        result =
+          case functional_scalar_square(body) do
+            {:ok, square} ->
+              functional_exp_scalar_square(scalar, body, square)
+
+            :error ->
+              functional_exp_series(value)
+          end
+
+        if functional_finite?(result),
+          do: result,
+          else: raise(ArgumentError, "exponential result is not finite")
+      end
+
+      defp functional_exp_scalar_square(scalar, body, square) do
+        cond do
+          square < 0.0 ->
+            radius = :math.sqrt(-square)
+            body_exp = add(scale(:math.cos(radius), one()), scale(functional_sinc(radius), body))
+            scale(:math.exp(scalar), body_exp)
+
+          square > 0.0 ->
+            radius = :math.sqrt(square)
+            positive = :math.exp(scalar + radius)
+            negative = :math.exp(scalar - radius)
+
+            add(
+              new(scalar: (positive + negative) / 2.0),
+              scale((positive - negative) / (2.0 * radius), body)
+            )
+
+          true ->
+            scale(:math.exp(scalar), add(one(), body))
+        end
+      end
+
+      defp functional_exp_series(value) do
+        squarings = functional_scale_exponent(value)
         scaled = scale(:math.pow(0.5, squarings), value)
-        result = exp_series(scaled, one(), one(), 1)
-        result = exp_square(result, squarings)
+        scaled_norm = functional_norm(scaled)
+        tolerance = @functional_tolerance / :math.pow(2.0, squarings)
 
-        unless exp_finite?(result) do
-          raise ArgumentError, "multivector exponential produced non-finite coefficients"
-        end
+        {sum, _term, converged?} =
+          Enum.reduce_while(1..@functional_iteration_limit, {one(), one(), false}, fn n,
+                                                                                      {sum, term,
+                                                                                       _done} ->
+            next_term = scale(1.0 / n, gp(term, scaled))
+            next_sum = add(sum, next_term)
 
-        result
-      end
+            unless functional_finite?(next_term) and functional_finite?(next_sum) do
+              raise ArgumentError, "exponential Taylor series produced non-finite coefficients"
+            end
 
-      defp exp_series(_value, _sum, _term, 257) do
-        raise ArgumentError, "multivector exponential Taylor series did not converge"
-      end
+            term_norm = functional_norm(next_term)
+            ratio = scaled_norm / (n + 1)
+            tail = if ratio < 1.0, do: term_norm * ratio / (1.0 - ratio), else: :infinity
 
-      defp exp_series(value, sum, term, index) do
-        next_term = scale(1.0 / index, gp(term, value))
-        next_sum = add(sum, next_term)
+            if tail <= tolerance * max(1.0, functional_norm(next_sum)) do
+              {:halt, {next_sum, next_term, true}}
+            else
+              {:cont, {next_sum, next_term, false}}
+            end
+          end)
 
-        unless exp_finite?(next_term) and exp_finite?(next_sum) do
-          raise ArgumentError,
-                "multivector exponential Taylor series produced non-finite coefficients"
-        end
+        unless converged?, do: raise(ArgumentError, "exponential Taylor series did not converge")
 
-        if exp_l2_norm(next_term) <= 1.0e-15 * max(1.0, exp_l2_norm(next_sum)) do
-          next_sum
+        if squarings == 0 do
+          sum
         else
-          exp_series(value, next_sum, next_term, index + 1)
+          Enum.reduce(1..squarings, sum, fn _, acc ->
+            squared = gp(acc, acc)
+
+            if functional_finite?(squared),
+              do: squared,
+              else: raise(ArgumentError, "exponential overflow")
+          end)
         end
       end
 
-      defp exp_square(value, 0), do: value
+      @doc """
+      Computes a real square root when the scalar-square formula or bounded
+      Newton iteration converges. Square roots need not be unique, and Newton
+      iteration is not globally convergent. `:error` means unsupported domain or
+      numerical failure; it does not prove that no real square root exists.
+      """
+      @doc group: :exponential
+      def sqrt(%__MODULE__{} = value) do
+        if functional_finite?(value) do
+          magnitude = functional_max(value)
 
-      defp exp_square(value, count) do
-        result = gp(value, value)
+          if magnitude == 0.0 do
+            {:ok, zero()}
+          else
+            normalized = scale(1.0 / magnitude, value)
 
-        unless exp_finite?(result) do
-          raise ArgumentError, "multivector exponential produced non-finite coefficients"
+            candidate =
+              case functional_sqrt_scalar_square(normalized) do
+                {:ok, root} -> {:ok, root}
+                :error -> functional_sqrt_newton(normalized)
+              end
+
+            with {:ok, root} <- candidate do
+              root = scale(:math.sqrt(magnitude), root)
+              if functional_close?(gp(root, root), value), do: {:ok, root}, else: :error
+            end
+          end
+        else
+          :error
         end
-
-        exp_square(result, count - 1)
+      rescue
+        _error -> :error
       end
 
-      defp exp_finite?(%__MODULE__{data: data}) do
-        Enum.all?(Tuple.to_list(data), &exp_coefficient_finite?/1)
+      defp functional_sqrt_scalar_square(value) do
+        scalar = scalar_part(value)
+        body = sub(value, new(scalar: scalar))
+
+        case functional_scalar_square(body) do
+          {:ok, square} when scalar > 0.0 and square == 0.0 ->
+            {:ok,
+             add(new(scalar: :math.sqrt(scalar)), scale(1.0 / (2.0 * :math.sqrt(scalar)), body))}
+
+          {:ok, square} ->
+            discriminant = scalar * scalar - square
+
+            if discriminant >= 0.0 do
+              distance = :math.sqrt(discriminant)
+              leading = :math.sqrt(max(0.0, (scalar + distance) / 2.0))
+
+              if leading > 1.0e-15 do
+                candidate = add(new(scalar: leading), scale(1.0 / (2.0 * leading), body))
+
+                if functional_close?(gp(candidate, candidate), value),
+                  do: {:ok, candidate},
+                  else: :error
+              else
+                :error
+              end
+            else
+              :error
+            end
+
+          :error ->
+            :error
+        end
       end
 
-      defp exp_coefficient_finite?(value) when is_float(value) do
-        value * 0.0 == 0.0
+      defp functional_sqrt_newton(value) do
+        functional_sqrt_newton(value, one(), 0, nil)
       end
 
-      defp exp_coefficient_finite?(value) when is_integer(value) do
+      defp functional_sqrt_newton(_value, _root, @functional_iteration_limit, _previous_residual),
+        do: :error
+
+      defp functional_sqrt_newton(value, root, iteration, previous_residual) do
+        with {:ok, inverse} <- inverse_generic(root) do
+          next = scale(0.5, add(root, gp(value, inverse)))
+          residual = functional_norm(sub(gp(next, next), value))
+
+          cond do
+            not functional_finite?(next) or not functional_finite_number?(residual) ->
+              :error
+
+            residual <= @functional_tolerance * max(1.0, functional_norm(value)) ->
+              {:ok, next}
+
+            not is_nil(previous_residual) and residual >= previous_residual * (1.0 - 1.0e-14) ->
+              :error
+
+            true ->
+              functional_sqrt_newton(value, next, iteration + 1, residual)
+          end
+        end
+      end
+
+      @doc """
+      Computes a real multivector logarithm using scalar-square formulas or
+      inverse scaling and squaring with the Cayley series. Every exponential is
+      invertible, so singular values cannot be reached by finite exponential
+      interpolation; not every invertible real multivector has a real logarithm.
+      Logarithms need not be unique, and a real logarithm may exist outside the
+      subalgebra generated by the input. This algorithm may fail even when a real
+      logarithm exists (for example, for a negative scalar it does not search for
+      a square-negative element elsewhere in the algebra). `{:error, reason}`
+      indicates unsupported domain or numerical failure, not proof that no real
+      logarithm exists. The selected logarithm is checked by reconstruction and
+      commutation residuals.
+      """
+      @doc group: :exponential
+      def log(%__MODULE__{} = value) do
+        magnitude = functional_max(value)
+
+        if not functional_finite?(value) or magnitude == 0.0 do
+          {:error, :outside_domain}
+        else
+          normalized = scale(1.0 / magnitude, value)
+
+          result =
+            case functional_log_scalar_square(normalized) do
+              {:ok, candidate} -> {:ok, add(new(scalar: :math.log(magnitude)), candidate)}
+              :error -> functional_log_general(normalized, magnitude)
+            end
+
+          with {:ok, candidate} <- result,
+               true <- functional_finite?(candidate),
+               true <- functional_close?(exp(candidate), value),
+               true <- functional_commutes?(candidate, value) do
+            {:ok, candidate}
+          else
+            _ -> {:error, :no_convergence}
+          end
+        end
+      rescue
+        _error -> {:error, :no_convergence}
+      end
+
+      defp functional_log_scalar_square(value) do
+        scalar = scalar_part(value)
+        body = sub(value, new(scalar: scalar))
+
+        if functional_max(body) == 0.0 and scalar > 0.0 do
+          {:ok, new(scalar: :math.log(scalar))}
+        else
+          case functional_scalar_square(body) do
+            {:ok, square} when square < 0.0 ->
+              radius = :math.sqrt(-square)
+              magnitude = functional_hypot(scalar, radius)
+              angle = :math.atan2(radius, scalar)
+              {:ok, add(new(scalar: :math.log(magnitude)), scale(angle / radius, body))}
+
+            {:ok, square} when square == 0.0 and scalar > 0.0 ->
+              {:ok, add(new(scalar: :math.log(scalar)), scale(1.0 / scalar, body))}
+
+            {:ok, square} when square > 0.0 ->
+              radius = :math.sqrt(square)
+
+              if scalar > radius do
+                plus = :math.log(scalar + radius)
+                minus = :math.log(scalar - radius)
+                scalar_log = (plus + minus) / 2.0
+                body_factor = (plus - minus) / (2.0 * radius)
+                {:ok, add(new(scalar: scalar_log), scale(body_factor, body))}
+              else
+                :error
+              end
+
+            _ ->
+              :error
+          end
+        end
+      end
+
+      defp functional_log_general(value, magnitude) do
+        case functional_log_reduce(value, 0) do
+          {:ok, reduced_log, roots} ->
+            {:ok,
+             add(new(scalar: :math.log(magnitude)), scale(:math.pow(2.0, roots), reduced_log))}
+
+          :error ->
+            :error
+        end
+      end
+
+      defp functional_log_reduce(_value, @functional_reduction_limit), do: :error
+
+      defp functional_log_reduce(value, roots) do
+        with {:ok, z} <- functional_cayley(value),
+             norm when norm <= 0.5 <- functional_norm(z) do
+          case functional_cayley_series(z, roots) do
+            {:ok, result} -> {:ok, result, roots}
+            :error -> :error
+          end
+        else
+          _ ->
+            with {:ok, root} <- sqrt(value),
+                 true <- not functional_close?(root, value) do
+              functional_log_reduce(root, roots + 1)
+            else
+              _ -> :error
+            end
+        end
+      end
+
+      defp functional_cayley(value) do
+        denominator = add(value, one())
+
+        with {:ok, inverse} <- inverse_generic(denominator) do
+          {:ok, gp(sub(value, one()), inverse)}
+        end
+      end
+
+      defp functional_cayley_series(z, roots) do
+        z2 = gp(z, z)
+        q = functional_norm(z)
+        tolerance = @functional_tolerance / :math.pow(2.0, roots + 1)
+
+        Enum.reduce_while(1..@functional_iteration_limit, {:continue, z, z}, fn n,
+                                                                                {:continue, sum,
+                                                                                 power} ->
+          next_power = gp(power, z2)
+          divisor = 2 * n + 1
+          term = scale(1.0 / divisor, next_power)
+          next_sum = add(sum, term)
+
+          tail =
+            2.0 * :math.pow(q, 2 * n + 3) /
+              ((2 * n + 3) * (1.0 - q * q))
+
+          cond do
+            not functional_finite?(next_sum) ->
+              {:halt, :error}
+
+            tail <= tolerance ->
+              {:halt, {:ok, scale(2.0, next_sum)}}
+
+            true ->
+              {:cont, {:continue, next_sum, next_power}}
+          end
+        end)
+        |> case do
+          {:ok, result} -> {:ok, result}
+          _ -> :error
+        end
+      end
+
+      @doc "Returns `{:ok, result}` for the real fractional power, or `:error` when its logarithm is unsupported."
+      @doc group: :exponential
+      def pow(%__MODULE__{} = value, exponent) when is_number(exponent) do
+        with true <- functional_finite_number?(exponent),
+             {:ok, logarithm} <- log(value) do
+          result = exp(scale(exponent, logarithm))
+          if functional_finite?(result), do: {:ok, result}, else: :error
+        else
+          _ -> :error
+        end
+      rescue
+        _error -> :error
+      end
+
+      def pow(_value, _exponent), do: :error
+
+      defp functional_scalar_square(value) do
+        product = gp(value, value)
+        scalar = scalar_part(product)
+        nonscalar = sub(product, new(scalar: scalar))
+        relative_residual = functional_max(nonscalar) / max(1.0, functional_max(product))
+
+        if relative_residual <= @functional_tolerance, do: {:ok, scalar}, else: :error
+      end
+
+      defp functional_sinc(value) when abs(value) < 1.0e-4 do
+        square = value * value
+        1.0 - square / 6.0 + square * square / 120.0
+      end
+
+      defp functional_sinc(value), do: :math.sin(value) / value
+
+      defp functional_hypot(a, b) do
+        maximum = max(abs(a), abs(b))
+
+        if maximum == 0.0,
+          do: 0.0,
+          else: maximum * :math.sqrt((a / maximum) ** 2 + (b / maximum) ** 2)
+      end
+
+      defp functional_scale_exponent(%__MODULE__{data: data}) do
+        maximum = Enum.reduce(Tuple.to_list(data), 0.0, fn value, acc -> max(abs(value), acc) end)
+
+        if maximum == 0.0 do
+          0
+        else
+          scaled_norm =
+            Enum.reduce(Tuple.to_list(data), 0.0, fn value, acc -> acc + abs(value) / maximum end)
+
+          max(0, ceil(:math.log2(maximum) + :math.log2(scaled_norm) + 1.0))
+        end
+      end
+
+      defp functional_norm(%__MODULE__{data: data}) do
+        Enum.reduce(Tuple.to_list(data), 0.0, fn value, acc -> acc + abs(value) end)
+      end
+
+      defp functional_max(%__MODULE__{data: data}) do
+        Enum.reduce(Tuple.to_list(data), 0.0, fn value, acc -> max(abs(value), acc) end)
+      end
+
+      defp functional_finite?(%__MODULE__{data: data}) do
+        Enum.all?(Tuple.to_list(data), &functional_finite_number?/1)
+      end
+
+      defp functional_finite_number?(value) when is_float(value), do: value * 0.0 == 0.0
+
+      defp functional_finite_number?(value) when is_integer(value) do
         _ = value * 1.0
         true
       rescue
         ArithmeticError -> false
       end
 
-      defp exp_coefficient_finite?(_value), do: false
+      defp functional_finite_number?(_value), do: false
 
-      defp exp_l2_norm(%__MODULE__{data: data}) do
-        coefficients = Tuple.to_list(data)
-        maximum = Enum.reduce(coefficients, 0.0, fn value, acc -> max(abs(value), acc) end)
-
-        if maximum == 0.0 do
-          0.0
-        else
-          maximum *
-            :math.sqrt(
-              Enum.reduce(coefficients, 0.0, fn value, acc ->
-                normalized = value / maximum
-                acc + normalized * normalized
-              end)
-            )
-        end
+      defp functional_close?(actual, expected) do
+        residual = functional_max(sub(actual, expected))
+        residual / max(1.0, functional_max(expected)) <= @functional_tolerance
       end
 
-      @doc """
-      Computes the real logarithm by the Mercator series `log(1 + u) =
-      u - u²/2 + u³/3 - ...`, where `u = value - 1`.
+      defp functional_commutes?(a, b) do
+        residual = functional_max(commutator(a, b))
 
-      This intentionally supports only the conservative near-identity domain
-      where the coefficient L1 norm of `u` is strictly less than one. In that
-      domain the coefficient L1 norm is submultiplicative for Galixir's diagonal
-      metrics, so the series converges. This is a principal local branch, not a
-      general real multivector logarithm. Values outside the domain—including
-      negative scalars and most singular values—return
-      `{:error, :outside_convergence_domain}`. Non-finite coefficients return
-      `{:error, :non_finite}`; failure to meet the relative `1.0e-15` term
-      tolerance within 4096 terms returns `{:error, :no_convergence}`.
-
-      The tolerance compares the term's coefficient L1 norm to `1.0e-15` times
-      the larger of one and the sum's coefficient L1 norm. A successful result
-      is `{:ok, logarithm}`. For example, this recovers small real scalar and
-      nilpotent logarithms; it does not promise to find every real logarithm.
-
-      ## Examples
-
-          iex> log(one())
-          {:ok, new()}
-
-          iex> log(new(scalar: 1.5))
-          {:ok, new(scalar: 0.40546510810816444)}
-
-          iex> log(new(scalar: -1))
-          {:error, :outside_convergence_domain}
-      """
-      @doc group: :exponential
-      def log(%__MODULE__{} = value) do
-        if exp_finite?(value) do
-          delta = sub(value, one())
-          distance = log_l1_norm(delta)
-
-          if distance >= 1.0 do
-            {:error, :outside_convergence_domain}
-          else
-            log_series(delta, gp(delta, delta), delta, 2)
-          end
-        else
-          {:error, :non_finite}
-        end
-      end
-
-      defp log_series(_value, _power, _sum, 4097), do: {:error, :no_convergence}
-
-      defp log_series(value, power, sum, index) do
-        sign = if rem(index, 2) == 0, do: -1.0, else: 1.0
-        term = scale(sign / index, power)
-        next_sum = add(sum, term)
-
-        cond do
-          not exp_finite?(term) or not exp_finite?(next_sum) ->
-            {:error, :non_finite}
-
-          log_l1_norm(term) <= 1.0e-15 * max(1.0, log_l1_norm(next_sum)) ->
-            {:ok, next_sum}
-
-          true ->
-            log_series(value, gp(power, value), next_sum, index + 1)
-        end
-      end
-
-      defp log_l1_norm(%__MODULE__{data: data}) do
-        Enum.reduce(Tuple.to_list(data), 0.0, fn value, acc -> acc + abs(value) end)
+        residual / max(1.0, functional_max(a)) / max(1.0, functional_max(b)) <=
+          @functional_tolerance
       end
     end
   end
