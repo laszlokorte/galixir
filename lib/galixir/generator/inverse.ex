@@ -13,6 +13,7 @@ defmodule Galixir.Generator.Inverse do
   end
 
   def inverse_impl(metric, bases) do
+    bases_size = tuple_size(bases)
     first_blade = "e#{elem(bases, 0)}"
     metric = elem(metric, 0)
 
@@ -149,7 +150,30 @@ defmodule Galixir.Generator.Inverse do
              {:ok, denom} when is_above_epsilon(denom) <- scalar(product) do
           {:ok, scale(1 / denom, rev)}
         else
-          _ -> :error
+          _ -> inverse_generic(a)
+        end
+      end
+
+      def inverse_generic(a) do
+        n = unquote(bases_size)
+        order = Integer.pow(2, div(n + 1, 2))
+
+        inverse_step(a, new(scalar: 1.0), 1, order)
+      end
+
+      defp inverse_step(a, b, k, order) do
+        u = gp(a, b)
+        c = scalar_part(u) * order / k
+
+        cond do
+          k < order ->
+            inverse_step(a, sub(u, new(scalar: c)), k + 1, order)
+
+          c == 0 ->
+            :error
+
+          true ->
+            {:ok, scale(1 / c, b)}
         end
       end
 
